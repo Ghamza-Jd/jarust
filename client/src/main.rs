@@ -37,6 +37,7 @@ async fn main() -> anyhow::Result<()> {
             },
         )
         .await?;
+
     let mut interval = time::interval(Duration::from_secs(1));
     loop {
         interval.tick().await;
