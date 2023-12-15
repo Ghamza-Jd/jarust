@@ -11,6 +11,7 @@ mod jaconnection;
 mod jahandle;
 mod jasession;
 mod prelude;
+mod tmanager;
 mod transport;
 mod utils;
 
