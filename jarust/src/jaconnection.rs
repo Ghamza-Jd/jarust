@@ -77,6 +77,7 @@ impl JaConnection {
                         .publish(&pending.namespace, next.to_string())
                         .await
                         .unwrap();
+                    transaction_manager.success_close(transaction);
                     continue;
                 }
             }
