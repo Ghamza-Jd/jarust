@@ -9,7 +9,7 @@ use simple_logger::SimpleLogger;
 use std::time::Duration;
 use tokio::time;
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
@@ -37,7 +37,6 @@ async fn main() -> anyhow::Result<()> {
             },
         )
         .await?;
-
     let mut interval = time::interval(Duration::from_secs(1));
     loop {
         interval.tick().await;
