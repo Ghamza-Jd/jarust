@@ -37,7 +37,7 @@ impl Demux {
         {
             self.write().unwrap().channels.insert(namespace.into(), tx);
         }
-        log::trace!("Namespace [{namespace}] created");
+        log::trace!("Namespace created: (id={namespace})");
         rx
     }
 
@@ -51,7 +51,6 @@ impl Demux {
             if channel.send(message.clone()).await.is_err() {
                 return Err(JaError::SendError);
             }
-            log::trace!("[{namespace}]: {message}");
         }
 
         Ok(())

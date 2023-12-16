@@ -46,7 +46,7 @@ pub enum JaResponseStatus {
 #[derive(Debug, Deserialize)]
 pub struct JaResponse {
     #[serde(rename = "janus")]
-    _janus: JaResponseProtocol,
+    pub janus: JaResponseProtocol,
 }
 
 #[derive(Debug, Deserialize)]

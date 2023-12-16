@@ -7,7 +7,8 @@ use crate::tmanager::TransactionManager;
 use crate::transport::wss::WebSocketReceiver;
 use crate::transport::wss::WebsocketTransport;
 use crate::utils::generate_transaction;
-use crate::utils::get_subnamespace;
+use crate::utils::get_subnamespace_from_request;
+use crate::utils::get_subnamespace_from_response;
 use futures_util::StreamExt;
 use serde::Deserialize;
 use serde_json::json;
@@ -61,38 +62,38 @@ impl WeakJaConnection {
 }
 
 impl JaConnection {
+    /// Async task to handle demultiplexing of the inbound stream
     async fn demux_task(
         inbound_stream: WebSocketReceiver,
         demux: Demux,
         transaction_manager: TransactionManager,
         root_namespace: &str,
-    ) {
+    ) -> JaResult<()> {
         let mut stream = inbound_stream;
         while let Some(Ok(next)) = stream.next().await {
             let response: Value = serde_json::from_str(&next.to_string()).unwrap();
 
-            if let Some(transaction) = response["transaction"].as_str() {
-                if let Some(pending) = transaction_manager.get(transaction) {
-                    demux
-                        .publish(&pending.namespace, next.to_string())
-                        .await
-                        .unwrap();
-                    transaction_manager.success_close(transaction);
-                    continue;
-                }
-            }
-
-            if let Some(session_id) = response["session_id"].as_u64() {
-                let namespace = format!("{}/{session_id}", root_namespace);
-                demux.publish(&namespace, next.to_string()).await.unwrap();
+            // Check if we have a pending transaction and demux to the proper namespace
+            if let Some(pending) = response
+                .get("transaction")
+                .and_then(Value::as_str)
+                .and_then(|x| transaction_manager.get(x))
+            {
+                demux.publish(&pending.namespace, next.to_string()).await?;
+                transaction_manager.success_close(&pending.id);
                 continue;
             }
 
-            demux
-                .publish(root_namespace, next.to_string())
-                .await
-                .unwrap();
+            // Try get the namespace from the response
+            if let Some(namespace) = get_subnamespace_from_response(&response) {
+                demux.publish(&namespace, next.to_string()).await?;
+                continue;
+            }
+
+            // Fallback to publishing on the root namespace
+            demux.publish(root_namespace, next.to_string()).await?;
         }
+        Ok(())
     }
 
     pub(crate) async fn open(config: JaConfig) -> JaResult<Self> {
@@ -112,7 +113,7 @@ impl JaConnection {
                 transaction_manager_clone,
                 &root_namespace.clone(),
             )
-            .await;
+            .await
         });
 
         let shared = Shared { config };
@@ -156,6 +157,16 @@ impl JaConnection {
         Ok(session)
     }
 
+    pub async fn server_info(&mut self) -> JaResult<String> {
+        let request = json!({
+            "janus": JaConnectionRequestProtocol::ServerInfo,
+        });
+
+        self.send_request(request).await?;
+        let res = { self.safe.lock().await.receiver.recv().await.unwrap() };
+        Ok(res)
+    }
+
     pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<()> {
         let request = self.decorate_request(request);
         let message = serde_json::to_string(&request)?;
@@ -169,7 +180,7 @@ impl JaConnection {
         let namespace = format!(
             "{}{}",
             self.shared.config.root_namespace,
-            get_subnamespace(&request)
+            get_subnamespace_from_request(&request)
         );
 
         let mut guard = self.safe.lock().await;

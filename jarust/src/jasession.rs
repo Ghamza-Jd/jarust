@@ -75,7 +75,7 @@ impl JaSession {
         session
     }
 
-    pub async fn attach(&self, plugin_id: &str) -> JaResult<JaHandle> {
+    pub async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<String>)> {
         log::info!("[{}] attaching new handle", self.shared.id);
 
         let request = json!({
@@ -100,7 +100,7 @@ impl JaSession {
             .create_subnamespace(&format!("{}/{}", self.shared.id, handle_id))
             .await;
 
-        let handle = JaHandle::new(self.downgrade(), receiver, handle_id);
+        let (handle, event_receiver) = JaHandle::new(self.downgrade(), receiver, handle_id);
 
         self.safe
             .lock()
@@ -110,7 +110,7 @@ impl JaSession {
 
         log::info!("Handle created (id={})", handle_id);
 
-        Ok(handle)
+        Ok((handle, event_receiver))
     }
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {

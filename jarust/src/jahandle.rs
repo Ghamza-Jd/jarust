@@ -1,4 +1,6 @@
 use crate::japrotocol::JaHandleRequestProtocol;
+use crate::japrotocol::JaResponse;
+use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::Jsep;
 use crate::jasession::WeakJaSession;
 use crate::prelude::*;
@@ -14,7 +16,7 @@ pub struct Shared {
 }
 
 pub struct SafeShared {
-    receiver: mpsc::Receiver<String>,
+    ack_receiver: mpsc::Receiver<String>,
 }
 
 pub struct InnerHandle {
@@ -34,13 +36,38 @@ impl std::ops::Deref for JaHandle {
 }
 
 impl JaHandle {
-    pub fn new(session: WeakJaSession, receiver: mpsc::Receiver<String>, id: u64) -> Self {
+    pub fn new(
+        session: WeakJaSession,
+        mut receiver: mpsc::Receiver<String>,
+        id: u64,
+    ) -> (Self, mpsc::Receiver<String>) {
         let shared = Shared { id, session };
-        let safe = SafeShared { receiver };
-        Self(Arc::new(InnerHandle {
-            shared,
-            safe: Mutex::new(safe),
-        }))
+        let (ack_sender, ack_receiver) = mpsc::channel(100);
+        let (event_sender, event_receiver) = mpsc::channel(100);
+
+        tokio::runtime::Handle::current().spawn(async move {
+            while let Some(item) = receiver.recv().await {
+                let response_type = serde_json::from_str::<JaResponse>(&item).unwrap();
+                match response_type.janus {
+                    JaResponseProtocol::Status(_) | JaResponseProtocol::Ack(_) => {
+                        ack_sender.send(item.clone()).await.unwrap();
+                    }
+                    JaResponseProtocol::Event(_) => {
+                        event_sender.send(item).await.unwrap();
+                    }
+                }
+            }
+        });
+
+        let safe = SafeShared { ack_receiver };
+
+        (
+            Self(Arc::new(InnerHandle {
+                shared,
+                safe: Mutex::new(safe),
+            })),
+            event_receiver,
+        )
     }
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
@@ -69,7 +96,7 @@ impl JaHandle {
         self.send_request(request).await?;
         let response = {
             let mut guard = self.safe.lock().await;
-            guard.receiver.recv().await.unwrap()
+            guard.ack_receiver.recv().await.unwrap()
         };
         Ok(response)
     }

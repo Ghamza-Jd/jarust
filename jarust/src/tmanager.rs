@@ -5,7 +5,7 @@ use std::{
 
 #[derive(Clone)]
 pub struct PendingTransaction {
-    id: String,
+    pub id: String,
     request: String,
     pub namespace: String,
 }
@@ -74,10 +74,7 @@ impl TransactionManager {
 
         self.insert(id, pending_transaction);
         log::trace!(
-            "Transaction [{}] created in namespace [{}] for request \"{}\"",
-            id,
-            namespace,
-            request
+            "Transaction created {{ id: {id}, namespace: {namespace}, request: {request} }}"
         );
     }
 
@@ -86,8 +83,9 @@ impl TransactionManager {
         if let Some(tx) = tx {
             self.remove(&tx.id);
             log::trace!(
-                "Transaction [{}] successfully closed for request \"{}\"",
+                "Transaction closed successfully {{ id: {}, namespace: {}, request: {} }}",
                 tx.id,
+                tx.namespace,
                 tx.request
             );
         }

@@ -1,13 +1,9 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::japrotocol::Jsep;
-use jarust::japrotocol::JsepType;
 use log::LevelFilter;
 use log::SetLoggerError;
 use serde_json::json;
 use simple_logger::SimpleLogger;
-use std::time::Duration;
-use tokio::time;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -21,26 +17,23 @@ async fn main() -> anyhow::Result<()> {
     ))
     .await?;
 
+    let server_info = connection.server_info().await?;
+
     let session = connection.create(10).await?;
-    let handle = session.attach("janus.plugin.echotest").await?;
+    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
-        .message_with_jsep(
-            json!({
-                "request": "",
-                "audio": false,
-                "video": true
-            }),
-            Jsep {
-                jsep_type: JsepType::Offer,
-                sdp: "".into(),
-            },
-        )
+        .message(json!({
+            "audio": true,
+            "video": true
+        }))
         .await?;
-    let mut interval = time::interval(Duration::from_secs(1));
-    loop {
-        interval.tick().await;
+
+    while let Some(event) = event_receiver.recv().await {
+        log::info!("{event}");
     }
+
+    Ok(())
 }
 
 fn init_logger() -> Result<(), SetLoggerError> {
