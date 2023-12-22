@@ -72,7 +72,6 @@ impl JaHandle {
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
         let Some(session) = self.shared.session.upgarde() else {
-            log::trace!("[{}] dangling handle, cleaning it up", self.shared.id);
             return Err(JaError::DanglingHandle);
         };
         request["handle_id"] = self.shared.id.into();
@@ -102,7 +101,7 @@ impl JaHandle {
     }
 
     pub async fn detach(&self) -> JaResult<()> {
-        log::info!("[{}] detaching handle", self.shared.id);
+        log::info!("Detaching handle {{ id: {} }}", self.shared.id);
         let request = json!({
             "janus": JaHandleRequestProtocol::DetachPlugin,
         });

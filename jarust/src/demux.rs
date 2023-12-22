@@ -37,7 +37,7 @@ impl Demux {
         {
             self.write().unwrap().channels.insert(namespace.into(), tx);
         }
-        log::trace!("Namespace created: (id={namespace})");
+        log::trace!("Namespace created: {{ id: {namespace} }}");
         rx
     }
 

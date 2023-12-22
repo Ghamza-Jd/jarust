@@ -152,7 +152,7 @@ impl JaConnection {
             .sessions
             .insert(session_id, session.clone());
 
-        log::info!("Session created (id={})", session_id);
+        log::info!("Session created {{ id: {} }}", session_id);
 
         Ok(session)
     }
