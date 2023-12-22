@@ -86,6 +86,7 @@ impl JaConnection {
 
             // Try get the namespace from the response
             if let Some(namespace) = get_subnamespace_from_response(&response) {
+                let namespace = format!("{}/{}", root_namespace, namespace);
                 demux.publish(&namespace, next.to_string()).await?;
                 continue;
             }

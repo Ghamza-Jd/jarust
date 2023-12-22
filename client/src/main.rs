@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     ))
     .await?;
 
-    let server_info = connection.server_info().await?;
+    // let server_info = connection.server_info().await?;
 
     let session = connection.create(10).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
@@ -29,6 +29,8 @@ async fn main() -> anyhow::Result<()> {
         }))
         .await?;
 
+    handle.detach().await?;
+
     while let Some(event) = event_receiver.recv().await {
         log::info!("{event}");
     }
@@ -38,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
 
 fn init_logger() -> Result<(), SetLoggerError> {
     let logger = SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
+        .with_level(LevelFilter::Debug)
         .with_colors(true)
         .with_module_level("tokio_tungstenite", LevelFilter::Off)
         .with_module_level("tungstenite", LevelFilter::Off)

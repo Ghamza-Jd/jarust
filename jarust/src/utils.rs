@@ -27,9 +27,9 @@ pub fn get_subnamespace_from_response(response: &Value) -> Option<String> {
     if let (Some(session_id), Some(sender)) =
         (response["session_id"].as_u64(), response["sender"].as_u64())
     {
-        Some(format!("/{session_id}/{sender}"))
+        Some(format!("{session_id}/{sender}"))
     } else if let Some(session_id) = response["session_id"].as_u64() {
-        Some(format!("/{session_id}"))
+        Some(format!("{session_id}"))
     } else {
         None
     }
