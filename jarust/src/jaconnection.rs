@@ -178,11 +178,11 @@ impl JaConnection {
             return Err(JaError::InvalidJanusRequest);
         };
 
-        let namespace = format!(
-            "{}{}",
-            self.shared.config.root_namespace,
-            get_subnamespace_from_request(&request)
-        );
+        let root_namespace = self.shared.config.root_namespace.clone();
+        let namespace = match get_subnamespace_from_request(&request) {
+            Some(namespace) => format!("{root_namespace}/{namespace}"),
+            None => root_namespace,
+        };
 
         let mut guard = self.safe.lock().await;
         guard
