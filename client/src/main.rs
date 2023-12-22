@@ -39,13 +39,11 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn init_logger() -> Result<(), SetLoggerError> {
-    let logger = SimpleLogger::new()
+    SimpleLogger::new()
         .with_level(LevelFilter::Debug)
         .with_colors(true)
         .with_module_level("tokio_tungstenite", LevelFilter::Off)
         .with_module_level("tungstenite", LevelFilter::Off)
         .with_module_level("want", LevelFilter::Off)
-        .init();
-
-    logger
+        .init()
 }
