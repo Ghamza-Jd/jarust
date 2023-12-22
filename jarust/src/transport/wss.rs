@@ -1,6 +1,6 @@
 use crate::prelude::*;
+use async_trait::async_trait;
 use futures_util::stream::SplitSink;
-use futures_util::stream::SplitStream;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use tokio::net::TcpStream;
@@ -11,15 +11,18 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::WebSocketStream;
 
+use super::trans::Transport;
+
 type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 // type WebSocketReceiver = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
-pub(crate) struct WebsocketTransport {
+pub struct WebsocketTransport {
     sender: WebSocketSender,
 }
 
-impl WebsocketTransport {
-    pub async fn connect(uri: &str) -> JaResult<(Self, mpsc::Receiver<String>)> {
+#[async_trait]
+impl Transport for WebsocketTransport {
+    async fn connect(uri: &str) -> JaResult<(Box<Self>, mpsc::Receiver<String>)> {
         let mut request = uri.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
@@ -37,11 +40,11 @@ impl WebsocketTransport {
             }
         });
 
-        Ok((Self { sender }, rx))
+        Ok((Box::new(Self { sender }), rx))
     }
 
-    pub(crate) async fn send(&mut self, message: &str) -> JaResult<()> {
-        let item = Message::Text(message.to_string());
+    async fn send(&mut self, data: &[u8]) -> JaResult<()> {
+        let item = Message::Binary(data.to_vec());
         self.sender.send(item).await?;
         Ok(())
     }

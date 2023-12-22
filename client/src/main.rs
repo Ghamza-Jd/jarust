@@ -5,7 +5,7 @@ use log::SetLoggerError;
 use serde_json::json;
 use simple_logger::SimpleLogger;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
 
 fn init_logger() -> Result<(), SetLoggerError> {
     SimpleLogger::new()
-        .with_level(LevelFilter::Debug)
+        .with_level(LevelFilter::Trace)
         .with_colors(true)
         .with_module_level("tokio_tungstenite", LevelFilter::Off)
         .with_module_level("tungstenite", LevelFilter::Off)
