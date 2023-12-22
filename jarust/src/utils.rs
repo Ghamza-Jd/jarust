@@ -10,16 +10,16 @@ pub fn generate_transaction() -> String {
         .collect()
 }
 
-pub fn get_subnamespace_from_request(request: &Value) -> String {
+pub fn get_subnamespace_from_request(request: &Value) -> Option<String> {
     if let (Some(session_id), Some(handle_id)) = (
         request["session_id"].as_u64(),
         request["handle_id"].as_u64(),
     ) {
-        format!("/{session_id}/{handle_id}")
+        Some(format!("{session_id}/{handle_id}"))
     } else if let Some(session_id) = request["session_id"].as_u64() {
-        format!("/{session_id}")
+        Some(format!("{session_id}"))
     } else {
-        String::new()
+        None
     }
 }
 
