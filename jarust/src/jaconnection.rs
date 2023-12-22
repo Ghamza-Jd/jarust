@@ -1,9 +1,12 @@
 use crate::demux::Demux;
 use crate::jaconfig::JaConfig;
+use crate::jaconfig::TransportType;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::jasession::JaSession;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
+use crate::transport::trans::Transport;
+use crate::transport::trans::TransportProtocol;
 use crate::transport::wss::WebsocketTransport;
 use crate::utils::generate_transaction;
 use crate::utils::get_subnamespace_from_request;
@@ -23,7 +26,7 @@ pub struct Shared {
 
 pub struct SafeShared {
     demux: Demux,
-    transport: WebsocketTransport,
+    transport_protocol: TransportProtocol,
     receiver: mpsc::Receiver<String>,
     sessions: HashMap<u64, JaSession>,
     transaction_manager: TransactionManager,
@@ -101,7 +104,10 @@ impl JaConnection {
 
         let root_namespace = config.root_namespace.clone();
         let namespace_receiver = demux.create_namespace(&root_namespace.clone());
-        let (transport, receiver) = WebsocketTransport::connect(&config.uri).await?;
+        let (transport, receiver) = match config.transport_type {
+            TransportType::Wss => WebsocketTransport::connect(&config.uri).await?,
+        };
+        let transport_protocol = TransportProtocol::Wss(*transport);
 
         let demux_clone = demux.clone();
         let transaction_manager_clone = transaction_manager.clone();
@@ -118,7 +124,7 @@ impl JaConnection {
         let shared = Shared { config };
         let safe = SafeShared {
             demux,
-            transport,
+            transport_protocol,
             receiver: namespace_receiver,
             sessions: HashMap::new(),
             transaction_manager,
@@ -186,7 +192,11 @@ impl JaConnection {
         guard
             .transaction_manager
             .create_transaction(transaction, janus_request, &namespace);
-        guard.transport.send(&message).await
+        guard
+            .transport_protocol
+            .as_transport_mut()
+            .send(message.as_bytes())
+            .await
     }
 
     pub(crate) fn decorate_request(&self, mut request: Value) -> Value {
