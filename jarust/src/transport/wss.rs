@@ -14,7 +14,6 @@ use tokio_tungstenite::WebSocketStream;
 use super::trans::Transport;
 
 type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
-// type WebSocketReceiver = SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
 
 pub struct WebsocketTransport {
     sender: WebSocketSender,
@@ -29,13 +28,11 @@ impl Transport for WebsocketTransport {
         let (stream, _) = connect_async(request).await?;
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::channel(32);
+
         tokio::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
-                match message {
-                    Message::Text(text) => {
-                        tx.send(text).await.unwrap();
-                    }
-                    _ => {}
+                if let Message::Text(text) = message {
+                    tx.send(text).await.unwrap();
                 }
             }
         });
