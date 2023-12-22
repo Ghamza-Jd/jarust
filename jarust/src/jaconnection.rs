@@ -4,12 +4,10 @@ use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::jasession::JaSession;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
-use crate::transport::wss::WebSocketReceiver;
 use crate::transport::wss::WebsocketTransport;
 use crate::utils::generate_transaction;
 use crate::utils::get_subnamespace_from_request;
 use crate::utils::get_subnamespace_from_response;
-use futures_util::StreamExt;
 use serde::Deserialize;
 use serde_json::json;
 use serde_json::Value;
@@ -64,13 +62,13 @@ impl WeakJaConnection {
 impl JaConnection {
     /// Async task to handle demultiplexing of the inbound stream
     async fn demux_task(
-        inbound_stream: WebSocketReceiver,
+        inbound_stream: mpsc::Receiver<String>,
         demux: Demux,
         transaction_manager: TransactionManager,
         root_namespace: &str,
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
-        while let Some(Ok(next)) = stream.next().await {
+        while let Some(next) = stream.recv().await {
             let response: Value = serde_json::from_str(&next.to_string()).unwrap();
 
             // Check if we have a pending transaction and demux to the proper namespace
