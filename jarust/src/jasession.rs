@@ -76,7 +76,7 @@ impl JaSession {
     }
 
     pub async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<String>)> {
-        log::info!("[{}] attaching new handle", self.shared.id);
+        log::info!("Attaching new handle {{ id: {} }}", self.shared.id);
 
         let request = json!({
             "janus": JaSessionRequestProtocol::AttachPlugin,
@@ -108,14 +108,13 @@ impl JaSession {
             .handles
             .insert(handle_id, handle.clone());
 
-        log::info!("Handle created (id={})", handle_id);
+        log::info!("Handle created {{ id: {} }}", handle_id);
 
         Ok((handle, event_receiver))
     }
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
         let Some(mut connection) = self.shared.connection.upgarde() else {
-            log::trace!("[{}] dangling session, cleaning it up", self.shared.id);
             return Err(JaError::DanglingSession);
         };
         request["session_id"] = self.shared.id.into();
@@ -127,13 +126,17 @@ impl JaSession {
         let id = { self.shared.id };
         loop {
             interval.tick().await;
-            log::trace!("[{}] sending keep-alive (timeout={}s)", id, ka_interval);
+            log::trace!(
+                "Sending keep-alive {{ id: {}, timeout: {}s }}",
+                id,
+                ka_interval
+            );
             self.send_request(json!({
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
             .await?;
             self.safe.lock().await.receiver.recv().await.unwrap();
-            log::trace!("[{}] keep-alive OK", id);
+            log::trace!("keep-alive OK {{ id: {} }}", id);
         }
     }
 

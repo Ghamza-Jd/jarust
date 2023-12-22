@@ -40,9 +40,9 @@ fn init_logger() -> Result<(), SetLoggerError> {
     let logger = SimpleLogger::new()
         .with_level(LevelFilter::Trace)
         .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Debug)
-        .with_module_level("tungstenite", LevelFilter::Debug)
-        .with_module_level("want", LevelFilter::Debug)
+        .with_module_level("tokio_tungstenite", LevelFilter::Off)
+        .with_module_level("tungstenite", LevelFilter::Off)
+        .with_module_level("want", LevelFilter::Off)
         .init();
 
     logger
