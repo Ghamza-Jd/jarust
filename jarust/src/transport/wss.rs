@@ -1,3 +1,4 @@
+use super::trans::Transport;
 use crate::prelude::*;
 use async_trait::async_trait;
 use futures_util::stream::SplitSink;
@@ -10,8 +11,6 @@ use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::WebSocketStream;
-
-use super::trans::Transport;
 
 type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 
