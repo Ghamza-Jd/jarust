@@ -9,6 +9,7 @@ pub mod prelude;
 pub mod transport;
 
 mod demux;
+mod dto;
 mod error;
 mod jaconnection;
 mod jahandle;

@@ -1,8 +1,8 @@
+use crate::dto::response::AttachResponse;
 use crate::jaconnection::WeakJaConnection;
 use crate::jahandle::JaHandle;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::prelude::*;
-use serde::Deserialize;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -108,7 +108,7 @@ impl JaSession {
             .handles
             .insert(handle_id, handle.clone());
 
-        log::info!("Handle created {{ id: {} }}", handle_id);
+        log::info!("Handle created {{ id: {handle_id} }}");
 
         Ok((handle, event_receiver))
     }
@@ -126,31 +126,17 @@ impl JaSession {
         let id = { self.shared.id };
         loop {
             interval.tick().await;
-            log::trace!(
-                "Sending keep-alive {{ id: {}, timeout: {}s }}",
-                id,
-                ka_interval
-            );
+            log::trace!("Sending keep-alive {{ id: {id}, timeout: {ka_interval}s }}");
             self.send_request(json!({
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
             .await?;
             self.safe.lock().await.receiver.recv().await.unwrap();
-            log::trace!("keep-alive OK {{ id: {} }}", id);
+            log::trace!("keep-alive OK {{ id: {id} }}");
         }
     }
 
     pub(crate) fn downgrade(&self) -> WeakJaSession {
         WeakJaSession(Arc::downgrade(self))
     }
-}
-
-#[derive(Deserialize)]
-struct AttachResponse {
-    data: AttachInnerResponse,
-}
-
-#[derive(Deserialize)]
-struct AttachInnerResponse {
-    id: u64,
 }

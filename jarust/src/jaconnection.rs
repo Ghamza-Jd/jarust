@@ -1,4 +1,5 @@
 use crate::demux::Demux;
+use crate::dto::response::CreateSessionResponse;
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::jasession::JaSession;
@@ -9,7 +10,6 @@ use crate::transport::trans::TransportProtocol;
 use crate::utils::generate_transaction;
 use crate::utils::get_subnamespace_from_request;
 use crate::utils::get_subnamespace_from_response;
-use serde::Deserialize;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -208,14 +208,4 @@ impl JaConnection {
             self.shared.config.root_namespace, namespace
         ))
     }
-}
-
-#[derive(Deserialize)]
-struct CreateSessionResponse {
-    data: CreateSessionInnerResponse,
-}
-
-#[derive(Deserialize)]
-struct CreateSessionInnerResponse {
-    id: u64,
 }
