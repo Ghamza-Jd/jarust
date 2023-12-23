@@ -7,9 +7,7 @@ pub trait Transport: Send + Sync + 'static {
     fn new() -> Self
     where
         Self: Sized;
-
     async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>>;
-
     async fn send(&mut self, data: &[u8]) -> JaResult<()>;
 }
 

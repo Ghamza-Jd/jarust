@@ -5,15 +5,15 @@ use prelude::JaResult;
 
 pub mod jaconfig;
 pub mod japrotocol;
+pub mod prelude;
+pub mod transport;
 
 mod demux;
 mod error;
 mod jaconnection;
 mod jahandle;
 mod jasession;
-mod prelude;
 mod tmanager;
-mod transport;
 mod utils;
 
 pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
