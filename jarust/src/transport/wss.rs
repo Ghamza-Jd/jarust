@@ -48,6 +48,8 @@ impl Transport for WebsocketTransport {
         let item = Message::Binary(data.to_vec());
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;
+        } else {
+            return Err(JaError::TransportNotOpened);
         }
         Ok(())
     }
