@@ -1,25 +1,31 @@
-use super::wss::WebsocketTransport;
 use crate::prelude::*;
 use async_trait::async_trait;
 use tokio::sync::mpsc;
 
 #[async_trait]
-pub trait Transport {
-    async fn connect(uri: &str) -> JaResult<(Box<Self>, mpsc::Receiver<String>)>
+pub trait Transport: Send + Sync + 'static {
+    fn new() -> Self
     where
         Self: Sized;
+
+    async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>>;
+
     async fn send(&mut self, data: &[u8]) -> JaResult<()>;
 }
 
-pub enum TransportProtocol {
-    Wss(WebsocketTransport),
-}
+pub struct TransportProtocol(Box<dyn Transport + Send + Sync>);
 
 impl TransportProtocol {
-    #[must_use]
-    pub fn as_transport_mut(&mut self) -> &mut (dyn Transport + Send + Sync) {
-        match self {
-            Self::Wss(transport) => transport,
-        }
+    pub async fn connect(
+        mut transport: impl Transport,
+        uri: &str,
+    ) -> JaResult<(Self, mpsc::Receiver<String>)> {
+        let rx = transport.connect(uri).await?;
+        let transport = Self(Box::new(transport));
+        Ok((transport, rx))
+    }
+
+    pub async fn send(&mut self, data: &[u8]) -> JaResult<()> {
+        self.0.send(data).await
     }
 }

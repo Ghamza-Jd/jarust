@@ -6,7 +6,7 @@ pub struct JaConfig {
     pub root_namespace: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TransportType {
     Wss,
 }

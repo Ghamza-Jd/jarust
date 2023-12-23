@@ -15,12 +15,16 @@ use tokio_tungstenite::WebSocketStream;
 type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 
 pub struct WebsocketTransport {
-    sender: WebSocketSender,
+    sender: Option<WebSocketSender>,
 }
 
 #[async_trait]
 impl Transport for WebsocketTransport {
-    async fn connect(uri: &str) -> JaResult<(Box<Self>, mpsc::Receiver<String>)> {
+    fn new() -> Self {
+        Self { sender: None }
+    }
+
+    async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>> {
         let mut request = uri.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
@@ -36,12 +40,15 @@ impl Transport for WebsocketTransport {
             }
         });
 
-        Ok((Box::new(Self { sender }), rx))
+        self.sender = Some(sender);
+        Ok(rx)
     }
 
     async fn send(&mut self, data: &[u8]) -> JaResult<()> {
         let item = Message::Binary(data.to_vec());
-        self.sender.send(item).await?;
+        if let Some(sender) = &mut self.sender {
+            sender.send(item).await?;
+        }
         Ok(())
     }
 }
