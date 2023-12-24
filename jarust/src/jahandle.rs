@@ -45,7 +45,7 @@ impl JaHandle {
         let (ack_sender, ack_receiver) = mpsc::channel(100);
         let (event_sender, event_receiver) = mpsc::channel(100);
 
-        tokio::runtime::Handle::current().spawn(async move {
+        tokio::spawn(async move {
             while let Some(item) = receiver.recv().await {
                 let response_type = serde_json::from_str::<JaResponse>(&item).unwrap();
                 match response_type.janus {
