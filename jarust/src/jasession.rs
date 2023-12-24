@@ -67,8 +67,7 @@ impl JaSession {
 
         let this = session.clone();
 
-        let handle = tokio::runtime::Handle::current();
-        let _join_handle = handle.spawn(async move {
+        let _join_handle = tokio::spawn(async move {
             let _ = this.keep_alive(ka_interval).await;
         });
 

@@ -105,16 +105,18 @@ impl JaConnection {
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
 
-        let demux_clone = demux.clone();
-        let transaction_manager_clone = transaction_manager.clone();
-        tokio::runtime::Handle::current().spawn(async move {
-            JaConnection::demux_task(
-                receiver,
-                demux_clone,
-                transaction_manager_clone,
-                &root_namespace.clone(),
-            )
-            .await
+        tokio::spawn({
+            let demux = demux.clone();
+            let transaction_manager = transaction_manager.clone();
+            async move {
+                JaConnection::demux_task(
+                    receiver,
+                    demux,
+                    transaction_manager,
+                    &root_namespace.clone(),
+                )
+                .await
+            }
         });
 
         let shared = Shared { config };
