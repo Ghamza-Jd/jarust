@@ -3,18 +3,18 @@ use std::sync::Arc;
 use std::sync::RwLock;
 
 #[derive(Clone)]
-pub struct PendingTransaction {
+pub(crate) struct PendingTransaction {
     pub id: String,
     request: String,
     pub namespace: String,
 }
 
-pub struct Inner {
+pub(crate) struct Inner {
     transactions: HashMap<String, PendingTransaction>,
 }
 
 #[derive(Clone)]
-pub struct TransactionManager(Arc<RwLock<Inner>>);
+pub(crate) struct TransactionManager(Arc<RwLock<Inner>>);
 
 impl std::ops::Deref for TransactionManager {
     type Target = Arc<RwLock<Inner>>;
@@ -31,7 +31,7 @@ impl std::ops::DerefMut for TransactionManager {
 }
 
 impl TransactionManager {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         log::trace!("Creating new transaction manager");
         let transactions = HashMap::new();
         Self(Arc::new(RwLock::new(Inner { transactions })))
@@ -41,7 +41,7 @@ impl TransactionManager {
         self.read().unwrap().transactions.contains_key(id)
     }
 
-    pub fn get(&self, id: &str) -> Option<PendingTransaction> {
+    pub(crate) fn get(&self, id: &str) -> Option<PendingTransaction> {
         self.read().unwrap().transactions.get(id).cloned()
     }
 
@@ -60,7 +60,7 @@ impl TransactionManager {
         self.write().unwrap().transactions.remove(id);
     }
 
-    pub fn create_transaction(&self, id: &str, request: &str, namespace: &str) {
+    pub(crate) fn create_transaction(&self, id: &str, request: &str, namespace: &str) {
         if self.contains(id) {
             return;
         }
@@ -77,7 +77,7 @@ impl TransactionManager {
         );
     }
 
-    pub fn success_close(&self, id: &str) {
+    pub(crate) fn success_close(&self, id: &str) {
         let tx = self.get(id);
         if let Some(tx) = tx {
             self.remove(&tx.id);

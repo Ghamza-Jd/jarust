@@ -10,12 +10,12 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
-pub struct Shared {
+struct Shared {
     id: u64,
     session: WeakJaSession,
 }
 
-pub struct SafeShared {
+struct SafeShared {
     ack_receiver: mpsc::Receiver<String>,
 }
 
@@ -36,7 +36,7 @@ impl std::ops::Deref for JaHandle {
 }
 
 impl JaHandle {
-    pub fn new(
+    pub(crate) fn new(
         session: WeakJaSession,
         mut receiver: mpsc::Receiver<String>,
         id: u64,
@@ -70,7 +70,7 @@ impl JaHandle {
         )
     }
 
-    pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
+    async fn send_request(&self, mut request: Value) -> JaResult<()> {
         let Some(session) = self.shared.session.upgarde() else {
             return Err(JaError::DanglingHandle);
         };
