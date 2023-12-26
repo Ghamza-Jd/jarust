@@ -5,13 +5,13 @@ use std::sync::RwLock;
 use tokio::sync::mpsc;
 
 pub(crate) struct Inner {
-    channels: HashMap<String, mpsc::Sender<String>>,
+    namespaces: HashMap<String, mpsc::Sender<String>>,
 }
 
 #[derive(Clone)]
-pub(crate) struct Demux(Arc<RwLock<Inner>>);
+pub(crate) struct NamespaceRegistry(Arc<RwLock<Inner>>);
 
-impl std::ops::Deref for Demux {
+impl std::ops::Deref for NamespaceRegistry {
     type Target = Arc<RwLock<Inner>>;
 
     fn deref(&self) -> &Self::Target {
@@ -19,23 +19,26 @@ impl std::ops::Deref for Demux {
     }
 }
 
-impl std::ops::DerefMut for Demux {
+impl std::ops::DerefMut for NamespaceRegistry {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
-impl Demux {
+impl NamespaceRegistry {
     pub(crate) fn new() -> Self {
         Self(Arc::new(RwLock::new(Inner {
-            channels: HashMap::new(),
+            namespaces: HashMap::new(),
         })))
     }
 
     pub(crate) fn create_namespace(&mut self, namespace: &str) -> mpsc::Receiver<String> {
         let (tx, rx) = mpsc::channel(10);
         {
-            self.write().unwrap().channels.insert(namespace.into(), tx);
+            self.write()
+                .unwrap()
+                .namespaces
+                .insert(namespace.into(), tx);
         }
         log::trace!("Namespace created {{ id: {namespace} }}");
         rx
@@ -44,7 +47,7 @@ impl Demux {
     pub(crate) async fn publish(&self, namespace: &str, message: String) -> JaResult<()> {
         let channel = {
             let guard = self.read().unwrap();
-            guard.channels.get(namespace).cloned()
+            guard.namespaces.get(namespace).cloned()
         };
 
         if let Some(channel) = channel {
@@ -59,23 +62,23 @@ impl Demux {
 
 #[cfg(test)]
 mod tests {
-    use super::Demux;
+    use super::NamespaceRegistry;
 
     #[tokio::test]
     async fn test_1() {
-        let mut demux = Demux::new();
-        let mut channel_one = demux.create_namespace("janus");
-        let mut channel_two = demux.create_namespace("janus/123");
+        let mut nsp_registry = NamespaceRegistry::new();
+        let mut channel_one = nsp_registry.create_namespace("janus");
+        let mut channel_two = nsp_registry.create_namespace("janus/123");
 
-        demux
+        nsp_registry
             .publish("janus", "1st message".to_string())
             .await
             .unwrap();
-        demux
+        nsp_registry
             .publish("janus", "2nd message".to_string())
             .await
             .unwrap();
-        demux
+        nsp_registry
             .publish("janus/123", "3rd message".to_string())
             .await
             .unwrap();

@@ -8,12 +8,12 @@ pub mod japrotocol;
 pub mod prelude;
 pub mod transport;
 
-mod demux;
 mod dto;
 mod error;
 mod jaconnection;
 mod jahandle;
 mod jasession;
+mod nsp_registry;
 mod tmanager;
 mod utils;
 
