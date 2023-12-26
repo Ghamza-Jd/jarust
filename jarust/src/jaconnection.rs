@@ -1,8 +1,8 @@
-use crate::demux::Demux;
 use crate::dto::response::CreateSessionResponse;
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::jasession::JaSession;
+use crate::nsp_registry::NamespaceRegistry;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use crate::transport::trans::Transport;
@@ -23,7 +23,7 @@ struct Shared {
 }
 
 struct SafeShared {
-    demux: Demux,
+    nsp_registry: NamespaceRegistry,
     transport_protocol: TransportProtocol,
     receiver: mpsc::Receiver<String>,
     sessions: HashMap<u64, JaSession>,
@@ -64,7 +64,7 @@ impl JaConnection {
     /// Async task to handle demultiplexing of the inbound stream
     async fn demux_task(
         inbound_stream: mpsc::Receiver<String>,
-        demux: Demux,
+        nsp_registry: NamespaceRegistry,
         transaction_manager: TransactionManager,
         root_namespace: &str,
     ) -> JaResult<()> {
@@ -78,7 +78,9 @@ impl JaConnection {
                 .and_then(Value::as_str)
                 .and_then(|x| transaction_manager.get(x))
             {
-                demux.publish(&pending.namespace, next.to_string()).await?;
+                nsp_registry
+                    .publish(&pending.namespace, next.to_string())
+                    .await?;
                 transaction_manager.success_close(&pending.id);
                 continue;
             }
@@ -86,32 +88,34 @@ impl JaConnection {
             // Try get the namespace from the response
             if let Some(namespace) = get_subnamespace_from_response(&response) {
                 let namespace = format!("{}/{}", root_namespace, namespace);
-                demux.publish(&namespace, next.to_string()).await?;
+                nsp_registry.publish(&namespace, next.to_string()).await?;
                 continue;
             }
 
             // Fallback to publishing on the root namespace
-            demux.publish(root_namespace, next.to_string()).await?;
+            nsp_registry
+                .publish(root_namespace, next.to_string())
+                .await?;
         }
         Ok(())
     }
 
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
-        let mut demux = Demux::new();
+        let mut nsp_registry = NamespaceRegistry::new();
         let transaction_manager = TransactionManager::new();
 
         let root_namespace = config.root_namespace.clone();
-        let namespace_receiver = demux.create_namespace(&root_namespace.clone());
+        let namespace_receiver = nsp_registry.create_namespace(&root_namespace.clone());
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
 
         tokio::spawn({
-            let demux = demux.clone();
+            let nsp_registry = nsp_registry.clone();
             let transaction_manager = transaction_manager.clone();
             async move {
                 JaConnection::demux_task(
                     receiver,
-                    demux,
+                    nsp_registry,
                     transaction_manager,
                     &root_namespace.clone(),
                 )
@@ -121,7 +125,7 @@ impl JaConnection {
 
         let shared = Shared { config };
         let safe = SafeShared {
-            demux,
+            nsp_registry,
             transport_protocol,
             receiver: namespace_receiver,
             sessions: HashMap::new(),
@@ -205,9 +209,13 @@ impl JaConnection {
     }
 
     pub(crate) async fn create_subnamespace(&self, namespace: &str) -> mpsc::Receiver<String> {
-        self.safe.lock().await.demux.create_namespace(&format!(
-            "{}/{}",
-            self.shared.config.root_namespace, namespace
-        ))
+        self.safe
+            .lock()
+            .await
+            .nsp_registry
+            .create_namespace(&format!(
+                "{}/{}",
+                self.shared.config.root_namespace, namespace
+            ))
     }
 }
