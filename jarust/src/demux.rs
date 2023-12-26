@@ -4,12 +4,12 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use tokio::sync::mpsc;
 
-pub struct Inner {
+pub(crate) struct Inner {
     channels: HashMap<String, mpsc::Sender<String>>,
 }
 
 #[derive(Clone)]
-pub struct Demux(Arc<RwLock<Inner>>);
+pub(crate) struct Demux(Arc<RwLock<Inner>>);
 
 impl std::ops::Deref for Demux {
     type Target = Arc<RwLock<Inner>>;
@@ -26,13 +26,13 @@ impl std::ops::DerefMut for Demux {
 }
 
 impl Demux {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self(Arc::new(RwLock::new(Inner {
             channels: HashMap::new(),
         })))
     }
 
-    pub fn create_namespace(&mut self, namespace: &str) -> mpsc::Receiver<String> {
+    pub(crate) fn create_namespace(&mut self, namespace: &str) -> mpsc::Receiver<String> {
         let (tx, rx) = mpsc::channel(10);
         {
             self.write().unwrap().channels.insert(namespace.into(), tx);
@@ -41,7 +41,7 @@ impl Demux {
         rx
     }
 
-    pub async fn publish(&self, namespace: &str, message: String) -> JaResult<()> {
+    pub(crate) async fn publish(&self, namespace: &str, message: String) -> JaResult<()> {
         let channel = {
             let guard = self.read().unwrap();
             guard.channels.get(namespace).cloned()

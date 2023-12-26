@@ -18,11 +18,11 @@ use std::sync::Weak;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
-pub struct Shared {
+struct Shared {
     config: JaConfig,
 }
 
-pub struct SafeShared {
+struct SafeShared {
     demux: Demux,
     transport_protocol: TransportProtocol,
     receiver: mpsc::Receiver<String>,
@@ -193,14 +193,14 @@ impl JaConnection {
         guard.transport_protocol.send(message.as_bytes()).await
     }
 
-    pub(crate) fn decorate_request(&self, mut request: Value) -> Value {
+    fn decorate_request(&self, mut request: Value) -> Value {
         let transaction = generate_transaction();
         request["apisecret"] = self.shared.config.apisecret.clone().into();
         request["transaction"] = transaction.into();
         request
     }
 
-    pub(crate) fn downgrade(&self) -> WeakJaConnection {
+    fn downgrade(&self) -> WeakJaConnection {
         WeakJaConnection(Arc::downgrade(self))
     }
 
