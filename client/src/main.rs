@@ -1,8 +1,9 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust::plugins::echotest::handle::EchoTest;
+use jarust::plugins::echotest::messages::EchoTestStartMsg;
 use log::LevelFilter;
 use log::SetLoggerError;
-use serde_json::json;
 use simple_logger::SimpleLogger;
 
 #[tokio::main(flavor = "current_thread")]
@@ -20,15 +21,13 @@ async fn main() -> anyhow::Result<()> {
     // let server_info = connection.server_info().await?;
 
     let session = connection.create(10).await?;
-    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
-
+    let (handle, mut event_receiver) = session.attach_echotest().await?;
     handle
-        .message(json!({
-            "audio": true,
-            "video": true
-        }))
+        .start(EchoTestStartMsg {
+            audio: true,
+            video: true,
+        })
         .await?;
-
     handle.detach().await?;
 
     while let Some(event) = event_receiver.recv().await {
