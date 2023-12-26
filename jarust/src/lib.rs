@@ -5,6 +5,7 @@ use prelude::JaResult;
 
 pub mod jaconfig;
 pub mod japrotocol;
+pub mod plugins;
 pub mod prelude;
 pub mod transport;
 
