@@ -10,25 +10,25 @@ use simple_logger::SimpleLogger;
 async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
-    let mut connection = jarust::connect(JaConfig::new(
-        "wss://janus.conf.meetecho.com/ws",
-        None,
-        TransportType::Wss,
-        "janus",
-    ))
-    .await?;
+    // To make sure handle is working even after dropping the session and the connection
+    let (handle, mut event_receiver) = {
+        let mut connection = jarust::connect(JaConfig::new(
+            "wss://janus.conf.meetecho.com/ws",
+            None,
+            TransportType::Wss,
+            "janus",
+        ))
+        .await?;
+        let session = connection.create(10).await?;
+        session.attach_echotest().await?
+    };
 
-    // let server_info = connection.server_info().await?;
-
-    let session = connection.create(10).await?;
-    let (handle, mut event_receiver) = session.attach_echotest().await?;
     handle
         .start(EchoTestStartMsg {
             audio: true,
             video: true,
         })
         .await?;
-    handle.detach().await?;
 
     while let Some(event) = event_receiver.recv().await {
         log::info!("{event}");
