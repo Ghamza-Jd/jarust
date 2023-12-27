@@ -1,5 +1,5 @@
 use crate::dto::response::AttachResponse;
-use crate::jaconnection::WeakJaConnection;
+use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::prelude::*;
@@ -15,7 +15,7 @@ use tokio::time;
 
 pub struct Shared {
     id: u64,
-    connection: WeakJaConnection,
+    connection: JaConnection,
 }
 
 pub struct SafeShared {
@@ -49,7 +49,7 @@ impl std::ops::Deref for JaSession {
 
 impl JaSession {
     pub fn new(
-        connection: WeakJaConnection,
+        connection: JaConnection,
         receiver: mpsc::Receiver<String>,
         id: u64,
         ka_interval: u32,
@@ -91,9 +91,7 @@ impl JaSession {
         let response = serde_json::from_str::<AttachResponse>(&response)?;
         let handle_id = response.data.id;
 
-        let Some(connection) = self.shared.connection.upgarde() else {
-            return Err(JaError::DanglingSession);
-        };
+        let connection = self.shared.connection.clone();
 
         let receiver = connection
             .create_subnamespace(&format!("{}/{}", self.shared.id, handle_id))
@@ -113,9 +111,7 @@ impl JaSession {
     }
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
-        let Some(mut connection) = self.shared.connection.upgarde() else {
-            return Err(JaError::DanglingSession);
-        };
+        let mut connection = self.shared.connection.clone();
         request["session_id"] = self.shared.id.into();
         connection.send_request(request).await
     }

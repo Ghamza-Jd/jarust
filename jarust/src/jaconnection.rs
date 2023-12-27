@@ -2,6 +2,7 @@ use crate::dto::response::CreateSessionResponse;
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::jasession::JaSession;
+use crate::jasession::WeakJaSession;
 use crate::nsp_registry::NamespaceRegistry;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
@@ -14,7 +15,6 @@ use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::sync::Weak;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
@@ -26,7 +26,7 @@ struct SafeShared {
     nsp_registry: NamespaceRegistry,
     transport_protocol: TransportProtocol,
     receiver: mpsc::Receiver<String>,
-    sessions: HashMap<u64, JaSession>,
+    sessions: HashMap<u64, WeakJaSession>,
     transaction_manager: TransactionManager,
 }
 
@@ -49,14 +49,6 @@ impl std::ops::Deref for JaConnection {
 impl std::ops::DerefMut for JaConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-pub struct WeakJaConnection(Weak<InnerConnection>);
-
-impl WeakJaConnection {
-    pub(crate) fn upgarde(&self) -> Option<JaConnection> {
-        self.0.upgrade().map(JaConnection)
     }
 }
 
@@ -152,12 +144,12 @@ impl JaConnection {
 
         let channel = self.create_subnamespace(&format!("{session_id}")).await;
 
-        let session = JaSession::new(self.downgrade(), channel, session_id, ka_interval);
+        let session = JaSession::new(self.clone(), channel, session_id, ka_interval);
         self.safe
             .lock()
             .await
             .sessions
-            .insert(session_id, session.clone());
+            .insert(session_id, session.downgrade());
 
         log::info!("Session created {{ id: {} }}", session_id);
 
@@ -202,10 +194,6 @@ impl JaConnection {
         request["apisecret"] = self.shared.config.apisecret.clone().into();
         request["transaction"] = transaction.into();
         request
-    }
-
-    fn downgrade(&self) -> WeakJaConnection {
-        WeakJaConnection(Arc::downgrade(self))
     }
 
     pub(crate) async fn create_subnamespace(&self, namespace: &str) -> mpsc::Receiver<String> {
