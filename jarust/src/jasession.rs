@@ -1,6 +1,7 @@
 use crate::dto::response::AttachResponse;
 use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
+use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::prelude::*;
 use serde_json::json;
@@ -20,7 +21,7 @@ pub struct Shared {
 
 pub struct SafeShared {
     receiver: mpsc::Receiver<String>,
-    handles: HashMap<u64, JaHandle>,
+    handles: HashMap<u64, WeakJaHandle>,
 }
 
 pub struct InnerSession {
@@ -34,7 +35,7 @@ pub struct JaSession(Arc<InnerSession>);
 pub struct WeakJaSession(Weak<InnerSession>);
 
 impl WeakJaSession {
-    pub(crate) fn upgarde(&self) -> Option<JaSession> {
+    pub(crate) fn _upgarde(&self) -> Option<JaSession> {
         self.0.upgrade().map(JaSession)
     }
 }
@@ -97,13 +98,13 @@ impl JaSession {
             .create_subnamespace(&format!("{}/{}", self.shared.id, handle_id))
             .await;
 
-        let (handle, event_receiver) = JaHandle::new(self.downgrade(), receiver, handle_id);
+        let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id);
 
         self.safe
             .lock()
             .await
             .handles
-            .insert(handle_id, handle.clone());
+            .insert(handle_id, handle.downgrade());
 
         log::info!("Handle created {{ id: {handle_id} }}");
 
