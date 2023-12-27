@@ -2,17 +2,18 @@ use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::Jsep;
-use crate::jasession::WeakJaSession;
+use crate::jasession::JaSession;
 use crate::prelude::*;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
+use std::sync::Weak;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
 struct Shared {
     id: u64,
-    session: WeakJaSession,
+    session: JaSession,
 }
 
 struct SafeShared {
@@ -27,6 +28,14 @@ pub struct InnerHandle {
 #[derive(Clone)]
 pub struct JaHandle(Arc<InnerHandle>);
 
+pub struct WeakJaHandle(Weak<InnerHandle>);
+
+impl WeakJaHandle {
+    pub(crate) fn _upgarde(&self) -> Option<JaHandle> {
+        self.0.upgrade().map(JaHandle)
+    }
+}
+
 impl std::ops::Deref for JaHandle {
     type Target = Arc<InnerHandle>;
 
@@ -37,7 +46,7 @@ impl std::ops::Deref for JaHandle {
 
 impl JaHandle {
     pub(crate) fn new(
-        session: WeakJaSession,
+        session: JaSession,
         mut receiver: mpsc::Receiver<String>,
         id: u64,
     ) -> (Self, mpsc::Receiver<String>) {
@@ -71,9 +80,7 @@ impl JaHandle {
     }
 
     async fn send_request(&self, mut request: Value) -> JaResult<()> {
-        let Some(session) = self.shared.session.upgarde() else {
-            return Err(JaError::DanglingHandle);
-        };
+        let session = self.shared.session.clone();
         request["handle_id"] = self.shared.id.into();
         session.send_request(request).await
     }
@@ -106,9 +113,11 @@ impl JaHandle {
             "janus": JaHandleRequestProtocol::DetachPlugin,
         });
         self.send_request(request).await?;
-        if let Some(_session) = self.shared.session.upgarde() {
-            // session.drop_jahandle(self.id).await;
-        }
+        // let session = self.shared.session.clone();
         Ok(())
+    }
+
+    pub(crate) fn downgrade(&self) -> WeakJaHandle {
+        WeakJaHandle(Arc::downgrade(self))
     }
 }
