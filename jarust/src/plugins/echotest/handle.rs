@@ -1,10 +1,9 @@
+use super::messages::EchoTestStartMsg;
 use crate::jahandle::JaHandle;
 use crate::jasession::JaSession;
 use crate::prelude::*;
 use async_trait::async_trait;
 use tokio::sync::mpsc;
-
-use super::messages::EchoTestStartMsg;
 
 #[async_trait]
 pub trait EchoTest {
@@ -24,9 +23,15 @@ impl From<JaHandle> for EchoTestHandle {
 #[async_trait]
 impl EchoTest for JaSession {
     async fn attach_echotest(&self) -> JaResult<(EchoTestHandle, mpsc::Receiver<String>)> {
-        let (handle, receiver) = self.attach("janus.plugin.echotest").await?;
-        // intercept the messages and serialize them to plugin specific messages
-        Ok((handle.into(), receiver))
+        let (handle, mut receiver) = self.attach("janus.plugin.echotest").await?;
+        let (tx, rx) = mpsc::channel(100);
+        tokio::spawn(async move {
+            while let Some(msg) = receiver.recv().await {
+                let msg = format!("Todo: parse properly {msg}");
+                _ = tx.send(msg).await;
+            }
+        });
+        Ok((handle.into(), rx))
     }
 }
 
