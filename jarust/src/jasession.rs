@@ -145,8 +145,8 @@ impl JaSession {
 impl Drop for SafeShared {
     fn drop(&mut self) {
         if let Some(join_handle) = self.join_handle.take() {
-            join_handle.abort();
             log::trace!("Keepalive task aborted");
+            join_handle.abort();
         }
     }
 }
