@@ -17,8 +17,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 
 struct Shared {
+    demux_join_handle: JoinHandle<JaResult<()>>,
     config: JaConfig,
 }
 
@@ -101,7 +103,7 @@ impl JaConnection {
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
 
-        tokio::spawn({
+        let demux_join_handle: JoinHandle<JaResult<()>> = tokio::spawn({
             let nsp_registry = nsp_registry.clone();
             let transaction_manager = transaction_manager.clone();
             async move {
@@ -115,7 +117,10 @@ impl JaConnection {
             }
         });
 
-        let shared = Shared { config };
+        let shared = Shared {
+            demux_join_handle,
+            config,
+        };
         let safe = SafeShared {
             nsp_registry,
             transport_protocol,
@@ -205,5 +210,12 @@ impl JaConnection {
                 "{}/{}",
                 self.shared.config.root_namespace, namespace
             ))
+    }
+}
+
+impl Drop for InnerConnection {
+    fn drop(&mut self) {
+        log::trace!("Connection dropped");
+        self.shared.demux_join_handle.abort();
     }
 }
