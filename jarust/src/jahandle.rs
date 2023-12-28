@@ -10,10 +10,12 @@ use std::sync::Arc;
 use std::sync::Weak;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 
 struct Shared {
     id: u64,
     session: JaSession,
+    join_handle: JoinHandle<()>,
 }
 
 struct SafeShared {
@@ -50,11 +52,10 @@ impl JaHandle {
         mut receiver: mpsc::Receiver<String>,
         id: u64,
     ) -> (Self, mpsc::Receiver<String>) {
-        let shared = Shared { id, session };
         let (ack_sender, ack_receiver) = mpsc::channel(100);
         let (event_sender, event_receiver) = mpsc::channel(100);
 
-        tokio::spawn(async move {
+        let join_handle = tokio::spawn(async move {
             while let Some(item) = receiver.recv().await {
                 let response_type = serde_json::from_str::<JaResponse>(&item).unwrap();
                 match response_type.janus {
@@ -68,6 +69,11 @@ impl JaHandle {
             }
         });
 
+        let shared = Shared {
+            id,
+            session,
+            join_handle,
+        };
         let safe = SafeShared { ack_receiver };
 
         (
@@ -119,5 +125,11 @@ impl JaHandle {
 
     pub(crate) fn downgrade(&self) -> WeakJaHandle {
         WeakJaHandle(Arc::downgrade(self))
+    }
+}
+
+impl Drop for InnerHandle {
+    fn drop(&mut self) {
+        self.shared.join_handle.abort();
     }
 }

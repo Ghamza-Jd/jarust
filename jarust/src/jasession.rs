@@ -12,6 +12,7 @@ use std::sync::Weak;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 use tokio::time;
 
 pub struct Shared {
@@ -22,6 +23,7 @@ pub struct Shared {
 pub struct SafeShared {
     receiver: mpsc::Receiver<String>,
     handles: HashMap<u64, WeakJaHandle>,
+    join_handle: Option<JoinHandle<()>>,
 }
 
 pub struct InnerSession {
@@ -49,7 +51,7 @@ impl std::ops::Deref for JaSession {
 }
 
 impl JaSession {
-    pub fn new(
+    pub async fn new(
         connection: JaConnection,
         receiver: mpsc::Receiver<String>,
         id: u64,
@@ -59,6 +61,7 @@ impl JaSession {
         let safe = SafeShared {
             receiver,
             handles: HashMap::new(),
+            join_handle: None,
         };
 
         let session = Self(Arc::new(InnerSession {
@@ -68,9 +71,11 @@ impl JaSession {
 
         let this = session.clone();
 
-        let _join_handle = tokio::spawn(async move {
+        let join_handle = tokio::spawn(async move {
             let _ = this.keep_alive(ka_interval).await;
         });
+
+        session.safe.lock().await.join_handle = Some(join_handle);
 
         session
     }
@@ -134,5 +139,14 @@ impl JaSession {
 
     pub(crate) fn downgrade(&self) -> WeakJaSession {
         WeakJaSession(Arc::downgrade(self))
+    }
+}
+
+impl Drop for SafeShared {
+    fn drop(&mut self) {
+        if let Some(join_handle) = self.join_handle.take() {
+            join_handle.abort();
+            log::trace!("Keepalive task aborted");
+        }
     }
 }
