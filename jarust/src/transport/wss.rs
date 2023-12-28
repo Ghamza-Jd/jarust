@@ -40,7 +40,7 @@ impl Transport for WebsocketTransport {
         let forward_join_handle = tokio::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
-                    _ = tx.send(text).await;
+                    let _ = tx.send(text).await;
                 }
             }
         });
@@ -64,7 +64,7 @@ impl Transport for WebsocketTransport {
 impl Drop for WebsocketTransport {
     fn drop(&mut self) {
         if let Some(join_handle) = self.forward_join_handle.take() {
-            _ = join_handle.abort();
+            join_handle.abort();
         }
     }
 }

@@ -149,7 +149,7 @@ impl JaConnection {
 
         let channel = self.create_subnamespace(&format!("{session_id}")).await;
 
-        let session = JaSession::new(self.clone(), channel, session_id, ka_interval);
+        let session = JaSession::new(self.clone(), channel, session_id, ka_interval).await;
         self.safe
             .lock()
             .await
@@ -216,6 +216,6 @@ impl JaConnection {
 impl Drop for InnerConnection {
     fn drop(&mut self) {
         log::trace!("Connection dropped");
-        _ = self.shared.demux_join_handle.abort();
+        self.shared.demux_join_handle.abort();
     }
 }

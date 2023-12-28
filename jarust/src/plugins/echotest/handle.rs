@@ -28,7 +28,7 @@ impl EchoTest for JaSession {
         tokio::spawn(async move {
             while let Some(msg) = receiver.recv().await {
                 let msg = format!("Todo: parse properly {msg}");
-                _ = tx.send(msg).await;
+                let _ = tx.send(msg).await;
             }
         });
         Ok((handle.into(), rx))
