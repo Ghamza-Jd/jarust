@@ -33,7 +33,16 @@ pub enum JaHandleRequestProtocol {
     DetachPlugin,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
+pub struct JaIdk {
+    #[serde(flatten)]
+    pub janus: JaResponseProtocol,
+    pub transaction: Option<String>,
+    pub session_id: Option<u64>,
+    pub sender: Option<u64>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 #[serde(tag = "janus")]
 pub enum JaResponseProtocol {
     #[serde(rename = "success")]
@@ -48,18 +57,18 @@ pub enum JaResponseProtocol {
     Event { janus: JaEventProtocol },
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct JaData {
     pub id: u64,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct JaResponseError {
     pub code: u16,
     pub reason: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub enum JaEventProtocol {
     #[serde(rename = "event")]
     Event,
