@@ -64,6 +64,7 @@ impl Transport for WebsocketTransport {
 impl Drop for WebsocketTransport {
     fn drop(&mut self) {
         if let Some(join_handle) = self.forward_join_handle.take() {
+            log::trace!("Dropping wss transport");
             join_handle.abort();
         }
     }

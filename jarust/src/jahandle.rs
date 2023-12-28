@@ -130,6 +130,7 @@ impl JaHandle {
 
 impl Drop for InnerHandle {
     fn drop(&mut self) {
+        log::trace!("Dropping handle {{ id: {} }}", self.shared.id);
         self.shared.join_handle.abort();
     }
 }
