@@ -6,6 +6,7 @@ use futures_util::SinkExt;
 use futures_util::StreamExt;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
+use tokio::task::JoinHandle;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::Message;
@@ -16,12 +17,16 @@ type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Mes
 
 pub struct WebsocketTransport {
     sender: Option<WebSocketSender>,
+    forward_join_handle: Option<JoinHandle<()>>,
 }
 
 #[async_trait]
 impl Transport for WebsocketTransport {
     fn new() -> Self {
-        Self { sender: None }
+        Self {
+            sender: None,
+            forward_join_handle: None,
+        }
     }
 
     async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>> {
@@ -32,15 +37,16 @@ impl Transport for WebsocketTransport {
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::channel(32);
 
-        tokio::spawn(async move {
+        let forward_join_handle = tokio::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
-                    tx.send(text).await.unwrap();
+                    _ = tx.send(text).await;
                 }
             }
         });
 
         self.sender = Some(sender);
+        self.forward_join_handle = Some(forward_join_handle);
         Ok(rx)
     }
 
@@ -52,5 +58,13 @@ impl Transport for WebsocketTransport {
             return Err(JaError::TransportNotOpened);
         }
         Ok(())
+    }
+}
+
+impl Drop for WebsocketTransport {
+    fn drop(&mut self) {
+        if let Some(join_handle) = self.forward_join_handle.take() {
+            _ = join_handle.abort();
+        }
     }
 }
