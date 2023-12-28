@@ -1,5 +1,6 @@
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
+use crate::japrotocol::JaIdk;
 use crate::japrotocol::JaResponseProtocol;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
@@ -64,32 +65,28 @@ impl JaConnection {
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
         while let Some(next) = stream.recv().await {
-            let response: Value = serde_json::from_str(&next.to_string()).unwrap();
+            let message = serde_json::from_str::<JaIdk>(&next)?;
 
             // Check if we have a pending transaction and demux to the proper namespace
-            if let Some(pending) = response
-                .get("transaction")
-                .and_then(Value::as_str)
-                .and_then(|x| transaction_manager.get(x))
+            if let Some(pending) = message
+                .transaction
+                .clone()
+                .and_then(|x| transaction_manager.get(&x))
             {
-                nsp_registry
-                    .publish(&pending.namespace, next.to_string())
-                    .await?;
+                nsp_registry.publish(&pending.namespace, next).await?;
                 transaction_manager.success_close(&pending.id);
                 continue;
             }
 
             // Try get the namespace from the response
-            if let Some(namespace) = get_subnamespace_from_response(&response) {
+            if let Some(namespace) = get_subnamespace_from_response(message) {
                 let namespace = format!("{root_namespace}/{namespace}");
-                nsp_registry.publish(&namespace, next.to_string()).await?;
+                nsp_registry.publish(&namespace, next).await?;
                 continue;
             }
 
             // Fallback to publishing on the root namespace
-            nsp_registry
-                .publish(root_namespace, next.to_string())
-                .await?;
+            nsp_registry.publish(root_namespace, next).await?;
         }
         Ok(())
     }
