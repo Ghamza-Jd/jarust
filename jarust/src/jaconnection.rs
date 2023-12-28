@@ -81,7 +81,7 @@ impl JaConnection {
 
             // Try get the namespace from the response
             if let Some(namespace) = get_subnamespace_from_response(&response) {
-                let namespace = format!("{}/{}", root_namespace, namespace);
+                let namespace = format!("{root_namespace}/{namespace}");
                 nsp_registry.publish(&namespace, next.to_string()).await?;
                 continue;
             }
@@ -156,7 +156,7 @@ impl JaConnection {
             .sessions
             .insert(session_id, session.downgrade());
 
-        log::info!("Session created {{ id: {} }}", session_id);
+        log::info!("Session created {{ id: {session_id} }}");
 
         Ok(session)
     }
