@@ -103,7 +103,7 @@ impl JaConnection {
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
 
-        let demux_join_handle: JoinHandle<JaResult<()>> = tokio::spawn({
+        let demux_join_handle = tokio::spawn({
             let nsp_registry = nsp_registry.clone();
             let transaction_manager = transaction_manager.clone();
             async move {
@@ -216,6 +216,6 @@ impl JaConnection {
 impl Drop for InnerConnection {
     fn drop(&mut self) {
         log::trace!("Connection dropped");
-        self.shared.demux_join_handle.abort();
+        _ = self.shared.demux_join_handle.abort();
     }
 }
