@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use jarust::jaconfig::{JaConfig, TransportType};
+use jarust::jaconfig::JaConfig;
+use jarust::jaconfig::TransportType;
 use jarust::prelude::*;
 use jarust::transport::trans::Transport;
 use tokio::sync::mpsc;
