@@ -34,33 +34,29 @@ pub enum JaHandleRequestProtocol {
 }
 
 #[derive(Debug, Deserialize)]
-pub enum JaResponseStatus {
+#[serde(tag = "janus")]
+pub enum JaResponseProtocol {
     #[serde(rename = "success")]
-    Success,
+    Success { data: JaData },
     #[serde(rename = "error")]
-    Error,
+    Error { error: JaResponseError },
     #[serde(rename = "server_info")]
     ServerInfo,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct JaResponse {
-    #[serde(rename = "janus")]
-    pub janus: JaResponseProtocol,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum JaResponseProtocol {
-    Status(JaResponseStatus),
-    Ack(JaAckProtocol),
-    Event(JaEventProtocol),
-}
-
-#[derive(Debug, Deserialize)]
-pub enum JaAckProtocol {
     #[serde(rename = "ack")]
     Ack,
+    #[serde(untagged)]
+    Event { janus: JaEventProtocol },
+}
+
+#[derive(Debug, Deserialize)]
+pub struct JaData {
+    pub id: u64,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct JaResponseError {
+    pub code: u16,
+    pub reason: String,
 }
 
 #[derive(Debug, Deserialize)]

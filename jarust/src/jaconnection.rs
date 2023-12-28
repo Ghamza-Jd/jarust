@@ -1,6 +1,6 @@
-use crate::dto::response::CreateSessionResponse;
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
+use crate::japrotocol::JaResponseProtocol;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
 use crate::nsp_registry::NamespaceRegistry;
@@ -143,9 +143,14 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let res = { self.safe.lock().await.receiver.recv().await.unwrap() };
-        let res = serde_json::from_str::<CreateSessionResponse>(&res)?;
-        let session_id = res.data.id;
+        let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
+        let response = serde_json::from_str::<JaResponseProtocol>(&response)?;
+        let session_id = match response {
+            JaResponseProtocol::Success { data } => data.id,
+            _ => {
+                return Err(JaError::UnexpectedResponse);
+            }
+        };
 
         let channel = self.create_subnamespace(&format!("{session_id}")).await;
 

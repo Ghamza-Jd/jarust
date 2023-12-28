@@ -25,4 +25,6 @@ pub enum JaError {
     InvalidJanusRequest,
     #[error("Can't send data in closed channel")]
     SendError,
+    #[error("Received an nnexpected response")]
+    UnexpectedResponse,
 }

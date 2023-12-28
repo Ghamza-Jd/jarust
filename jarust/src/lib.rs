@@ -9,7 +9,6 @@ pub mod plugins;
 pub mod prelude;
 pub mod transport;
 
-mod dto;
 mod error;
 mod jaconnection;
 mod jahandle;

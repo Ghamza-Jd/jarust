@@ -1,7 +1,7 @@
-use crate::dto::response::AttachResponse;
 use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
+use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::prelude::*;
 use serde_json::json;
@@ -94,8 +94,13 @@ impl JaSession {
             guard.receiver.recv().await.unwrap()
         };
 
-        let response = serde_json::from_str::<AttachResponse>(&response)?;
-        let handle_id = response.data.id;
+        let response = serde_json::from_str::<JaResponseProtocol>(&response)?;
+        let handle_id = match response {
+            JaResponseProtocol::Success { data } => data.id,
+            _ => {
+                return Err(JaError::UnexpectedResponse);
+            }
+        };
 
         let connection = self.shared.connection.clone();
 

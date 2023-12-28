@@ -1,5 +1,4 @@
 use crate::japrotocol::JaHandleRequestProtocol;
-use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::Jsep;
 use crate::jasession::JaSession;
@@ -57,14 +56,15 @@ impl JaHandle {
 
         let join_handle = tokio::spawn(async move {
             while let Some(item) = receiver.recv().await {
-                let response_type = serde_json::from_str::<JaResponse>(&item).unwrap();
-                match response_type.janus {
-                    JaResponseProtocol::Status(_) | JaResponseProtocol::Ack(_) => {
+                let response_type = serde_json::from_str::<JaResponseProtocol>(&item).unwrap();
+                match response_type {
+                    JaResponseProtocol::Ack => {
                         ack_sender.send(item.clone()).await.unwrap();
                     }
-                    JaResponseProtocol::Event(_) => {
+                    JaResponseProtocol::Event { .. } => {
                         event_sender.send(item).await.unwrap();
                     }
+                    _ => {}
                 }
             }
         });
