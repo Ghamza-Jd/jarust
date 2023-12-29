@@ -100,6 +100,12 @@ impl JaSession {
 
         let handle_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
+            JaResponseProtocol::Error { error } => {
+                return Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                });
+            }
             _ => {
                 return Err(JaError::UnexpectedResponse);
             }

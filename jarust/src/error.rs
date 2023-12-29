@@ -23,4 +23,6 @@ pub enum JaError {
     SendError,
     #[error("Received an unnexpected response")]
     UnexpectedResponse,
+    #[error("Janus error {{ code: {code}, reason: {reason}}}")]
+    JanusError { code: u16, reason: String },
 }
