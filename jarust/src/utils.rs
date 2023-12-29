@@ -25,13 +25,11 @@ pub fn get_subnamespace_from_request(request: &Value) -> Option<String> {
 }
 
 pub fn get_subnamespace_from_response(response: JaResponse) -> Option<String> {
-    if let Some(session_id) = response.session_id {
-        if let Some(sender) = response.sender {
-            Some(format!("{session_id}/{sender}"))
-        } else {
-            Some(format!("{session_id}"))
-        }
-    } else {
-        None
-    }
+    let Some(session_id) = response.session_id else {
+        return None;
+    };
+    let Some(sender) = response.sender else {
+        return Some(format!("{session_id}"));
+    };
+    Some(format!("{session_id}/{sender}"))
 }
