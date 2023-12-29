@@ -1,4 +1,5 @@
 use crate::japrotocol::JaHandleRequestProtocol;
+use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::Jsep;
 use crate::jasession::JaSession;
@@ -18,7 +19,7 @@ struct Shared {
 }
 
 struct SafeShared {
-    ack_receiver: mpsc::Receiver<String>,
+    ack_receiver: mpsc::Receiver<JaResponse>,
 }
 
 pub struct InnerHandle {
@@ -48,16 +49,15 @@ impl std::ops::Deref for JaHandle {
 impl JaHandle {
     pub(crate) fn new(
         session: JaSession,
-        mut receiver: mpsc::Receiver<String>,
+        mut receiver: mpsc::Receiver<JaResponse>,
         id: u64,
-    ) -> (Self, mpsc::Receiver<String>) {
+    ) -> (Self, mpsc::Receiver<JaResponse>) {
         let (ack_sender, ack_receiver) = mpsc::channel(100);
         let (event_sender, event_receiver) = mpsc::channel(100);
 
         let join_handle = tokio::spawn(async move {
             while let Some(item) = receiver.recv().await {
-                let response_type = serde_json::from_str::<JaResponseProtocol>(&item).unwrap();
-                match response_type {
+                match item.janus {
                     JaResponseProtocol::Ack => {
                         ack_sender.send(item.clone()).await.unwrap();
                     }
@@ -99,7 +99,7 @@ impl JaHandle {
         self.send_request(request).await
     }
 
-    pub async fn message_with_jsep(&self, body: Value, jsep: Jsep) -> JaResult<String> {
+    pub async fn message_with_jsep(&self, body: Value, jsep: Jsep) -> JaResult<JaResponse> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
             "body": body,

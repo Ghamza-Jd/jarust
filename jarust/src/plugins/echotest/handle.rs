@@ -27,7 +27,7 @@ impl EchoTest for JaSession {
         let (tx, rx) = mpsc::channel(100);
         tokio::spawn(async move {
             while let Some(msg) = receiver.recv().await {
-                let msg = format!("Todo: parse properly {msg}");
+                let msg = format!("Todo: parse properly {msg:?}");
                 let _ = tx.send(msg).await;
             }
         });
