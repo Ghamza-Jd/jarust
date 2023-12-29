@@ -143,6 +143,12 @@ impl JaConnection {
         let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
         let session_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
+            JaResponseProtocol::Error { error } => {
+                return Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                });
+            }
             _ => {
                 return Err(JaError::UnexpectedResponse);
             }
