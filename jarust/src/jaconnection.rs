@@ -1,6 +1,6 @@
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
-use crate::japrotocol::JaIdk;
+use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
@@ -28,7 +28,7 @@ struct Shared {
 struct SafeShared {
     nsp_registry: NamespaceRegistry,
     transport_protocol: TransportProtocol,
-    receiver: mpsc::Receiver<String>,
+    receiver: mpsc::Receiver<JaResponse>,
     sessions: HashMap<u64, WeakJaSession>,
     transaction_manager: TransactionManager,
 }
@@ -65,7 +65,7 @@ impl JaConnection {
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
         while let Some(next) = stream.recv().await {
-            let message = serde_json::from_str::<JaIdk>(&next)?;
+            let message = serde_json::from_str::<JaResponse>(&next)?;
 
             // Check if we have a pending transaction and demux to the proper namespace
             if let Some(pending) = message
@@ -73,20 +73,20 @@ impl JaConnection {
                 .clone()
                 .and_then(|x| transaction_manager.get(&x))
             {
-                nsp_registry.publish(&pending.namespace, next).await?;
+                nsp_registry.publish(&pending.namespace, message).await?;
                 transaction_manager.success_close(&pending.id);
                 continue;
             }
 
             // Try get the namespace from the response
-            if let Some(namespace) = get_subnamespace_from_response(message) {
+            if let Some(namespace) = get_subnamespace_from_response(message.clone()) {
                 let namespace = format!("{root_namespace}/{namespace}");
-                nsp_registry.publish(&namespace, next).await?;
+                nsp_registry.publish(&namespace, message).await?;
                 continue;
             }
 
             // Fallback to publishing on the root namespace
-            nsp_registry.publish(root_namespace, next).await?;
+            nsp_registry.publish(root_namespace, message).await?;
         }
         Ok(())
     }
@@ -141,8 +141,7 @@ impl JaConnection {
 
         self.send_request(request).await?;
         let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
-        let response = serde_json::from_str::<JaResponseProtocol>(&response)?;
-        let session_id = match response {
+        let session_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
             _ => {
                 return Err(JaError::UnexpectedResponse);
@@ -163,14 +162,14 @@ impl JaConnection {
         Ok(session)
     }
 
-    pub async fn server_info(&mut self) -> JaResult<String> {
+    pub async fn server_info(&mut self) -> JaResult<JaResponse> {
         let request = json!({
             "janus": JaConnectionRequestProtocol::ServerInfo,
         });
 
         self.send_request(request).await?;
-        let res = { self.safe.lock().await.receiver.recv().await.unwrap() };
-        Ok(res)
+        let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
+        Ok(response)
     }
 
     pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<()> {
@@ -203,7 +202,7 @@ impl JaConnection {
         request
     }
 
-    pub(crate) async fn create_subnamespace(&self, namespace: &str) -> mpsc::Receiver<String> {
+    pub(crate) async fn create_subnamespace(&self, namespace: &str) -> mpsc::Receiver<JaResponse> {
         self.safe
             .lock()
             .await

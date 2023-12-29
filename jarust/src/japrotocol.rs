@@ -34,7 +34,7 @@ pub enum JaHandleRequestProtocol {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct JaIdk {
+pub struct JaResponse {
     #[serde(flatten)]
     pub janus: JaResponseProtocol,
     pub transaction: Option<String>,

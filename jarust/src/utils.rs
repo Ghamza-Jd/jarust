@@ -1,4 +1,4 @@
-use crate::japrotocol::JaIdk;
+use crate::japrotocol::JaResponse;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use serde_json::Value;
@@ -24,7 +24,7 @@ pub fn get_subnamespace_from_request(request: &Value) -> Option<String> {
     }
 }
 
-pub fn get_subnamespace_from_response(response: JaIdk) -> Option<String> {
+pub fn get_subnamespace_from_response(response: JaResponse) -> Option<String> {
     if let Some(session_id) = response.session_id {
         if let Some(sender) = response.sender {
             Some(format!("{session_id}/{sender}"))

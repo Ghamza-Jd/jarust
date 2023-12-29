@@ -1,6 +1,7 @@
 use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
+use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::prelude::*;
@@ -21,7 +22,7 @@ pub struct Shared {
 }
 
 pub struct SafeShared {
-    receiver: mpsc::Receiver<String>,
+    receiver: mpsc::Receiver<JaResponse>,
     handles: HashMap<u64, WeakJaHandle>,
     join_handle: Option<JoinHandle<()>>,
 }
@@ -53,7 +54,7 @@ impl std::ops::Deref for JaSession {
 impl JaSession {
     pub async fn new(
         connection: JaConnection,
-        receiver: mpsc::Receiver<String>,
+        receiver: mpsc::Receiver<JaResponse>,
         id: u64,
         ka_interval: u32,
     ) -> Self {
@@ -80,7 +81,10 @@ impl JaSession {
         session
     }
 
-    pub async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<String>)> {
+    pub async fn attach(
+        &self,
+        plugin_id: &str,
+    ) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
         log::info!("Attaching new handle {{ id: {} }}", self.shared.id);
 
         let request = json!({
@@ -94,8 +98,7 @@ impl JaSession {
             guard.receiver.recv().await.unwrap()
         };
 
-        let response = serde_json::from_str::<JaResponseProtocol>(&response)?;
-        let handle_id = match response {
+        let handle_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
             _ => {
                 return Err(JaError::UnexpectedResponse);
