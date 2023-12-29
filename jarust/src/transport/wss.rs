@@ -55,6 +55,7 @@ impl Transport for WebsocketTransport {
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;
         } else {
+            log::error!("Transport not opened!");
             return Err(JaError::TransportNotOpened);
         }
         Ok(())

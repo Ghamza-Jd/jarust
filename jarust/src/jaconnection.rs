@@ -144,12 +144,15 @@ impl JaConnection {
         let session_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
             JaResponseProtocol::Error { error } => {
-                return Err(JaError::JanusError {
+                let what = JaError::JanusError {
                     code: error.code,
                     reason: error.reason,
-                });
+                };
+                log::error!("{what}");
+                return Err(what);
             }
             _ => {
+                log::error!("Unexpected response");
                 return Err(JaError::UnexpectedResponse);
             }
         };
@@ -185,6 +188,7 @@ impl JaConnection {
         let (Some(janus_request), Some(transaction)) =
             (request["janus"].as_str(), request["transaction"].as_str())
         else {
+            log::error!("Bad request body");
             return Err(JaError::InvalidJanusRequest);
         };
 

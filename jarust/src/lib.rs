@@ -18,14 +18,10 @@ mod tmanager;
 mod utils;
 
 pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
-    log::info!("Creating new connection");
-    log::trace!("Creating connection with server configuration {jaconfig:?}");
-
     let transport = match jaconfig.transport_type {
         jaconfig::TransportType::Wss => transport::wss::WebsocketTransport::new(),
     };
-
-    JaConnection::open(jaconfig, transport).await
+    connect_with_transport(jaconfig, transport).await
 }
 
 pub async fn connect_with_transport(
@@ -34,6 +30,5 @@ pub async fn connect_with_transport(
 ) -> JaResult<JaConnection> {
     log::info!("Creating new connection");
     log::trace!("Creating connection with server configuration {jaconfig:?}");
-
     JaConnection::open(jaconfig, transport).await
 }
