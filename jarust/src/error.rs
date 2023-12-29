@@ -17,10 +17,6 @@ pub enum JaError {
     IncompletePacket,
     #[error("Transport is not opened")]
     TransportNotOpened,
-    #[error("Session is not part of any connection")]
-    DanglingSession,
-    #[error("Handle is not part of any session")]
-    DanglingHandle,
     #[error("Invalid Janus request")]
     InvalidJanusRequest,
     #[error("Can't send data in closed channel")]
