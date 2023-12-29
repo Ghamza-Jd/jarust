@@ -33,6 +33,7 @@ pub enum JaHandleRequestProtocol {
     DetachPlugin,
 }
 
+/// The top-level response
 #[derive(Debug, Deserialize, Clone)]
 pub struct JaResponse {
     #[serde(flatten)]
