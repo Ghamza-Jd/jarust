@@ -64,6 +64,8 @@ impl NamespaceRegistry {
 #[cfg(test)]
 mod tests {
     use super::NamespaceRegistry;
+    use crate::japrotocol::JaResponse;
+    use crate::japrotocol::JaResponseProtocol;
 
     #[tokio::test]
     async fn test_1() {
@@ -71,26 +73,50 @@ mod tests {
         let mut channel_one = nsp_registry.create_namespace("janus");
         let mut channel_two = nsp_registry.create_namespace("janus/123");
 
-        // nsp_registry
-        //     .publish("janus", "1st message".to_string())
-        //     .await
-        //     .unwrap();
-        // nsp_registry
-        //     .publish("janus", "2nd message".to_string())
-        //     .await
-        //     .unwrap();
-        // nsp_registry
-        //     .publish("janus/123", "3rd message".to_string())
-        //     .await
-        //     .unwrap();
+        nsp_registry
+            .publish(
+                "janus",
+                JaResponse {
+                    janus: JaResponseProtocol::Ack,
+                    transaction: None,
+                    session_id: None,
+                    sender: None,
+                },
+            )
+            .await
+            .unwrap();
+        nsp_registry
+            .publish(
+                "janus",
+                JaResponse {
+                    janus: JaResponseProtocol::Ack,
+                    transaction: None,
+                    session_id: None,
+                    sender: None,
+                },
+            )
+            .await
+            .unwrap();
+        nsp_registry
+            .publish(
+                "janus/123",
+                JaResponse {
+                    janus: JaResponseProtocol::Ack,
+                    transaction: None,
+                    session_id: None,
+                    sender: None,
+                },
+            )
+            .await
+            .unwrap();
 
-        // let mut buff_one = vec![];
-        // let size_one = channel_one.recv_many(&mut buff_one, 10).await;
+        let mut buff_one = vec![];
+        let size_one = channel_one.recv_many(&mut buff_one, 10).await;
 
-        // let mut buff_two = vec![];
-        // let size_two = channel_two.recv_many(&mut buff_two, 10).await;
+        let mut buff_two = vec![];
+        let size_two = channel_two.recv_many(&mut buff_two, 10).await;
 
-        // assert_eq!(size_one, 2);
-        // assert_eq!(size_two, 1);
+        assert_eq!(size_one, 2);
+        assert_eq!(size_two, 1);
     }
 }
