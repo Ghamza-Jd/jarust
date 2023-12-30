@@ -1,3 +1,4 @@
+use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
@@ -52,8 +53,8 @@ impl JaHandle {
         mut receiver: mpsc::Receiver<JaResponse>,
         id: u64,
     ) -> (Self, mpsc::Receiver<JaResponse>) {
-        let (ack_sender, ack_receiver) = mpsc::channel(100);
-        let (event_sender, event_receiver) = mpsc::channel(100);
+        let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
         let join_handle = tokio::spawn(async move {
             while let Some(item) = receiver.recv().await {

@@ -1,3 +1,4 @@
+use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::japrotocol::JaResponse;
 use crate::prelude::*;
 use std::collections::HashMap;
@@ -34,7 +35,7 @@ impl NamespaceRegistry {
     }
 
     pub(crate) fn create_namespace(&mut self, namespace: &str) -> mpsc::Receiver<JaResponse> {
-        let (tx, rx) = mpsc::channel(10);
+        let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         {
             self.write()
                 .unwrap()
