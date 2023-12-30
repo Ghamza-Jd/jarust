@@ -1,13 +1,20 @@
+use super::events::EchoTestPluginData;
 use super::messages::EchoTestStartMsg;
 use crate::jahandle::JaHandle;
+use crate::japrotocol::JaEventProtocol;
+use crate::japrotocol::JaResponseProtocol;
 use crate::jasession::JaSession;
 use crate::prelude::*;
 use async_trait::async_trait;
 use tokio::sync::mpsc;
 
+const PLUGIN_ID: &str = "janus.plugin.echotest";
+
 #[async_trait]
 pub trait EchoTest {
-    async fn attach_echotest(&self) -> JaResult<(EchoTestHandle, mpsc::Receiver<String>)>;
+    async fn attach_echotest(
+        &self,
+    ) -> JaResult<(EchoTestHandle, mpsc::Receiver<EchoTestPluginData>)>;
 }
 
 pub struct EchoTestHandle {
@@ -22,12 +29,19 @@ impl From<JaHandle> for EchoTestHandle {
 
 #[async_trait]
 impl EchoTest for JaSession {
-    async fn attach_echotest(&self) -> JaResult<(EchoTestHandle, mpsc::Receiver<String>)> {
-        let (handle, mut receiver) = self.attach("janus.plugin.echotest").await?;
+    async fn attach_echotest(
+        &self,
+    ) -> JaResult<(EchoTestHandle, mpsc::Receiver<EchoTestPluginData>)> {
+        let (handle, mut receiver) = self.attach(PLUGIN_ID).await?;
         let (tx, rx) = mpsc::channel(100);
         tokio::spawn(async move {
             while let Some(msg) = receiver.recv().await {
-                let msg = format!("Todo: parse properly {msg:?}");
+                let msg = match msg.janus {
+                    JaResponseProtocol::Event(JaEventProtocol::Event { plugin_data, .. }) => {
+                        serde_json::from_value::<EchoTestPluginData>(plugin_data).unwrap()
+                    }
+                    _ => continue,
+                };
                 let _ = tx.send(msg).await;
             }
         });
