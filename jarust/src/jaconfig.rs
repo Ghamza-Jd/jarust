@@ -1,9 +1,11 @@
+pub(crate) const CHANNEL_BUFFER_SIZE: usize = 32;
+
 #[derive(Debug)]
 pub struct JaConfig {
-    pub uri: String,
-    pub apisecret: Option<String>,
-    pub transport_type: TransportType,
-    pub root_namespace: String,
+    pub(crate) uri: String,
+    pub(crate) apisecret: Option<String>,
+    pub(crate) transport_type: TransportType,
+    pub(crate) root_namespace: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,5 +1,6 @@
 use super::events::EchoTestPluginData;
 use super::messages::EchoTestStartMsg;
+use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::jahandle::JaHandle;
 use crate::japrotocol::JaEventProtocol;
 use crate::japrotocol::JaResponseProtocol;
@@ -33,7 +34,7 @@ impl EchoTest for JaSession {
         &self,
     ) -> JaResult<(EchoTestHandle, mpsc::Receiver<EchoTestPluginData>)> {
         let (handle, mut receiver) = self.attach(PLUGIN_ID).await?;
-        let (tx, rx) = mpsc::channel(100);
+        let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         tokio::spawn(async move {
             while let Some(msg) = receiver.recv().await {
                 let msg = match msg.janus {

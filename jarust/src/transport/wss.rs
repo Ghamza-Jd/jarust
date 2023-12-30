@@ -1,4 +1,5 @@
 use super::trans::Transport;
+use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::prelude::*;
 use async_trait::async_trait;
 use futures_util::stream::SplitSink;
@@ -35,7 +36,7 @@ impl Transport for WebsocketTransport {
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
         let (stream, _) = connect_async(request).await?;
         let (sender, mut receiver) = stream.split();
-        let (tx, rx) = mpsc::channel(32);
+        let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
         let forward_join_handle = tokio::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
