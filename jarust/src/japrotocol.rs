@@ -1,5 +1,6 @@
 use serde::Deserialize;
 use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Serialize)]
 pub enum JaConnectionRequestProtocol {
@@ -55,7 +56,7 @@ pub enum JaResponseProtocol {
     #[serde(rename = "ack")]
     Ack,
     #[serde(untagged)]
-    Event { janus: JaEventProtocol },
+    Event(JaEventProtocol),
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -70,9 +71,13 @@ pub struct JaResponseError {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "janus")]
 pub enum JaEventProtocol {
     #[serde(rename = "event")]
-    Event,
+    Event {
+        #[serde(rename = "plugindata")]
+        plugin_data: Value,
+    },
     #[serde(rename = "detached")]
     Detached,
     /// The PeerConnection was closed, either by Janus or by the user/application, and as such cannot be used anymore.

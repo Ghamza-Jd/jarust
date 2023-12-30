@@ -1,5 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust::plugins::echotest::events::EchoTestPluginEvent;
 use jarust::plugins::echotest::handle::EchoTest;
 use jarust::plugins::echotest::messages::EchoTestStartMsg;
 use log::LevelFilter;
@@ -31,7 +32,11 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
-        log::info!("{event}");
+        match event.event {
+            EchoTestPluginEvent::Result { result, .. } => {
+                log::info!("result: {result}");
+            }
+        }
     }
 
     Ok(())
