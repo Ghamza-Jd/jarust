@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 jarust = { version = "*", path = "../jarust" }
+jarust_plugins = { version = "*", path = "../jarust_plugins" }
 log = "0.4.20"
 tokio = { version = "1.34.0", features = ["time", "macros", "rt-multi-thread"] }
 simple_logger = "4.3.0"

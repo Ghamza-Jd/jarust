@@ -1,4 +1,4 @@
-pub(crate) const CHANNEL_BUFFER_SIZE: usize = 32;
+pub const CHANNEL_BUFFER_SIZE: usize = 32;
 
 #[derive(Debug)]
 pub struct JaConfig {

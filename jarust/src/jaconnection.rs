@@ -15,6 +15,8 @@ use crate::utils::get_subnamespace_from_response;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
+use std::ops::Deref;
+use std::ops::DerefMut;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
@@ -41,7 +43,7 @@ pub struct InnerConnection {
 #[derive(Clone)]
 pub struct JaConnection(Arc<InnerConnection>);
 
-impl std::ops::Deref for JaConnection {
+impl Deref for JaConnection {
     type Target = Arc<InnerConnection>;
 
     fn deref(&self) -> &Self::Target {
@@ -49,7 +51,7 @@ impl std::ops::Deref for JaConnection {
     }
 }
 
-impl std::ops::DerefMut for JaConnection {
+impl DerefMut for JaConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }

@@ -1,8 +1,8 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::plugins::echotest::events::EchoTestPluginEvent;
-use jarust::plugins::echotest::handle::EchoTest;
-use jarust::plugins::echotest::messages::EchoTestStartMsg;
+use jarust_plugins::echotest::events::EchoTestPluginEvent;
+use jarust_plugins::echotest::messages::EchoTestStartMsg;
+use jarust_plugins::echotest::EchoTest;
 use log::LevelFilter;
 use log::SetLoggerError;
 use simple_logger::SimpleLogger;
@@ -12,17 +12,15 @@ async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
     // To make sure handle is working even after dropping the session and the connection
-    let (handle, mut event_receiver) = {
-        let mut connection = jarust::connect(JaConfig::new(
-            "wss://janus.conf.meetecho.com/ws",
-            None,
-            TransportType::Wss,
-            "janus",
-        ))
-        .await?;
-        let session = connection.create(10).await?;
-        session.attach_echotest().await?
-    };
+    let mut connection = jarust::connect(JaConfig::new(
+        "wss://janus.conf.meetecho.com/ws",
+        None,
+        TransportType::Wss,
+        "janus",
+    ))
+    .await?;
+    let session = connection.create(10).await?;
+    let (handle, mut event_receiver) = session.attach_echo_test().await?;
 
     handle
         .start(EchoTestStartMsg {
@@ -32,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
-        match event.event {
+        match event {
             EchoTestPluginEvent::Result { result, .. } => {
                 log::info!("result: {result}");
             }

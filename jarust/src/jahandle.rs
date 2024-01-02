@@ -7,6 +7,7 @@ use crate::jasession::JaSession;
 use crate::prelude::*;
 use serde_json::json;
 use serde_json::Value;
+use std::ops::Deref;
 use std::sync::Arc;
 use std::sync::Weak;
 use tokio::sync::mpsc;
@@ -39,7 +40,7 @@ impl WeakJaHandle {
     }
 }
 
-impl std::ops::Deref for JaHandle {
+impl Deref for JaHandle {
     type Target = Arc<InnerHandle>;
 
     fn deref(&self) -> &Self::Target {

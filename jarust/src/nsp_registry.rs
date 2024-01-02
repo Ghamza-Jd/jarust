@@ -2,6 +2,8 @@ use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::japrotocol::JaResponse;
 use crate::prelude::*;
 use std::collections::HashMap;
+use std::ops::Deref;
+use std::ops::DerefMut;
 use std::sync::Arc;
 use std::sync::RwLock;
 use tokio::sync::mpsc;
@@ -13,7 +15,7 @@ pub(crate) struct Inner {
 #[derive(Clone)]
 pub(crate) struct NamespaceRegistry(Arc<RwLock<Inner>>);
 
-impl std::ops::Deref for NamespaceRegistry {
+impl Deref for NamespaceRegistry {
     type Target = Arc<RwLock<Inner>>;
 
     fn deref(&self) -> &Self::Target {
@@ -21,7 +23,7 @@ impl std::ops::Deref for NamespaceRegistry {
     }
 }
 
-impl std::ops::DerefMut for NamespaceRegistry {
+impl DerefMut for NamespaceRegistry {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }

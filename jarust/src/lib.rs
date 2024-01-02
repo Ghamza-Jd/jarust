@@ -4,15 +4,15 @@ use jaconnection::JaConnection;
 use prelude::JaResult;
 
 pub mod jaconfig;
+pub mod jahandle;
+pub mod japlugin;
 pub mod japrotocol;
-pub mod plugins;
+pub mod jasession;
 pub mod prelude;
 pub mod transport;
 
 mod error;
 mod jaconnection;
-mod jahandle;
-mod jasession;
 mod nsp_registry;
 mod tmanager;
 mod utils;
