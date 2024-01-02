@@ -3,6 +3,9 @@ name = "jarust_plugins"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+doctest = false
+
 [dependencies]
 async-trait = "0.1.75"
 tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
