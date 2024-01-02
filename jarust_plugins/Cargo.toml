@@ -7,13 +7,13 @@ edition = "2021"
 doctest = false
 
 [dependencies]
-async-trait = "0.1.75"
-tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
+async-trait.workspace = true
 jarust = { version = "*", path = "../jarust" }
 jarust_make_plugin = { version = "*", path = "../jarust_make_plugin" }
-serde = { version = "1.0.193", features = ["derive"] }
-serde_json = "1.0.108"
-log = "0.4.20"
+log.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+tokio.workspace = true
 
 [features]
 default = ["echotest"]

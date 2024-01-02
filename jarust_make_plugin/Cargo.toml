@@ -8,12 +8,9 @@ proc-macro = true
 doctest = false
 
 [dependencies]
-async-trait = "0.1.75"
-tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
-jarust = { version = "*", path = "../jarust" }
+convert_case = "0.6.0"
 quote = "1.0.35"
 syn = "2.0.46"
-convert_case = "0.6.0"
 
 [features]
 default = ["echotest"]
