@@ -12,12 +12,12 @@ use std::sync::Arc;
 use std::sync::Weak;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::task::JoinHandle;
+use tokio::task::AbortHandle;
 
 struct Shared {
     id: u64,
     session: JaSession,
-    join_handle: JoinHandle<()>,
+    abort_handle: AbortHandle,
 }
 
 struct SafeShared {
@@ -74,7 +74,7 @@ impl JaHandle {
         let shared = Shared {
             id,
             session,
-            join_handle,
+            abort_handle: join_handle.abort_handle(),
         };
         let safe = SafeShared { ack_receiver };
 
@@ -133,6 +133,6 @@ impl JaHandle {
 impl Drop for InnerHandle {
     fn drop(&mut self) {
         log::trace!("Dropping handle {{ id: {} }}", self.shared.id);
-        self.shared.join_handle.abort();
+        self.shared.abort_handle.abort();
     }
 }
