@@ -20,10 +20,10 @@ use std::ops::DerefMut;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::task::JoinHandle;
+use tokio::task::AbortHandle;
 
 struct Shared {
-    demux_join_handle: JoinHandle<JaResult<()>>,
+    demux_abort_handle: AbortHandle,
     config: JaConfig,
 }
 
@@ -117,7 +117,7 @@ impl JaConnection {
         });
 
         let shared = Shared {
-            demux_join_handle,
+            demux_abort_handle: demux_join_handle.abort_handle(),
             config,
         };
         let safe = SafeShared {
@@ -229,6 +229,6 @@ impl JaConnection {
 impl Drop for InnerConnection {
     fn drop(&mut self) {
         log::trace!("Connection dropped");
-        self.shared.demux_join_handle.abort();
+        self.shared.demux_abort_handle.abort();
     }
 }

@@ -7,7 +7,7 @@ use futures_util::SinkExt;
 use futures_util::StreamExt;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
-use tokio::task::JoinHandle;
+use tokio::task::AbortHandle;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::Message;
@@ -18,7 +18,7 @@ type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Mes
 
 pub struct WebsocketTransport {
     sender: Option<WebSocketSender>,
-    forward_join_handle: Option<JoinHandle<()>>,
+    abort_handle: Option<AbortHandle>,
 }
 
 #[async_trait]
@@ -26,7 +26,7 @@ impl Transport for WebsocketTransport {
     fn new() -> Self {
         Self {
             sender: None,
-            forward_join_handle: None,
+            abort_handle: None,
         }
     }
 
@@ -47,7 +47,7 @@ impl Transport for WebsocketTransport {
         });
 
         self.sender = Some(sender);
-        self.forward_join_handle = Some(forward_join_handle);
+        self.abort_handle = Some(forward_join_handle.abort_handle());
         Ok(rx)
     }
 
@@ -65,7 +65,7 @@ impl Transport for WebsocketTransport {
 
 impl Drop for WebsocketTransport {
     fn drop(&mut self) {
-        if let Some(join_handle) = self.forward_join_handle.take() {
+        if let Some(join_handle) = self.abort_handle.take() {
             log::trace!("Dropping wss transport");
             join_handle.abort();
         }
