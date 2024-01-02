@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::ops::Deref;
+use std::ops::DerefMut;
 use std::sync::Arc;
 use std::sync::RwLock;
 
@@ -16,7 +18,7 @@ pub(crate) struct Inner {
 #[derive(Clone)]
 pub(crate) struct TransactionManager(Arc<RwLock<Inner>>);
 
-impl std::ops::Deref for TransactionManager {
+impl Deref for TransactionManager {
     type Target = Arc<RwLock<Inner>>;
 
     fn deref(&self) -> &Self::Target {
@@ -24,7 +26,7 @@ impl std::ops::Deref for TransactionManager {
     }
 }
 
-impl std::ops::DerefMut for TransactionManager {
+impl DerefMut for TransactionManager {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
