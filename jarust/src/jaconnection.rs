@@ -134,6 +134,7 @@ impl JaConnection {
         Ok(Self(connection))
     }
 
+    /// Creates a new session with janus server.
     pub async fn create(&mut self, ka_interval: u32) -> JaResult<JaSession> {
         log::info!("Creating new session");
 
