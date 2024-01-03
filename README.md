@@ -2,7 +2,7 @@
 
 Jarust is a Rust adapter for [Janus WebRTC server](https://github.com/meetecho/janus-gateway)
 
-Interally uses WebSockets to connect to Janus.
+Internally uses WebSockets to connect to Janus.
 
 The library wraps the Janus core API and some of the most popular plugins APIs.
 
