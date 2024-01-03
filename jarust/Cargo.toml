@@ -21,8 +21,14 @@ rand = "0.8.5"
 serde_json.workspace = true
 serde.workspace = true
 thiserror = "1.0.51"
-tokio-tungstenite.workspace = true
 tokio.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+web-sys = { version = "0.3.66", features = ["WebSocket", "MessageEvent"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio-tungstenite.workspace = true
 
 [dev-dependencies]
 tokio = { version = "1.35.1", features = ["macros"] }

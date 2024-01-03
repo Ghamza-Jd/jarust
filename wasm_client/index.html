@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebAssembly Example</title>
+</head>
+<body>
+    <script type="module">
+        import init, {connect} from "./pkg/wasm_client.js";
+
+        init().then(() => {
+            console.log("initialized successfully");
+            connect("wss://janus.conf.meetecho.com/ws");
+        }).catch(error => {
+            console.error('Failed to import WebAssembly module:', error);
+        });
+    </script>
+</body>
+</html>

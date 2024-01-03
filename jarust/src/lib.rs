@@ -17,6 +17,13 @@ mod nsp_registry;
 mod tmanager;
 mod utils;
 
+#[cfg(target_arch = "wasm32")]
+/// Creates a new connection with janus server from the provided configs
+pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
+    connect_with_transport(jaconfig, transport::wasm_wss::WasmWsTransport::new()).await
+}
+
+#[cfg(not(target_arch = "wasm32"))]
 /// Creates a new connection with janus server from the provided configs
 pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
     let transport = match jaconfig.transport_type {

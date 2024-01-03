@@ -1,13 +1,12 @@
-use tokio_tungstenite::tungstenite;
-use tokio_tungstenite::tungstenite::http::header::InvalidHeaderValue;
-
 #[derive(thiserror::Error, Debug)]
 pub enum JaError {
     /* Transformed Errors */
+    #[cfg(not(target_arch = "wasm32"))]
     #[error("Websocket error: {0}")]
-    WebSocket(#[from] tungstenite::Error),
+    WebSocket(#[from] tokio_tungstenite::tungstenite::Error),
+    #[cfg(not(target_arch = "wasm32"))]
     #[error("InvalidHeaderValue: {0}")]
-    InvalidHeaderValue(#[from] InvalidHeaderValue),
+    InvalidHeaderValue(#[from] tokio_tungstenite::tungstenite::http::header::InvalidHeaderValue),
     #[error("Failed to parse json: {0}")]
     JsonParsingFailure(#[from] serde_json::Error),
     #[error("IO: {0}")]
