@@ -17,6 +17,7 @@ mod nsp_registry;
 mod tmanager;
 mod utils;
 
+/// Creates a new connection with janus server from the provided configs
 pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
     let transport = match jaconfig.transport_type {
         jaconfig::TransportType::Wss => transport::wss::WebsocketTransport::new(),
@@ -24,6 +25,7 @@ pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
     connect_with_transport(jaconfig, transport).await
 }
 
+/// Creates a new connection with janus server from the provided configs and custom transport
 pub async fn connect_with_transport(
     jaconfig: JaConfig,
     transport: impl Transport,
