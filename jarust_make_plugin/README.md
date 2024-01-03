@@ -52,9 +52,73 @@ pub trait EchoTest: Attach {
 }
 ```
 
-Then we can extend the `JaSession` by providing the return Handle type (that should confirm to certain bounds), Event type, and how to parse the events.
+We'll start with creating the `EchoTestHandle`.
 
-```rs
+```rust
+pub struct EchoTestHandle {
+    handle: JaHandle,
+    abort_handle: Option<AbortHandle>,
+}
+```
+
+Then we can implement the required trait for `EchoTestHandle` to be able to use it as a plugin handle.
+
+```rust
+// This trait is used to assign an abort handle so we can abort the task on drop
+impl PluginTask for EchoTestHandle {
+    fn assign_abort(&mut self, abort_handle: AbortHandle) {
+        self.abort_handle = Some(abort_handle);
+    }
+
+    fn abort_plugin(&mut self) {
+        if let Some(abort_handle) = self.abort_handle.take() {
+            abort_handle.abort();
+        };
+    }
+}
+
+// Create EchoTestHandle from JaHandle
+impl From<JaHandle> for EchoTestHandle {
+    fn from(handle: JaHandle) -> Self {
+        Self {
+            handle,
+            abort_handle: None,
+        }
+    }
+}
+
+// Dereference EchoTestHandle to JaHandle to get the existing fucntionalities from JaHandle
+impl Deref for EchoTestHandle {
+    type Target = JaHandle;
+
+    fn deref(&self) -> &Self::Target {
+        &self.handle
+    }
+}
+
+// On drop abort task
+impl Drop for EchoTestHandle {
+    fn drop(&mut self) {
+        self.abort_plugin();
+    }
+}
+```
+
+And add the `EchoTestHandle` specific requests. (The audio bridge for example could have `mute` and `unmute` requests)
+
+```rust
+// EchoTestHandle specific requests
+impl EchoTestHandle {
+    pub async fn start(&self, request: EchoTestStartMsg) -> JaResult<()> {
+        self.handle.message(serde_json::to_value(request)?).await
+    }
+}
+```
+
+Finally, we implement the `EchoTest` trait that was created from `make_plugin!` macro on `JaSession` to extend the
+`JaSession`'s functionality. And provide the Handle type, Event type, and how to parse the incoming events.
+
+```rust
 impl EchoTest for JaSession {
     type Event = EchoTestPluginEvent;
     type Handle = EchoTestHandle;
