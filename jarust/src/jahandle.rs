@@ -6,6 +6,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::Jsep;
 use crate::jasession::JaSession;
 use crate::prelude::*;
+use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
 use std::ops::Deref;
@@ -110,7 +111,10 @@ impl JaHandle {
         self.send_request(request).await
     }
 
-    pub async fn message_with_result(&self, body: Value) -> JaResult<JaResponse> {
+    pub async fn message_with_result<Result>(&self, body: Value) -> JaResult<Result>
+    where
+        Result: DeserializeOwned,
+    {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
             "body": body
@@ -121,7 +125,17 @@ impl JaHandle {
             guard.result_receiver.recv().await.unwrap()
         };
 
-        Ok(response)
+        let result = match response.janus {
+            JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
+                serde_json::from_value::<Result>(plugin_data)?
+            }
+            _ => {
+                log::error!("Request failed");
+                return Err(JaError::UnexpectedResponse);
+            }
+        };
+
+        Ok(result)
     }
 
     pub async fn message_with_jsep(&self, body: Value, jsep: Jsep) -> JaResult<JaResponse> {

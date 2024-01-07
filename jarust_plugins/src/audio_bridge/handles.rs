@@ -1,8 +1,8 @@
-use super::{events::AudioBridgePluginEvent, messages::AudioBridgeListMsg};
-use jarust::{
-    japrotocol::{JaResponseProtocol, JaSuccessProtocol},
-    prelude::*,
+use super::{
+    messages::AudioBridgeListMsg,
+    results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
+use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::task::AbortHandle;
 
@@ -17,15 +17,19 @@ impl AudioBridgeHandle {
     // }
 
     // pub async fn create(&self, request: AudioBridgeCreateMsg) {}
-    pub async fn list(&self) -> JaResult<JaResponse> {
+
+    pub async fn list(&self) -> JaResult<Vec<Room>> {
         let response = self
             .handle
-            .message_with_result(serde_json::to_value(AudioBridgeListMsg::default())?)
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeListMsg::default(),
+            )?)
             .await?;
 
-        // match response.janus {
-        //     JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data })        }
-        Ok(response)
+        let result = match response.event {
+            AudioBridgePluginEvent::List { list, .. } => list,
+        };
+        Ok(result)
     }
 }
 
