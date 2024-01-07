@@ -2,6 +2,7 @@ use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
+use crate::japrotocol::JaSuccessProtocol;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
 use crate::nsp_registry::NamespaceRegistry;
@@ -145,7 +146,7 @@ impl JaConnection {
         self.send_request(request).await?;
         let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
         let session_id = match response.janus {
-            JaResponseProtocol::Success { data } => data.id,
+            JaResponseProtocol::Success(JaSuccessProtocol::Data { data }) => data.id,
             JaResponseProtocol::Error { error } => {
                 let what = JaError::JanusError {
                     code: error.code,

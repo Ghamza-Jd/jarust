@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 use tokio::task::AbortHandle;
 
 pub trait PluginTask {
-    fn assign_abort(&mut self, abort_handle: AbortHandle);
+    fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>);
     fn abort_plugin(&mut self);
 }
 

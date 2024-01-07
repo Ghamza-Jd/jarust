@@ -5,8 +5,8 @@ pub mod messages;
 use self::events::AudioBridgePluginData;
 use self::events::AudioBridgePluginEvent;
 use self::handles::*;
-use jarust::japrotocol::JaEventProtocol;
 use jarust::japrotocol::JaResponseProtocol;
+use jarust::japrotocol::JaSuccessProtocol;
 use jarust::prelude::*;
 use jarust_make_plugin::make_plugin;
 
@@ -18,7 +18,7 @@ impl AudioBridge for JaSession {
 
     fn parse_audio_bridge_message(message: JaResponse) -> JaResult<Self::Event> {
         let msg = match message.janus {
-            JaResponseProtocol::Event(JaEventProtocol::Event { plugin_data, .. }) => {
+            JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
                 serde_json::from_value::<AudioBridgePluginData>(plugin_data)?.event
             }
             _ => {

@@ -1,5 +1,10 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust::japrotocol::JaData;
+use jarust::japrotocol::JaEventProtocol;
+use jarust::japrotocol::JaResponse;
+use jarust::japrotocol::JaResponseProtocol;
+use jarust::japrotocol::JaSuccessProtocol;
 use jarust_plugins::audio_bridge::events::AudioBridgePluginEvent;
 use jarust_plugins::audio_bridge::AudioBridge;
 use jarust_plugins::echotest::events::EchoTestPluginEvent;
@@ -22,8 +27,8 @@ async fn main() -> anyhow::Result<()> {
     ))
     .await?;
     let session = connection.create(10).await?;
-    let (handle, mut event_receiver) = session.attach_echo_test().await?;
-    let (audio_bridge_handle, mut audio_bridge_event_receiver) =
+    let (handle, mut event_receiver, ..) = session.attach_echo_test().await?;
+    let (audio_bridge_handle, mut audio_bridge_event_receiver, ..) =
         session.attach_audio_bridge().await?;
 
     handle
@@ -32,16 +37,8 @@ async fn main() -> anyhow::Result<()> {
             video: true,
         })
         .await?;
-
-    audio_bridge_handle.list().await?;
-
-    while let Some(event) = audio_bridge_event_receiver.recv().await {
-        match event {
-            AudioBridgePluginEvent::List { list, .. } => {
-                log::info!("rooms: {:#?}", list);
-            }
-        }
-    }
+    let result = audio_bridge_handle.list().await?;
+    log::info!("Result {:#?}", result);
 
     while let Some(event) = event_receiver.recv().await {
         match event {

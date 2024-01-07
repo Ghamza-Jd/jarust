@@ -59,7 +59,7 @@ pub fn make_plugin(input: TokenStream) -> TokenStream {
                 });
                 let abort_handle = join_handle.abort_handle();
                 let mut handle: Self::Handle = handle.into();
-                handle.assign_abort(abort_handle);
+                handle.assign_aborts(vec![abort_handle]);
                 Ok((handle, rx))
             }
         }

@@ -9,7 +9,7 @@ pub struct AudioBridgePluginData {
 
 #[derive(Debug, Deserialize)]
 pub struct Room {
-    room: String,
+    room: u64,
     description: String,
     pin_required: bool,
     sampling_rate: u64,

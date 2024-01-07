@@ -1,11 +1,14 @@
-use super::messages::{AudioBridgeCreateMsg, AudioBridgeListMsg};
-use jarust::prelude::*;
+use super::{events::AudioBridgePluginEvent, messages::AudioBridgeListMsg};
+use jarust::{
+    japrotocol::{JaResponseProtocol, JaSuccessProtocol},
+    prelude::*,
+};
 use std::ops::Deref;
 use tokio::task::AbortHandle;
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,
-    abort_handle: Option<AbortHandle>,
+    abort_handles: Option<Vec<AbortHandle>>,
 }
 
 impl AudioBridgeHandle {
@@ -14,21 +17,28 @@ impl AudioBridgeHandle {
     // }
 
     // pub async fn create(&self, request: AudioBridgeCreateMsg) {}
-    pub async fn list(&self) -> JaResult<()> {
-        self.handle
-            .message(serde_json::to_value(AudioBridgeListMsg::default())?)
-            .await
+    pub async fn list(&self) -> JaResult<JaResponse> {
+        let response = self
+            .handle
+            .message_with_result(serde_json::to_value(AudioBridgeListMsg::default())?)
+            .await?;
+
+        // match response.janus {
+        //     JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data })        }
+        Ok(response)
     }
 }
 
 impl PluginTask for AudioBridgeHandle {
-    fn assign_abort(&mut self, abort_handle: AbortHandle) {
-        self.abort_handle = Some(abort_handle);
+    fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>) {
+        self.abort_handles = Some(abort_handles);
     }
 
     fn abort_plugin(&mut self) {
-        if let Some(abort_handle) = self.abort_handle.take() {
-            abort_handle.abort();
+        if let Some(abort_handles) = self.abort_handles.take() {
+            for abort_handle in abort_handles {
+                abort_handle.abort();
+            }
         };
     }
 }
@@ -37,7 +47,7 @@ impl From<JaHandle> for AudioBridgeHandle {
     fn from(handle: JaHandle) -> Self {
         Self {
             handle,
-            abort_handle: None,
+            abort_handles: None,
         }
     }
 }

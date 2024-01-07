@@ -2,6 +2,7 @@ use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
+use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::Jsep;
 use crate::jasession::JaSession;
 use crate::prelude::*;
@@ -22,6 +23,7 @@ struct Shared {
 
 struct SafeShared {
     ack_receiver: mpsc::Receiver<JaResponse>,
+    result_receiver: mpsc::Receiver<JaResponse>,
 }
 
 pub struct InnerHandle {
@@ -55,6 +57,7 @@ impl JaHandle {
         id: u64,
     ) -> (Self, mpsc::Receiver<JaResponse>) {
         let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
         let join_handle = tokio::spawn(async move {
@@ -66,6 +69,9 @@ impl JaHandle {
                     JaResponseProtocol::Event { .. } => {
                         event_sender.send(item).await.unwrap();
                     }
+                    JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
+                        result_sender.send(item).await.unwrap();
+                    }
                     _ => {}
                 }
             }
@@ -76,7 +82,10 @@ impl JaHandle {
             session,
             abort_handle: join_handle.abort_handle(),
         };
-        let safe = SafeShared { ack_receiver };
+        let safe = SafeShared {
+            ack_receiver,
+            result_receiver,
+        };
 
         (
             Self(Arc::new(InnerHandle {
@@ -99,6 +108,20 @@ impl JaHandle {
             "body": body
         });
         self.send_request(request).await
+    }
+
+    pub async fn message_with_result(&self, body: Value) -> JaResult<JaResponse> {
+        let request = json!({
+            "janus": JaHandleRequestProtocol::Message,
+            "body": body
+        });
+        self.send_request(request).await?;
+        let response = {
+            let mut guard = self.safe.lock().await;
+            guard.result_receiver.recv().await.unwrap()
+        };
+
+        Ok(response)
     }
 
     pub async fn message_with_jsep(&self, body: Value, jsep: Jsep) -> JaResult<JaResponse> {

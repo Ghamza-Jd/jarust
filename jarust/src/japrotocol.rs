@@ -47,14 +47,14 @@ pub struct JaResponse {
 #[derive(Debug, Deserialize, Clone)]
 #[serde(tag = "janus")]
 pub enum JaResponseProtocol {
-    #[serde(rename = "success")]
-    Success { data: JaData },
     #[serde(rename = "error")]
     Error { error: JaResponseError },
     #[serde(rename = "server_info")]
     ServerInfo,
     #[serde(rename = "ack")]
     Ack,
+    #[serde(rename = "success")]
+    Success(JaSuccessProtocol),
     #[serde(untagged)]
     Event(JaEventProtocol),
 }
@@ -68,6 +68,18 @@ pub struct JaData {
 pub struct JaResponseError {
     pub code: u16,
     pub reason: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "janus")]
+pub enum JaSuccessProtocol {
+    #[serde(untagged)]
+    Data { data: JaData },
+    #[serde(untagged)]
+    Plugin {
+        #[serde(rename = "plugindata")]
+        plugin_data: Value,
+    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
