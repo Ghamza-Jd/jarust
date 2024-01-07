@@ -37,8 +37,8 @@ async fn main() -> anyhow::Result<()> {
 
     while let Some(event) = audio_bridge_event_receiver.recv().await {
         match event {
-            AudioBridgePluginEvent::List { rooms, .. } => {
-                log::info!("rooms: {:#?}", rooms);
+            AudioBridgePluginEvent::List { list, .. } => {
+                log::info!("rooms: {:#?}", list);
             }
         }
     }

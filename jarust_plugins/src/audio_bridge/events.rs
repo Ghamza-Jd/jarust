@@ -8,15 +8,6 @@ pub struct AudioBridgePluginData {
 }
 
 #[derive(Debug, Deserialize)]
-pub enum AudioBridgePluginEvent {
-    #[serde(untagged)]
-    List {
-        audiobridge: String,
-        rooms: Vec<Room>,
-    },
-}
-
-#[derive(Debug, Deserialize)]
 pub struct Room {
     room: String,
     description: String,
@@ -25,4 +16,14 @@ pub struct Room {
     spatial_audio: bool,
     record: bool,
     num_participants: u64,
+    muted: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub enum AudioBridgePluginEvent {
+    #[serde(untagged)]
+    List {
+        audiobridge: String,
+        list: Vec<Room>,
+    },
 }
