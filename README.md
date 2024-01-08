@@ -8,4 +8,5 @@ The library wraps the Janus core API and some of the most popular plugins APIs.
 
 ## Examples
 
-Checkout out [plugins examples](./jarust_plugins/examples/) for example usage.
+- [jarust examples](./jarust/examples/), example usage of jarust.
+- [plugins examples](./jarust_plugins/examples/), example usage of jarust's predefined plugins.
