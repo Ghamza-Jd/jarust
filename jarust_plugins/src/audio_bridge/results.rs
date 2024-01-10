@@ -9,14 +9,14 @@ pub struct AudioBridgePluginData {
 
 #[derive(Debug, Deserialize)]
 pub struct Room {
-    room: u64,
-    description: String,
-    pin_required: bool,
-    sampling_rate: u64,
-    spatial_audio: bool,
-    record: bool,
-    num_participants: u64,
-    muted: bool,
+    pub room: u64,
+    pub description: String,
+    pub pin_required: bool,
+    pub sampling_rate: u64,
+    pub spatial_audio: bool,
+    pub record: bool,
+    pub num_participants: u64,
+    pub muted: bool,
 }
 
 #[derive(Debug, Deserialize)]
