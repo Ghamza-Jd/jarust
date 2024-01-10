@@ -19,8 +19,8 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let result = handle.list().await?;
-    log::info!("Rooms {:#?}", result);
+    let (room, permanent) = handle.create_room(None).await?;
+    log::info!("Created Room {}, permanent: {}", room, permanent);
 
     Ok(())
 }

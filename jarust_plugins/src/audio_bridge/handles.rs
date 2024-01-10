@@ -1,5 +1,5 @@
 use super::{
-    messages::AudioBridgeListMsg,
+    messages::{AudioBridgeCreateMsg, AudioBridgeListMsg},
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
 use jarust::prelude::*;
@@ -12,11 +12,95 @@ pub struct AudioBridgeHandle {
 }
 
 impl AudioBridgeHandle {
-    // pub async fn start(&self, request: AudioBridgeStartMsg) -> JaResult<()> {
-    //     self.handle.message(serde_json::to_value(request)?).await
-    // }
+    pub async fn create_room(&self, room: Option<u64>) -> JaResult<(u64, bool)> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeCreateMsg::new(
+                    room, None, None, None, None, None, None, None, None, None, None, None, None,
+                    None, None, None, None, None, None, None, None, None,
+                ),
+            )?)
+            .await?;
 
-    // pub async fn create(&self, request: AudioBridgeCreateMsg) {}
+        let result = match response.event {
+            AudioBridgePluginEvent::CreateRoom {
+                room, permanent, ..
+            } => (room, permanent),
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        };
+
+        Ok(result)
+    }
+
+    pub async fn create_room_with_config(
+        &self,
+        room: Option<u64>,
+        permanent: Option<bool>,
+        description: Option<String>,
+        secret: Option<String>,
+        pin: Option<String>,
+        is_private: Option<bool>,
+        allowed: Option<Vec<String>>,
+        sampling_rate: Option<u64>,
+        spatial_audio: Option<bool>,
+        audiolevel_ext: Option<bool>,
+        audiolevel_event: Option<bool>,
+        audio_active_packets: Option<u64>,
+        audio_level_average: Option<u64>,
+        default_expectedloss: Option<u64>,
+        default_bitrate: Option<u64>,
+        record: Option<bool>,
+        record_file: Option<String>,
+        record_dir: Option<String>,
+        mjrs: Option<bool>,
+        mjrs_dir: Option<String>,
+        allow_rtp_participants: Option<bool>,
+        groups: Option<Vec<String>>,
+    ) -> JaResult<(u64, bool)> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeCreateMsg::new(
+                    room,
+                    permanent,
+                    description,
+                    secret,
+                    pin,
+                    is_private,
+                    allowed,
+                    sampling_rate,
+                    spatial_audio,
+                    audiolevel_ext,
+                    audiolevel_event,
+                    audio_active_packets,
+                    audio_level_average,
+                    default_expectedloss,
+                    default_bitrate,
+                    record,
+                    record_file,
+                    record_dir,
+                    mjrs,
+                    mjrs_dir,
+                    allow_rtp_participants,
+                    groups,
+                ),
+            )?)
+            .await?;
+
+        let result = match response.event {
+            AudioBridgePluginEvent::CreateRoom {
+                room, permanent, ..
+            } => (room, permanent),
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        };
+
+        Ok(result)
+    }
 
     pub async fn list(&self) -> JaResult<Vec<Room>> {
         let response = self
@@ -28,6 +112,9 @@ impl AudioBridgeHandle {
 
         let result = match response.event {
             AudioBridgePluginEvent::List { list, .. } => list,
+            _ => {
+                panic!("Unexpected Response!")
+            }
         };
         Ok(result)
     }

@@ -13,7 +13,7 @@ pub struct Room {
     pub description: String,
     pub pin_required: bool,
     pub sampling_rate: u64,
-    pub spatial_audio: bool,
+    pub spatial_audio: Option<bool>,
     pub record: bool,
     pub num_participants: u64,
     pub muted: bool,
@@ -25,5 +25,11 @@ pub enum AudioBridgePluginEvent {
     List {
         audiobridge: String,
         list: Vec<Room>,
+    },
+    #[serde(untagged)]
+    CreateRoom {
+        audiobridge: String,
+        room: u64,
+        permanent: bool,
     },
 }
