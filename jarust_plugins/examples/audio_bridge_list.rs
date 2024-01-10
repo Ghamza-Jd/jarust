@@ -1,15 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::japrotocol::JaData;
-use jarust::japrotocol::JaEventProtocol;
-use jarust::japrotocol::JaResponse;
-use jarust::japrotocol::JaResponseProtocol;
-use jarust::japrotocol::JaSuccessProtocol;
-use jarust_plugins::audio_bridge::events::AudioBridgePluginEvent;
 use jarust_plugins::audio_bridge::AudioBridge;
-use jarust_plugins::echotest::events::EchoTestPluginEvent;
-use jarust_plugins::echotest::messages::EchoTestStartMsg;
-use jarust_plugins::echotest::EchoTest;
 use log::LevelFilter;
 use log::SetLoggerError;
 use simple_logger::SimpleLogger;
