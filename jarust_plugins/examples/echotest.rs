@@ -18,7 +18,6 @@ use simple_logger::SimpleLogger;
 async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
-    // To make sure handle is working even after dropping the session and the connection
     let mut connection = jarust::connect(JaConfig::new(
         "wss://janus.conf.meetecho.com/ws",
         None,

@@ -6,22 +6,7 @@ Internally uses WebSockets to connect to Janus.
 
 The library wraps the Janus core API and some of the most popular plugins APIs.
 
-## Example Usage
+## Examples
 
-This is just a pretty simple hello world for the echotest plugin.
-
-```rs
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let mut connection = jarust::connect(JaConfig::new(
-        "wss://janus.conf.meetecho.com/ws",
-        None,
-        TransportType::Wss,
-        "janus",
-    ))
-    .await?;
-
-    let session = connection.create(10).await?;
-    let handle = session.attach("janus.plugin.echotest").await?;
-}
-```
+- [jarust examples](./jarust/examples/), example usage of jarust.
+- [plugins examples](./jarust_plugins/examples/), example usage of jarust's predefined plugins.
