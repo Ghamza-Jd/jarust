@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
 
     let list = handle.list().await?;
 
-    log::info!("Rooms to delete {:#?}", list);
+    log::info!("Rooms to destroy {:#?}", list);
 
     for item in list {
         if let Ok((room, ..)) = handle
@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
         {
-            log::info!("Deleted Room {}", room);
+            log::info!("Destroyed Room {}", room);
         };
     }
 
