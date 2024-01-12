@@ -1,8 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::audio_bridge::messages::AudioBridgeCreateOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeDestroyOptions;
-use jarust_plugins::audio_bridge::messages::AudioBridgeEditOptions;
 use jarust_plugins::audio_bridge::AudioBridge;
 use log::LevelFilter;
 use log::SetLoggerError;
