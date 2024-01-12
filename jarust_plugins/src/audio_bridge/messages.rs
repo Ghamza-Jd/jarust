@@ -155,3 +155,22 @@ impl AudioBridgeDestroyMsg {
         }
     }
 }
+
+//
+// Exists Message
+//
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeExistsMsg {
+    request: String,
+    pub room: u64,
+}
+
+impl AudioBridgeExistsMsg {
+    pub fn new(room: u64) -> Self {
+        Self {
+            request: "exists".to_string(),
+            room,
+        }
+    }
+}

@@ -1,7 +1,8 @@
 use super::{
     messages::{
         AudioBridgeCreateMsg, AudioBridgeCreateOptions, AudioBridgeDestroyMsg,
-        AudioBridgeDestroyOptions, AudioBridgeEditMsg, AudioBridgeEditOptions, AudioBridgeListMsg,
+        AudioBridgeDestroyOptions, AudioBridgeEditMsg, AudioBridgeEditOptions,
+        AudioBridgeExistsMsg, AudioBridgeListMsg,
     },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
@@ -113,6 +114,23 @@ impl AudioBridgeHandle {
 
         let result = match response.event {
             AudioBridgePluginEvent::List { list, .. } => list,
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        };
+        Ok(result)
+    }
+
+    pub async fn exists(&self, room: u64) -> JaResult<bool> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeExistsMsg::new(room),
+            )?)
+            .await?;
+
+        let result = match response.event {
+            AudioBridgePluginEvent::ExistsRoom { exists, .. } => exists,
             _ => {
                 panic!("Unexpected Response!")
             }
