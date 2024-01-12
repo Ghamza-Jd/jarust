@@ -1,14 +1,18 @@
 use serde::Serialize;
 
-#[derive(Serialize)]
-pub struct AudioBridgeStartMsg {
-    pub audio: bool,
-    pub video: bool,
-}
+//
+// Create Message
+//
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct AudioBridgeCreateMsg {
     request: String,
+    #[serde(flatten)]
+    options: AudioBridgeCreateOptions,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeCreateOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -56,57 +60,17 @@ pub struct AudioBridgeCreateMsg {
 }
 
 impl AudioBridgeCreateMsg {
-    pub fn new(
-        room: Option<u64>,
-        permanent: Option<bool>,
-        description: Option<String>,
-        secret: Option<String>,
-        pin: Option<String>,
-        is_private: Option<bool>,
-        allowed: Option<Vec<String>>,
-        sampling_rate: Option<u64>,
-        spatial_audio: Option<bool>,
-        audiolevel_ext: Option<bool>,
-        audiolevel_event: Option<bool>,
-        audio_active_packets: Option<u64>,
-        audio_level_average: Option<u64>,
-        default_expectedloss: Option<u64>,
-        default_bitrate: Option<u64>,
-        record: Option<bool>,
-        record_file: Option<String>,
-        record_dir: Option<String>,
-        mjrs: Option<bool>,
-        mjrs_dir: Option<String>,
-        allow_rtp_participants: Option<bool>,
-        groups: Option<Vec<String>>,
-    ) -> Self {
+    pub fn new(options: AudioBridgeCreateOptions) -> Self {
         Self {
             request: "create".to_string(),
-            room,
-            permanent,
-            description,
-            secret,
-            pin,
-            is_private,
-            allowed,
-            sampling_rate,
-            spatial_audio,
-            audiolevel_ext,
-            audiolevel_event,
-            audio_active_packets,
-            audio_level_average,
-            default_expectedloss,
-            default_bitrate,
-            record,
-            record_file,
-            record_dir,
-            mjrs,
-            mjrs_dir,
-            allow_rtp_participants,
-            groups,
+            options,
         }
     }
 }
+
+//
+// List Message
+//
 
 #[derive(Serialize)]
 pub struct AudioBridgeListMsg {
@@ -116,6 +80,78 @@ impl Default for AudioBridgeListMsg {
     fn default() -> Self {
         Self {
             request: "list".to_string(),
+        }
+    }
+}
+
+//
+// Edit Message
+//
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeEditMsg {
+    request: String,
+    pub room: u64,
+    #[serde(flatten)]
+    options: AudioBridgeEditOptions,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeEditOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_secret: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_pin: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_is_private: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_record_dir: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_mjrs_dir: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permanent: Option<bool>,
+}
+
+impl AudioBridgeEditMsg {
+    pub fn new(room: u64, options: AudioBridgeEditOptions) -> Self {
+        Self {
+            request: "edit".to_string(),
+            room,
+            options,
+        }
+    }
+}
+
+//
+// Destroy Message
+//
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeDestroyMsg {
+    request: String,
+    pub room: u64,
+    #[serde(flatten)]
+    options: AudioBridgeDestroyOptions,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeDestroyOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permanent: Option<bool>,
+}
+
+impl AudioBridgeDestroyMsg {
+    pub fn new(room: u64, options: AudioBridgeDestroyOptions) -> Self {
+        Self {
+            request: "destroy".to_string(),
+            room,
+            options,
         }
     }
 }

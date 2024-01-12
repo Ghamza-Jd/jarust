@@ -1,5 +1,8 @@
 use super::{
-    messages::{AudioBridgeCreateMsg, AudioBridgeListMsg},
+    messages::{
+        AudioBridgeCreateMsg, AudioBridgeCreateOptions, AudioBridgeDestroyMsg,
+        AudioBridgeDestroyOptions, AudioBridgeEditMsg, AudioBridgeEditOptions, AudioBridgeListMsg,
+    },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
 use jarust::prelude::*;
@@ -16,10 +19,10 @@ impl AudioBridgeHandle {
         let response = self
             .handle
             .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeCreateMsg::new(
-                    room, None, None, None, None, None, None, None, None, None, None, None, None,
-                    None, None, None, None, None, None, None, None, None,
-                ),
+                AudioBridgeCreateMsg::new(AudioBridgeCreateOptions {
+                    room,
+                    ..Default::default()
+                }),
             )?)
             .await?;
 
@@ -37,61 +40,59 @@ impl AudioBridgeHandle {
 
     pub async fn create_room_with_config(
         &self,
-        room: Option<u64>,
-        permanent: Option<bool>,
-        description: Option<String>,
-        secret: Option<String>,
-        pin: Option<String>,
-        is_private: Option<bool>,
-        allowed: Option<Vec<String>>,
-        sampling_rate: Option<u64>,
-        spatial_audio: Option<bool>,
-        audiolevel_ext: Option<bool>,
-        audiolevel_event: Option<bool>,
-        audio_active_packets: Option<u64>,
-        audio_level_average: Option<u64>,
-        default_expectedloss: Option<u64>,
-        default_bitrate: Option<u64>,
-        record: Option<bool>,
-        record_file: Option<String>,
-        record_dir: Option<String>,
-        mjrs: Option<bool>,
-        mjrs_dir: Option<String>,
-        allow_rtp_participants: Option<bool>,
-        groups: Option<Vec<String>>,
+        options: AudioBridgeCreateOptions,
     ) -> JaResult<(u64, bool)> {
         let response = self
             .handle
             .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeCreateMsg::new(
-                    room,
-                    permanent,
-                    description,
-                    secret,
-                    pin,
-                    is_private,
-                    allowed,
-                    sampling_rate,
-                    spatial_audio,
-                    audiolevel_ext,
-                    audiolevel_event,
-                    audio_active_packets,
-                    audio_level_average,
-                    default_expectedloss,
-                    default_bitrate,
-                    record,
-                    record_file,
-                    record_dir,
-                    mjrs,
-                    mjrs_dir,
-                    allow_rtp_participants,
-                    groups,
-                ),
+                AudioBridgeCreateMsg::new(options),
             )?)
             .await?;
 
         let result = match response.event {
             AudioBridgePluginEvent::CreateRoom {
+                room, permanent, ..
+            } => (room, permanent),
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        };
+
+        Ok(result)
+    }
+
+    pub async fn edit_room(&self, room: u64, options: AudioBridgeEditOptions) -> JaResult<u64> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeEditMsg::new(room, options),
+            )?)
+            .await?;
+
+        let result = match response.event {
+            AudioBridgePluginEvent::EditRoom { room, .. } => room,
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        };
+
+        Ok(result)
+    }
+
+    pub async fn destroy_room(
+        &self,
+        room: u64,
+        options: AudioBridgeDestroyOptions,
+    ) -> JaResult<(u64, bool)> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeDestroyMsg::new(room, options),
+            )?)
+            .await?;
+
+        let result = match response.event {
+            AudioBridgePluginEvent::DestroyRoom {
                 room, permanent, ..
             } => (room, permanent),
             _ => {

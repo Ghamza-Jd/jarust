@@ -20,16 +20,14 @@ pub struct Room {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(tag = "audiobridge")]
 pub enum AudioBridgePluginEvent {
-    #[serde(untagged)]
-    List {
-        audiobridge: String,
-        list: Vec<Room>,
-    },
-    #[serde(untagged)]
-    CreateRoom {
-        audiobridge: String,
-        room: u64,
-        permanent: bool,
-    },
+    #[serde(rename = "success")]
+    List { list: Vec<Room> },
+    #[serde(rename = "created")]
+    CreateRoom { room: u64, permanent: bool },
+    #[serde(rename = "edited")]
+    EditRoom { room: u64 },
+    #[serde(rename = "destroyed")]
+    DestroyRoom { room: u64, permanent: bool },
 }
