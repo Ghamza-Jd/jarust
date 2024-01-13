@@ -1,10 +1,5 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::Jsep;
-use jarust::japrotocol::JsepType;
-use jarust::japrotocol::RTP;
-use jarust_plugins::audio_bridge::events::AudioBridgePluginEvent;
 use jarust_plugins::audio_bridge::messages::AudioBridgeCreateOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeJoinOptions;
 use jarust_plugins::audio_bridge::AudioBridge;
