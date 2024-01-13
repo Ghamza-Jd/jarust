@@ -8,22 +8,23 @@ pub struct AudioBridgePluginData {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Room {
-    pub room: u64,
-    pub description: String,
-    pub pin_required: bool,
-    pub sampling_rate: u64,
-    pub spatial_audio: bool,
-    pub record: bool,
-    pub num_participants: u64,
+pub struct Participant {
+    pub id: u64,
+    pub display: Option<String>,
+    pub setup: bool,
     pub muted: bool,
+    pub suspended: bool,
+    pub talking: bool,
+    pub spatial_position: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(tag = "audiobridge")]
 pub enum AudioBridgePluginEvent {
-    #[serde(untagged)]
-    List {
-        audiobridge: String,
-        list: Vec<Room>,
+    #[serde(rename = "joined")]
+    JoinRoom {
+        id: u64,
+        room: u64,
+        participants: Vec<Participant>,
     },
 }

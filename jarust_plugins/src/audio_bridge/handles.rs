@@ -2,11 +2,11 @@ use super::{
     messages::{
         AudioBridgeCreateMsg, AudioBridgeCreateOptions, AudioBridgeDestroyMsg,
         AudioBridgeDestroyOptions, AudioBridgeEditMsg, AudioBridgeEditOptions,
-        AudioBridgeExistsMsg, AudioBridgeListMsg,
+        AudioBridgeExistsMsg, AudioBridgeJoinMsg, AudioBridgeJoinOptions, AudioBridgeListMsg,
     },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
-use jarust::prelude::*;
+use jarust::{japrotocol::EstablishmentProtocol, prelude::*};
 use std::ops::Deref;
 use tokio::task::AbortHandle;
 
@@ -102,6 +102,32 @@ impl AudioBridgeHandle {
         };
 
         Ok(result)
+    }
+
+    pub async fn join_room(
+        &self,
+        room: u64,
+        options: AudioBridgeJoinOptions,
+        protocol: Option<EstablishmentProtocol>,
+    ) -> JaResult<()> {
+        match protocol {
+            Some(protocol) => {
+                self.handle
+                    .message_with_establishment_protocol(
+                        serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
+                        protocol,
+                    )
+                    .await
+            }
+            None => {
+                self.handle
+                    .message_with_ack(serde_json::to_value(AudioBridgeJoinMsg::new(
+                        room, options,
+                    ))?)
+                    .await
+            }
+        }
+        .map(|_| ())
     }
 
     pub async fn list(&self) -> JaResult<Vec<Room>> {

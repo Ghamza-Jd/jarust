@@ -84,6 +84,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
+                    establishment_protocol: None,
                 },
             )
             .await
@@ -96,6 +97,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
+                    establishment_protocol: None,
                 },
             )
             .await
@@ -108,6 +110,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
+                    establishment_protocol: None,
                 },
             )
             .await

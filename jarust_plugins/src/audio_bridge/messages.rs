@@ -174,3 +174,69 @@ impl AudioBridgeExistsMsg {
         }
     }
 }
+
+//
+// Join Message
+//
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeJoinMsg {
+    request: String,
+    pub room: u64,
+    #[serde(flatten)]
+    options: AudioBridgeJoinOptions,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeJoinOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub group: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pin: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub muted: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suspended: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pause_events: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub codec: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bitrate: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expected_loss: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub volume: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spatial_position: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_level_average: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_active_packets: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub record: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generate_offer: Option<bool>,
+}
+
+impl AudioBridgeJoinMsg {
+    pub fn new(room: u64, options: AudioBridgeJoinOptions) -> Self {
+        Self {
+            request: "join".to_string(),
+            room,
+            options,
+        }
+    }
+}

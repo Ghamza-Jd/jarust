@@ -1,9 +1,9 @@
 use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSuccessProtocol;
-use crate::japrotocol::Jsep;
 use crate::jasession::JaSession;
 use crate::prelude::*;
 use serde::de::DeserializeOwned;
@@ -138,17 +138,43 @@ impl JaHandle {
         Ok(result)
     }
 
-    pub async fn message_with_jsep(&self, body: Value, jsep: Jsep) -> JaResult<JaResponse> {
+    pub async fn message_with_ack(&self, body: Value) -> JaResult<JaResponse> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
-            "body": body,
-            "jsep": jsep
+            "body": body
         });
         self.send_request(request).await?;
         let response = {
             let mut guard = self.safe.lock().await;
             guard.ack_receiver.recv().await.unwrap()
         };
+
+        Ok(response)
+    }
+
+    pub async fn message_with_establishment_protocol(
+        &self,
+        body: Value,
+        protocol: EstablishmentProtocol,
+    ) -> JaResult<JaResponse> {
+        let request = match protocol {
+            EstablishmentProtocol::JSEP(jsep) => json!({
+                "janus": JaHandleRequestProtocol::Message,
+                "body": body,
+                "jsep": jsep
+            }),
+            EstablishmentProtocol::RTP(rtp) => json!({
+                "janus": JaHandleRequestProtocol::Message,
+                "body": body,
+                "rtp": rtp
+            }),
+        };
+        self.send_request(request).await?;
+        let response = {
+            let mut guard = self.safe.lock().await;
+            guard.ack_receiver.recv().await.unwrap()
+        };
+
         Ok(response)
     }
 
