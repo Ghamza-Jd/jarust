@@ -1,5 +1,5 @@
 use crate::transport::trans::Transport;
-use jaconfig::JaConfig;
+use jaconfig::{JaConfig, TransportType};
 use jaconnection::JaConnection;
 use prelude::JaResult;
 
@@ -18,8 +18,8 @@ mod tmanager;
 mod utils;
 
 /// Creates a new connection with janus server from the provided configs
-pub async fn connect(jaconfig: JaConfig) -> JaResult<JaConnection> {
-    let transport = match jaconfig.transport_type {
+pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
+    let transport = match transport_type {
         jaconfig::TransportType::Wss => transport::wss::WebsocketTransport::new(),
     };
     connect_with_transport(jaconfig, transport).await

@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::TransportType;
 use jarust::prelude::*;
 use jarust::transport::trans::Transport;
 use tokio::sync::mpsc;
@@ -31,12 +30,7 @@ impl Transport for MockTransport {
 
 #[tokio::test]
 async fn test_connection() {
-    let config = JaConfig::new(
-        "wss://janus.conf.meetecho.com/ws",
-        None,
-        TransportType::Wss,
-        "janus",
-    );
+    let config = JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus");
     let transport = MockTransport::new();
     jarust::connect_with_transport(config, transport)
         .await
