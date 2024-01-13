@@ -10,12 +10,10 @@ use simple_logger::SimpleLogger;
 async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
-    let mut connection = jarust::connect(JaConfig::new(
-        "wss://janus.conf.meetecho.com/ws",
-        None,
+    let mut connection = jarust::connect(
+        JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus"),
         TransportType::Wss,
-        "janus",
-    ))
+    )
     .await?;
     let session = connection.create(10).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
