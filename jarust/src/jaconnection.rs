@@ -27,7 +27,7 @@ struct Shared {
     config: JaConfig,
 }
 
-struct SafeShared {
+struct Exclusive {
     nsp_registry: NamespaceRegistry,
     transport_protocol: TransportProtocol,
     receiver: mpsc::Receiver<JaResponse>,
@@ -37,7 +37,7 @@ struct SafeShared {
 
 pub struct InnerConnection {
     shared: Shared,
-    safe: Mutex<SafeShared>,
+    exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone)]
@@ -120,7 +120,7 @@ impl JaConnection {
             demux_abort_handle: demux_join_handle.abort_handle(),
             config,
         };
-        let safe = SafeShared {
+        let safe = Exclusive {
             nsp_registry,
             transport_protocol,
             receiver: namespace_receiver,
@@ -129,7 +129,7 @@ impl JaConnection {
         };
         let connection = Arc::new(InnerConnection {
             shared,
-            safe: Mutex::new(safe),
+            exclusive: Mutex::new(safe),
         });
         Ok(Self(connection))
     }
@@ -143,7 +143,7 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
+        let response = { self.exclusive.lock().await.receiver.recv().await.unwrap() };
         let session_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
             JaResponseProtocol::Error { error } => {
@@ -163,7 +163,7 @@ impl JaConnection {
         let channel = self.create_subnamespace(&format!("{session_id}")).await;
 
         let session = JaSession::new(self.clone(), channel, session_id, ka_interval).await;
-        self.safe
+        self.exclusive
             .lock()
             .await
             .sessions
@@ -180,7 +180,7 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let response = { self.safe.lock().await.receiver.recv().await.unwrap() };
+        let response = { self.exclusive.lock().await.receiver.recv().await.unwrap() };
         Ok(response)
     }
 
@@ -201,7 +201,7 @@ impl JaConnection {
             None => root_namespace,
         };
 
-        let mut guard = self.safe.lock().await;
+        let mut guard = self.exclusive.lock().await;
         guard
             .transaction_manager
             .create_transaction(transaction, janus_request, &namespace);
@@ -216,7 +216,7 @@ impl JaConnection {
     }
 
     pub(crate) async fn create_subnamespace(&self, namespace: &str) -> mpsc::Receiver<JaResponse> {
-        self.safe
+        self.exclusive
             .lock()
             .await
             .nsp_registry
