@@ -240,3 +240,49 @@ impl AudioBridgeJoinMsg {
         }
     }
 }
+
+//
+// Exists Message
+//
+
+#[derive(Serialize)]
+pub struct AudioBridgeAllowedMsg {
+    request: String,
+    pub room: u64,
+    pub action: AudioBridgeAction,
+    pub allowed: Vec<String>,
+    #[serde(flatten)]
+    pub options: AudioBridgeAllowedOptions,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AudioBridgeAction {
+    Enable,
+    Disable,
+    Add,
+    Remove,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeAllowedOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+}
+
+impl AudioBridgeAllowedMsg {
+    pub fn new(
+        room: u64,
+        action: AudioBridgeAction,
+        allowed: Vec<String>,
+        options: AudioBridgeAllowedOptions,
+    ) -> Self {
+        Self {
+            request: "allowed".to_string(),
+            room,
+            action,
+            allowed,
+            options,
+        }
+    }
+}

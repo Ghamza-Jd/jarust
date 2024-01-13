@@ -33,5 +33,8 @@ pub enum AudioBridgePluginEvent {
     List { list: Vec<Room> },
     #[serde(rename = "success")]
     #[serde(untagged)]
+    Allowed { room: u64, allowed: Vec<String> },
+    #[serde(rename = "success")]
+    #[serde(untagged)]
     ExistsRoom { room: u64, exists: bool },
 }

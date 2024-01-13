@@ -1,8 +1,9 @@
 use super::{
     messages::{
-        AudioBridgeCreateMsg, AudioBridgeCreateOptions, AudioBridgeDestroyMsg,
-        AudioBridgeDestroyOptions, AudioBridgeEditMsg, AudioBridgeEditOptions,
-        AudioBridgeExistsMsg, AudioBridgeJoinMsg, AudioBridgeJoinOptions, AudioBridgeListMsg,
+        AudioBridgeAction, AudioBridgeAllowedMsg, AudioBridgeAllowedOptions, AudioBridgeCreateMsg,
+        AudioBridgeCreateOptions, AudioBridgeDestroyMsg, AudioBridgeDestroyOptions,
+        AudioBridgeEditMsg, AudioBridgeEditOptions, AudioBridgeExistsMsg, AudioBridgeJoinMsg,
+        AudioBridgeJoinOptions, AudioBridgeListMsg,
     },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
@@ -140,6 +141,29 @@ impl AudioBridgeHandle {
 
         let result = match response.event {
             AudioBridgePluginEvent::List { list, .. } => list,
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        };
+        Ok(result)
+    }
+
+    pub async fn allowed(
+        &self,
+        room: u64,
+        action: AudioBridgeAction,
+        allowed: Vec<String>,
+        options: AudioBridgeAllowedOptions,
+    ) -> JaResult<(u64, Vec<String>)> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeAllowedMsg::new(room, action, allowed, options),
+            )?)
+            .await?;
+
+        let result = match response.event {
+            AudioBridgePluginEvent::Allowed { room, allowed, .. } => (room, allowed),
             _ => {
                 panic!("Unexpected Response!")
             }
