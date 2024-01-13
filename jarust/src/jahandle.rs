@@ -20,13 +20,13 @@ struct Shared {
     abort_handle: AbortHandle,
 }
 
-struct SafeShared {
+struct Exclusive {
     ack_receiver: mpsc::Receiver<JaResponse>,
 }
 
 pub struct InnerHandle {
     shared: Shared,
-    safe: Mutex<SafeShared>,
+    exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone)]
@@ -76,12 +76,12 @@ impl JaHandle {
             session,
             abort_handle: join_handle.abort_handle(),
         };
-        let safe = SafeShared { ack_receiver };
+        let safe = Exclusive { ack_receiver };
 
         (
             Self(Arc::new(InnerHandle {
                 shared,
-                safe: Mutex::new(safe),
+                exclusive: Mutex::new(safe),
             })),
             event_receiver,
         )
@@ -109,7 +109,7 @@ impl JaHandle {
         });
         self.send_request(request).await?;
         let response = {
-            let mut guard = self.safe.lock().await;
+            let mut guard = self.exclusive.lock().await;
             guard.ack_receiver.recv().await.unwrap()
         };
         Ok(response)

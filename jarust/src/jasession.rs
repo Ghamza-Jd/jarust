@@ -23,7 +23,7 @@ pub struct Shared {
     connection: JaConnection,
 }
 
-pub struct SafeShared {
+pub struct Exclusive {
     receiver: mpsc::Receiver<JaResponse>,
     handles: HashMap<u64, WeakJaHandle>,
     abort_handle: Option<AbortHandle>,
@@ -31,7 +31,7 @@ pub struct SafeShared {
 
 pub struct InnerSession {
     shared: Shared,
-    safe: Mutex<SafeShared>,
+    exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone)]
@@ -61,7 +61,7 @@ impl JaSession {
         ka_interval: u32,
     ) -> Self {
         let shared = Shared { id, connection };
-        let safe = SafeShared {
+        let safe = Exclusive {
             receiver,
             handles: HashMap::new(),
             abort_handle: None,
@@ -69,7 +69,7 @@ impl JaSession {
 
         let session = Self(Arc::new(InnerSession {
             shared,
-            safe: Mutex::new(safe),
+            exclusive: Mutex::new(safe),
         }));
 
         let this = session.clone();
@@ -78,7 +78,7 @@ impl JaSession {
             let _ = this.keep_alive(ka_interval).await;
         });
 
-        session.safe.lock().await.abort_handle = Some(join_handle.abort_handle());
+        session.exclusive.lock().await.abort_handle = Some(join_handle.abort_handle());
 
         session
     }
@@ -99,7 +99,7 @@ impl JaSession {
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
             .await?;
-            self.safe.lock().await.receiver.recv().await.unwrap();
+            self.exclusive.lock().await.receiver.recv().await.unwrap();
             log::trace!("keep-alive OK {{ id: {id} }}");
         }
     }
@@ -109,7 +109,7 @@ impl JaSession {
     }
 }
 
-impl Drop for SafeShared {
+impl Drop for Exclusive {
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
             log::trace!("Keepalive task aborted");
@@ -130,7 +130,7 @@ impl Attach for JaSession {
 
         self.send_request(request).await?;
         let response = {
-            let mut guard = self.safe.lock().await;
+            let mut guard = self.exclusive.lock().await;
             guard.receiver.recv().await.unwrap()
         };
 
@@ -158,7 +158,7 @@ impl Attach for JaSession {
 
         let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id);
 
-        self.safe
+        self.exclusive
             .lock()
             .await
             .handles
