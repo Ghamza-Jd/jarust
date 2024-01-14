@@ -4,10 +4,11 @@ use super::{
         AudioBridgeCreateOptions, AudioBridgeDestroyMsg, AudioBridgeDestroyOptions,
         AudioBridgeEditMsg, AudioBridgeEditOptions, AudioBridgeExistsMsg, AudioBridgeJoinMsg,
         AudioBridgeJoinOptions, AudioBridgeKickAllMsg, AudioBridgeKickAllOptions,
-        AudioBridgeKickMsg, AudioBridgeKickOptions, AudioBridgeListMsg, AudioBridgeResumeMsg,
-        AudioBridgeResumeOptions, AudioBridgeSuspendMsg, AudioBridgeSuspendOptions,
+        AudioBridgeKickMsg, AudioBridgeKickOptions, AudioBridgeListMsg,
+        AudioBridgeListParticipantsMsg, AudioBridgeResumeMsg, AudioBridgeResumeOptions,
+        AudioBridgeSuspendMsg, AudioBridgeSuspendOptions,
     },
-    results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
+    results::{AudioBridgePluginData, AudioBridgePluginEvent, Participant, Room},
 };
 use jarust::{japrotocol::EstablishmentProtocol, prelude::*};
 use std::ops::Deref;
@@ -259,6 +260,23 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        }
+    }
+
+    pub async fn list_participants(&self, room: u64) -> JaResult<(u64, Vec<Participant>)> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeListParticipantsMsg::new(room),
+            )?)
+            .await?;
+        match response.event {
+            AudioBridgePluginEvent::ListParticipants { room, participants } => {
+                Ok((room, participants))
+            }
             _ => {
                 panic!("Unexpected Response!")
             }

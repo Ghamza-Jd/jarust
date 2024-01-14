@@ -20,6 +20,17 @@ pub struct Room {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct Participant {
+    pub id: String,
+    pub display: String,
+    pub setup: bool,
+    pub muted: bool,
+    pub suspended: bool,
+    pub talking: bool,
+    pub spatial_position: String,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
 pub enum AudioBridgePluginEvent {
     #[serde(rename = "created")]
@@ -28,6 +39,11 @@ pub enum AudioBridgePluginEvent {
     EditRoom { room: u64 },
     #[serde(rename = "destroyed")]
     DestroyRoom { room: u64, permanent: bool },
+    #[serde(rename = "participants")]
+    ListParticipants {
+        room: u64,
+        participants: Vec<Participant>,
+    },
     #[serde(rename = "success")]
     #[serde(untagged)]
     List { list: Vec<Room> },
