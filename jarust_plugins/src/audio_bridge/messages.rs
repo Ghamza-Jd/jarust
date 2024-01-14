@@ -371,7 +371,7 @@ pub struct AudioBridgeSuspendOptions {
 impl AudioBridgeSuspendMsg {
     pub fn new(room: u64, participant: u64, options: AudioBridgeSuspendOptions) -> Self {
         Self {
-            request: "kick_all".to_string(),
+            request: "suspend".to_string(),
             room,
             id: participant,
             options,
@@ -405,7 +405,7 @@ pub struct AudioBridgeResumeOptions {
 impl AudioBridgeResumeMsg {
     pub fn new(room: u64, participant: u64, options: AudioBridgeResumeOptions) -> Self {
         Self {
-            request: "kick_all".to_string(),
+            request: "resume".to_string(),
             room,
             id: participant,
             options,
