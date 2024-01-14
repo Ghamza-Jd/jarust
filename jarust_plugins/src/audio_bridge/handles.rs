@@ -4,8 +4,8 @@ use super::{
         AudioBridgeCreateOptions, AudioBridgeDestroyMsg, AudioBridgeDestroyOptions,
         AudioBridgeEditMsg, AudioBridgeEditOptions, AudioBridgeExistsMsg, AudioBridgeJoinMsg,
         AudioBridgeJoinOptions, AudioBridgeKickAllMsg, AudioBridgeKickAllOptions,
-        AudioBridgeKickMsg, AudioBridgeKickOptions, AudioBridgeListMsg, AudioBridgeSuspendMsg,
-        AudioBridgeSuspendOptions,
+        AudioBridgeKickMsg, AudioBridgeKickOptions, AudioBridgeListMsg, AudioBridgeResumeMsg,
+        AudioBridgeResumeOptions, AudioBridgeSuspendMsg, AudioBridgeSuspendOptions,
     },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
@@ -235,6 +235,26 @@ impl AudioBridgeHandle {
             .handle
             .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
                 AudioBridgeSuspendMsg::new(room, participant, options),
+            )?)
+            .await?;
+        match response.event {
+            AudioBridgePluginEvent::Success {} => Ok(()),
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        }
+    }
+
+    pub async fn resume(
+        &self,
+        room: u64,
+        participant: u64,
+        options: AudioBridgeResumeOptions,
+    ) -> JaResult<()> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeResumeMsg::new(room, participant, options),
             )?)
             .await?;
         match response.event {

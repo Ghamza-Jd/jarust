@@ -378,3 +378,37 @@ impl AudioBridgeSuspendMsg {
         }
     }
 }
+
+//
+// Resume Message
+//
+
+#[derive(Serialize)]
+pub struct AudioBridgeResumeMsg {
+    request: String,
+    pub room: u64,
+    pub id: u64,
+    #[serde(flatten)]
+    pub options: AudioBridgeResumeOptions,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeResumeOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub record: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+}
+
+impl AudioBridgeResumeMsg {
+    pub fn new(room: u64, participant: u64, options: AudioBridgeResumeOptions) -> Self {
+        Self {
+            request: "kick_all".to_string(),
+            room,
+            id: participant,
+            options,
+        }
+    }
+}

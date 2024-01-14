@@ -3,6 +3,7 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::events::AudioBridgePluginEvent;
 use jarust_plugins::audio_bridge::messages::AudioBridgeCreateOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeJoinOptions;
+use jarust_plugins::audio_bridge::messages::AudioBridgeResumeOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeSuspendOptions;
 use jarust_plugins::audio_bridge::AudioBridge;
 use log::LevelFilter;
@@ -60,6 +61,21 @@ async fn main() -> anyhow::Result<()> {
                     .await;
                 if let Ok(()) = suspend_result {
                     log::info!("Paricipant {} suspended", id);
+
+                    let resume_result = handle
+                        .resume(
+                            room,
+                            id,
+                            AudioBridgeResumeOptions {
+                                secret: Some("superdupersecret".to_string()),
+                                ..Default::default()
+                            },
+                        )
+                        .await;
+
+                    if let Ok(()) = resume_result {
+                        log::info!("Paricipant {} resumed", id);
+                    }
                 }
             }
         }
