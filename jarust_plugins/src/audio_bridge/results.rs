@@ -37,4 +37,7 @@ pub enum AudioBridgePluginEvent {
     #[serde(rename = "success")]
     #[serde(untagged)]
     ExistsRoom { room: u64, exists: bool },
+    #[serde(rename = "success")]
+    #[serde(untagged)]
+    Success {},
 }

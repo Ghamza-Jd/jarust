@@ -127,7 +127,13 @@ impl JaHandle {
 
         let result = match response.janus {
             JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
-                serde_json::from_value::<Result>(plugin_data)?
+                match serde_json::from_value::<Result>(plugin_data) {
+                    Ok(result) => result,
+                    Err(error) => {
+                        log::error!("Failed to parse with error {error:#?}");
+                        return Err(JaError::UnexpectedResponse);
+                    }
+                }
             }
             _ => {
                 log::error!("Request failed");

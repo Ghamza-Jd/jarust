@@ -242,7 +242,7 @@ impl AudioBridgeJoinMsg {
 }
 
 //
-// Exists Message
+// Allowed Message
 //
 
 #[derive(Serialize)]
@@ -282,6 +282,36 @@ impl AudioBridgeAllowedMsg {
             room,
             action,
             allowed,
+            options,
+        }
+    }
+}
+
+//
+// Kick Message
+//
+
+#[derive(Serialize)]
+pub struct AudioBridgeKickMsg {
+    request: String,
+    pub room: u64,
+    pub id: u64,
+    #[serde(flatten)]
+    pub options: AudioBridgeKickOptions,
+}
+
+#[derive(Serialize, Default)]
+pub struct AudioBridgeKickOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+}
+
+impl AudioBridgeKickMsg {
+    pub fn new(room: u64, participant: u64, options: AudioBridgeKickOptions) -> Self {
+        Self {
+            request: "kick".to_string(),
+            room,
+            id: participant,
             options,
         }
     }

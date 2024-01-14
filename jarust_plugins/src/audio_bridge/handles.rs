@@ -3,7 +3,7 @@ use super::{
         AudioBridgeAction, AudioBridgeAllowedMsg, AudioBridgeAllowedOptions, AudioBridgeCreateMsg,
         AudioBridgeCreateOptions, AudioBridgeDestroyMsg, AudioBridgeDestroyOptions,
         AudioBridgeEditMsg, AudioBridgeEditOptions, AudioBridgeExistsMsg, AudioBridgeJoinMsg,
-        AudioBridgeJoinOptions, AudioBridgeListMsg,
+        AudioBridgeJoinOptions, AudioBridgeKickMsg, AudioBridgeKickOptions, AudioBridgeListMsg,
     },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Room},
 };
@@ -186,6 +186,26 @@ impl AudioBridgeHandle {
             }
         };
         Ok(result)
+    }
+
+    pub async fn kick(
+        &self,
+        room: u64,
+        participant: u64,
+        options: AudioBridgeKickOptions,
+    ) -> JaResult<()> {
+        let response = self
+            .handle
+            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
+                AudioBridgeKickMsg::new(room, participant, options),
+            )?)
+            .await?;
+        match response.event {
+            AudioBridgePluginEvent::Success {} => Ok(()),
+            _ => {
+                panic!("Unexpected Response!")
+            }
+        }
     }
 }
 
