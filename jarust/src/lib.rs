@@ -1,5 +1,6 @@
 use crate::transport::trans::Transport;
-use jaconfig::{JaConfig, TransportType};
+use jaconfig::JaConfig;
+use jaconfig::TransportType;
 use jaconnection::JaConnection;
 use prelude::JaResult;
 
