@@ -21,8 +21,8 @@ rand = "0.8.5"
 serde_json.workspace = true
 serde.workspace = true
 thiserror = "1.0.51"
-tokio-tungstenite.workspace = true
-tokio.workspace = true
+tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
 
 [dev-dependencies]
 anyhow = "1.0.79"
