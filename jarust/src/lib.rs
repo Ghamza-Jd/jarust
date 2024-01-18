@@ -18,6 +18,7 @@ mod nsp_registry;
 mod tmanager;
 mod utils;
 
+#[cfg(not(target_family = "wasm"))]
 /// Creates a new connection with janus server from the provided configs
 pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
     let transport = match transport_type {
