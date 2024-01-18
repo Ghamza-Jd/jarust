@@ -21,8 +21,14 @@ rand = "0.8.5"
 serde_json.workspace = true
 serde.workspace = true
 thiserror = "1.0.51"
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
 tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+getrandom = { version = "0.2.12", features = ["js"] }
+web-sys = { version = "0.3.67", features = ["WebSocket", "MessageEvent"] }
 
 [dev-dependencies]
 anyhow = "1.0.79"
