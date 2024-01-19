@@ -13,7 +13,6 @@ impl Transport for WasmWsTransport {
 
     async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>> {
         log::error!("WASM support is WIP!");
-        let websocket = web_sys::WebSocket::new_with_str(uri, "janus-protocol").unwrap();
         todo!("WASM support is WIP!")
     }
 
