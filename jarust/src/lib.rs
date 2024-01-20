@@ -4,7 +4,9 @@ use jaconfig::TransportType;
 use jaconnection::JaConnection;
 use prelude::JaResult;
 
+pub mod error;
 pub mod jaconfig;
+pub mod jaconnection;
 pub mod jahandle;
 pub mod japlugin;
 pub mod japrotocol;
@@ -12,8 +14,6 @@ pub mod jasession;
 pub mod prelude;
 pub mod transport;
 
-mod error;
-mod jaconnection;
 mod nsp_registry;
 mod tmanager;
 mod utils;
