@@ -99,7 +99,13 @@ impl JaSession {
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
             .await?;
-            self.exclusive.lock().await.receiver.recv().await.unwrap();
+            let _ = match self.exclusive.lock().await.receiver.recv().await {
+                Some(response) => response,
+                None => {
+                    log::error!("Incomplete packet");
+                    return Err(JaError::IncompletePacket);
+                }
+            };
             log::trace!("keep-alive OK {{ id: {id} }}");
         }
     }
@@ -129,9 +135,13 @@ impl Attach for JaSession {
         });
 
         self.send_request(request).await?;
-        let response = {
-            let mut guard = self.exclusive.lock().await;
-            guard.receiver.recv().await.unwrap()
+
+        let response = match self.exclusive.lock().await.receiver.recv().await {
+            Some(response) => response,
+            None => {
+                log::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
         };
 
         let handle_id = match response.janus {

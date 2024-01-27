@@ -61,10 +61,13 @@ impl JaHandle {
             while let Some(item) = receiver.recv().await {
                 match item.janus {
                     JaResponseProtocol::Ack => {
-                        ack_sender.send(item.clone()).await.unwrap();
+                        ack_sender
+                            .send(item.clone())
+                            .await
+                            .expect("Ack channel closed");
                     }
                     JaResponseProtocol::Event { .. } => {
-                        event_sender.send(item).await.unwrap();
+                        event_sender.send(item).await.expect("Event channel closed");
                     }
                     _ => {}
                 }
@@ -108,9 +111,12 @@ impl JaHandle {
             "jsep": jsep
         });
         self.send_request(request).await?;
-        let response = {
-            let mut guard = self.exclusive.lock().await;
-            guard.ack_receiver.recv().await.unwrap()
+        let response = match self.exclusive.lock().await.ack_receiver.recv().await {
+            Some(response) => response,
+            None => {
+                log::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
         };
         Ok(response)
     }
