@@ -143,7 +143,14 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let response = { self.exclusive.lock().await.receiver.recv().await.unwrap() };
+        let response = match self.exclusive.lock().await.receiver.recv().await {
+            Some(response) => response,
+            None => {
+                log::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
+        };
+
         let session_id = match response.janus {
             JaResponseProtocol::Success { data } => data.id,
             JaResponseProtocol::Error { error } => {
@@ -180,7 +187,13 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let response = { self.exclusive.lock().await.receiver.recv().await.unwrap() };
+        let response = match self.exclusive.lock().await.receiver.recv().await {
+            Some(response) => response,
+            None => {
+                log::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
+        };
         Ok(response)
     }
 
