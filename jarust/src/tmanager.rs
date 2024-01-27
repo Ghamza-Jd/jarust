@@ -40,26 +40,39 @@ impl TransactionManager {
     }
 
     fn contains(&self, id: &str) -> bool {
-        self.read().unwrap().transactions.contains_key(id)
+        self.read()
+            .expect("Failed to aquire read lock")
+            .transactions
+            .contains_key(id)
     }
 
     pub(crate) fn get(&self, id: &str) -> Option<PendingTransaction> {
-        self.read().unwrap().transactions.get(id).cloned()
+        self.read()
+            .expect("Failed to aquire read lock")
+            .transactions
+            .get(id)
+            .cloned()
     }
 
     fn _size(&self) -> usize {
-        self.read().unwrap().transactions.len()
+        self.read()
+            .expect("Failed to aquire read lock")
+            .transactions
+            .len()
     }
 
     fn insert(&self, id: &str, transaction: PendingTransaction) {
         self.write()
-            .unwrap()
+            .expect("Failed to aquire write lock")
             .transactions
             .insert(id.into(), transaction);
     }
 
     fn remove(&self, id: &str) {
-        self.write().unwrap().transactions.remove(id);
+        self.write()
+            .expect("Failed to aquire write lock")
+            .transactions
+            .remove(id);
     }
 
     pub(crate) fn create_transaction(&self, id: &str, request: &str, namespace: &str) {

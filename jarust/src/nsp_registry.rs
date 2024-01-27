@@ -40,7 +40,7 @@ impl NamespaceRegistry {
         let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         {
             self.write()
-                .unwrap()
+                .expect("Failed to acquire write lock")
                 .namespaces
                 .insert(namespace.into(), tx);
         }
@@ -50,7 +50,7 @@ impl NamespaceRegistry {
 
     pub(crate) async fn publish(&self, namespace: &str, message: JaResponse) -> JaResult<()> {
         let channel = {
-            let guard = self.read().unwrap();
+            let guard = self.read().expect("Failed to acquire read lock");
             guard.namespaces.get(namespace).cloned()
         };
 
