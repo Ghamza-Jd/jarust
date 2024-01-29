@@ -19,8 +19,8 @@ pub enum JaError {
     IncompletePacket,
     #[error("Transport is not opened")]
     TransportNotOpened,
-    #[error("Invalid Janus request")]
-    InvalidJanusRequest,
+    #[error("Invalid Janus request, reason: {reason}")]
+    InvalidJanusRequest { reason: String },
     #[error("Can't send data in closed channel")]
     SendError,
     #[error("Received an unnexpected response")]
