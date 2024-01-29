@@ -15,7 +15,9 @@ impl EchoTestHandle {
             return self.handle.message(serde_json::to_value(request)?).await;
         };
         if jsep.jsep_type != JsepType::Offer {
-            panic!("jsep must be an offer");
+            return Err(JaError::InvalidJanusRequest {
+                reason: "jsep must be an offer".to_owned(),
+            });
         }
         self.handle
             .message_with_jsep(serde_json::to_value(request)?, jsep)
