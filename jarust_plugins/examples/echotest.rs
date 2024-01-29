@@ -23,6 +23,7 @@ async fn main() -> anyhow::Result<()> {
         .start(EchoTestStartMsg {
             audio: true,
             video: true,
+            ..Default::default()
         })
         .await?;
 
