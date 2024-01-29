@@ -1,4 +1,5 @@
 use super::messages::EchoTestStartMsg;
+use jarust::japrotocol::JsepType;
 use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::task::AbortHandle;
@@ -10,15 +11,16 @@ pub struct EchoTestHandle {
 
 impl EchoTestHandle {
     pub async fn start(&self, mut request: EchoTestStartMsg) -> JaResult<()> {
-        match request.jsep.take() {
-            Some(jsep) => {
-                self.handle
-                    .message_with_jsep(serde_json::to_value(request)?, jsep)
-                    .await?;
-                Ok(())
-            }
-            None => self.handle.message(serde_json::to_value(request)?).await,
+        let Some(jsep) = request.jsep.take() else {
+            return self.handle.message(serde_json::to_value(request)?).await;
+        };
+        if jsep.jsep_type != JsepType::Offer {
+            panic!("jsep must be an offer");
         }
+        self.handle
+            .message_with_jsep(serde_json::to_value(request)?, jsep)
+            .await?;
+        Ok(())
     }
 }
 
