@@ -98,7 +98,7 @@ pub enum JaEventProtocol {
     Trickle,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub enum JsepType {
     #[serde(rename = "offer")]
     Offer,
