@@ -207,9 +207,11 @@ impl JaConnection {
         let (Some(janus_request), Some(transaction)) =
             (request["janus"].as_str(), request["transaction"].as_str())
         else {
-            let reason = "request type and/or transaction are missing".to_owned();
-            log::error!("Bad request body, {reason}");
-            return Err(JaError::InvalidJanusRequest { reason });
+            let err = JaError::InvalidJanusRequest {
+                reason: "request type and/or transaction are missing".to_owned(),
+            };
+            log::error!("{err}");
+            return Err(err);
         };
 
         let root_namespace = self.shared.config.root_namespace.clone();
