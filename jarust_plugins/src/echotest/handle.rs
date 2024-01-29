@@ -9,8 +9,16 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
-    pub async fn start(&self, request: EchoTestStartMsg) -> JaResult<()> {
-        self.handle.message(serde_json::to_value(request)?).await
+    pub async fn start(&self, mut request: EchoTestStartMsg) -> JaResult<()> {
+        match request.jsep.take() {
+            Some(jsep) => {
+                self.handle
+                    .message_with_jsep(serde_json::to_value(request)?, jsep)
+                    .await?;
+                Ok(())
+            }
+            None => self.handle.message(serde_json::to_value(request)?).await,
+        }
     }
 }
 
