@@ -15,22 +15,19 @@ impl Transport for MockTransport {
         Self
     }
 
-    async fn connect(&mut self, _uri: &str) -> JaResult<mpsc::Receiver<String>> {
-        let (tx, rx) = mpsc::channel(32);
-        tokio::spawn(async move {
-            tx.send("Hello".to_string()).await.unwrap();
-        });
+    async fn connect(&mut self, _: &str) -> JaResult<mpsc::Receiver<String>> {
+        let (_, rx) = mpsc::channel(32);
         Ok(rx)
     }
 
-    async fn send(&mut self, _data: &[u8]) -> JaResult<()> {
+    async fn send(&mut self, _: &[u8]) -> JaResult<()> {
         Ok(())
     }
 }
 
 #[tokio::test]
 async fn test_connection() {
-    let config = JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus");
+    let config = JaConfig::new("mock://some.janus.com", None, "janus");
     let transport = MockTransport::new();
     jarust::connect_with_transport(config, transport)
         .await
