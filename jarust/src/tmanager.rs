@@ -10,7 +10,7 @@ use std::sync::RwLock;
 pub(crate) struct PendingTransaction {
     pub id: String,
     request: String,
-    pub namespace: String,
+    pub path: String,
 }
 
 #[derive(Debug)]
@@ -78,7 +78,7 @@ impl TransactionManager {
             .remove(id);
     }
 
-    pub(crate) fn create_transaction(&self, id: &str, request: &str, namespace: &str) {
+    pub(crate) fn create_transaction(&self, id: &str, request: &str, path: &str) {
         if self.contains(id) {
             return;
         }
@@ -86,13 +86,11 @@ impl TransactionManager {
         let pending_transaction = PendingTransaction {
             id: id.into(),
             request: request.into(),
-            namespace: namespace.into(),
+            path: path.into(),
         };
 
         self.insert(id, pending_transaction);
-        log::trace!(
-            "Transaction created {{ id: {id}, namespace: {namespace}, request: {request} }}"
-        );
+        log::trace!("Transaction created {{ id: {id}, path: {path}, request: {request} }}");
     }
 
     pub(crate) fn success_close(&self, id: &str) {
@@ -100,9 +98,9 @@ impl TransactionManager {
         if let Some(tx) = tx {
             self.remove(&tx.id);
             log::trace!(
-                "Transaction closed successfully {{ id: {}, namespace: {}, request: {} }}",
+                "Transaction closed successfully {{ id: {}, path: {}, request: {} }}",
                 tx.id,
-                tx.namespace,
+                tx.path,
                 tx.request
             );
         }

@@ -81,7 +81,7 @@ impl JaRouter {
         self.make_route(&abs_path)
     }
 
-    pub async fn publish(&self, path: &str, message: JaResponse) -> JaResult<()> {
+    async fn publish(&self, path: &str, message: JaResponse) -> JaResult<()> {
         let channel = {
             let guard = self.exclusive.read().expect("Failed to acquire read lock");
             guard.routes.get(path).cloned()
@@ -102,6 +102,12 @@ impl JaRouter {
     pub(crate) async fn pub_subroute(&self, subroute: &str, message: JaResponse) -> JaResult<()> {
         let path = &format!("{}/{}", self.shared.root_path, subroute);
         self.publish(&path, message).await
+    }
+}
+
+impl JaRouter {
+    pub fn root_path(&self) -> String {
+        self.shared.root_path.clone()
     }
 }
 

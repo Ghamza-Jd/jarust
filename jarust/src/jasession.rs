@@ -167,7 +167,7 @@ impl Attach for JaSession {
         let connection = self.shared.connection.clone();
 
         let receiver = connection
-            .create_subnamespace(&format!("{}/{}", self.shared.id, handle_id))
+            .add_subroute(&format!("{}/{}", self.shared.id, handle_id))
             .await;
 
         let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id);
