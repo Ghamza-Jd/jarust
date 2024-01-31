@@ -6,8 +6,8 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::sync::Arc;
-use std::sync::RwLock;
 use tokio::sync::mpsc;
+use tokio::sync::RwLock;
 
 #[derive(Debug)]
 pub struct Shared {
@@ -43,7 +43,7 @@ impl DerefMut for JaRouter {
 }
 
 impl JaRouter {
-    pub(crate) fn new(root_path: &str) -> (Self, mpsc::Receiver<JaResponse>) {
+    pub(crate) async fn new(root_path: &str) -> (Self, mpsc::Receiver<JaResponse>) {
         let shared = Shared {
             root_path: root_path.to_string(),
         };
@@ -55,36 +55,32 @@ impl JaRouter {
             exclusive: RwLock::new(exclusive),
         });
         let mut jarouter = Self(inner);
-        let channel = jarouter.make_root_route();
+        let channel = jarouter.make_root_route().await;
         (jarouter, channel)
     }
 
-    fn make_route(&mut self, path: &str) -> mpsc::Receiver<JaResponse> {
+    async fn make_route(&mut self, path: &str) -> mpsc::Receiver<JaResponse> {
         let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         {
-            self.exclusive
-                .write()
-                .expect("Failed to acquire write lock")
-                .routes
-                .insert(path.into(), tx);
+            self.exclusive.write().await.routes.insert(path.into(), tx);
         }
         log::trace!("Route created {{ path: {path} }}");
         rx
     }
 
-    fn make_root_route(&mut self) -> mpsc::Receiver<JaResponse> {
+    async fn make_root_route(&mut self) -> mpsc::Receiver<JaResponse> {
         let path = self.shared.root_path.clone();
-        self.make_route(&path)
+        self.make_route(&path).await
     }
 
-    pub(crate) fn add_subroute(&mut self, end: &str) -> mpsc::Receiver<JaResponse> {
-        let abs_path = &format!("{}/{}", self.shared.root_path, end);
-        self.make_route(&abs_path)
+    pub(crate) async fn add_subroute(&mut self, end: &str) -> mpsc::Receiver<JaResponse> {
+        let path = &format!("{}/{}", self.shared.root_path, end);
+        self.make_route(path).await
     }
 
     async fn publish(&self, path: &str, message: JaResponse) -> JaResult<()> {
         let channel = {
-            let guard = self.exclusive.read().expect("Failed to acquire read lock");
+            let guard = self.exclusive.read().await;
             guard.routes.get(path).cloned()
         };
         if let Some(channel) = channel {
@@ -102,7 +98,7 @@ impl JaRouter {
 
     pub(crate) async fn pub_subroute(&self, subroute: &str, message: JaResponse) -> JaResult<()> {
         let path = &format!("{}/{}", self.shared.root_path, subroute);
-        self.publish(&path, message).await
+        self.publish(path, message).await
     }
 }
 
@@ -143,8 +139,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_basic_usage() {
-        let (mut router, mut root_channel) = JaRouter::new("janus");
-        let mut channel_one = router.add_subroute("123");
+        let (mut router, mut root_channel) = JaRouter::new("janus").await;
+        let mut channel_one = router.add_subroute("123").await;
 
         router
             .pub_root(JaResponse {
