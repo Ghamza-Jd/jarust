@@ -42,9 +42,9 @@ impl DerefMut for NamespaceRegistry {
 }
 
 impl NamespaceRegistry {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(root_nsp: &str) -> Self {
         let shared = Shared {
-            root_nsp: String::new(),
+            root_nsp: root_nsp.to_string(),
         };
         let exclusive = Exclusive {
             namespaces: HashMap::new(),
@@ -92,7 +92,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_1() {
-        let mut nsp_registry = NamespaceRegistry::new();
+        let mut nsp_registry = NamespaceRegistry::new("janus");
         let mut channel_one = nsp_registry.create_namespace("janus");
         let mut channel_two = nsp_registry.create_namespace("janus/123");
 
