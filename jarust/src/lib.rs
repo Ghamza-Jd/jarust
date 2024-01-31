@@ -10,7 +10,6 @@ pub mod transport;
 
 mod jarouter;
 mod tmanager;
-mod utils;
 
 use crate::transport::trans::Transport;
 use jaconfig::JaConfig;

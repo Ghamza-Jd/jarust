@@ -9,8 +9,6 @@ use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use crate::transport::trans::Transport;
 use crate::transport::trans::TransportProtocol;
-use crate::utils::get_route_path_from_request;
-use crate::utils::get_route_path_from_response;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -86,7 +84,7 @@ impl JaConnection {
             }
 
             // Try get the route from the response
-            if let Some(path) = get_route_path_from_response(message.clone()) {
+            if let Some(path) = JaRouter::path_from_response(message.clone()) {
                 router.pub_subroute(&path, message).await?;
                 continue;
             }
@@ -206,7 +204,7 @@ impl JaConnection {
         };
 
         let path =
-            get_route_path_from_request(&request).unwrap_or(self.shared.config.namespace.clone());
+            JaRouter::path_from_request(&request).unwrap_or(self.shared.config.namespace.clone());
 
         let mut guard = self.exclusive.lock().await;
         guard
