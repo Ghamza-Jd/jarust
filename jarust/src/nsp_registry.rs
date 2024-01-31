@@ -9,15 +9,26 @@ use std::sync::RwLock;
 use tokio::sync::mpsc;
 
 #[derive(Debug)]
-pub(crate) struct Inner {
+pub struct Shared {
+    root_nsp: String,
+}
+
+#[derive(Debug)]
+pub struct Exclusive {
     namespaces: HashMap<String, mpsc::Sender<JaResponse>>,
 }
 
+#[derive(Debug)]
+pub(crate) struct Inner {
+    shared: Shared,
+    exclusive: RwLock<Exclusive>,
+}
+
 #[derive(Clone, Debug)]
-pub(crate) struct NamespaceRegistry(Arc<RwLock<Inner>>);
+pub(crate) struct NamespaceRegistry(Arc<Inner>);
 
 impl Deref for NamespaceRegistry {
-    type Target = Arc<RwLock<Inner>>;
+    type Target = Arc<Inner>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -32,15 +43,23 @@ impl DerefMut for NamespaceRegistry {
 
 impl NamespaceRegistry {
     pub(crate) fn new() -> Self {
-        Self(Arc::new(RwLock::new(Inner {
+        let shared = Shared {
+            root_nsp: String::new(),
+        };
+        let exclusive = Exclusive {
             namespaces: HashMap::new(),
-        })))
+        };
+        Self(Arc::new(Inner {
+            shared,
+            exclusive: RwLock::new(exclusive),
+        }))
     }
 
     pub(crate) fn create_namespace(&mut self, namespace: &str) -> mpsc::Receiver<JaResponse> {
         let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         {
-            self.write()
+            self.exclusive
+                .write()
                 .expect("Failed to acquire write lock")
                 .namespaces
                 .insert(namespace.into(), tx);
@@ -51,7 +70,7 @@ impl NamespaceRegistry {
 
     pub(crate) async fn publish(&self, namespace: &str, message: JaResponse) -> JaResult<()> {
         let channel = {
-            let guard = self.read().expect("Failed to acquire read lock");
+            let guard = self.exclusive.read().expect("Failed to acquire read lock");
             guard.namespaces.get(namespace).cloned()
         };
 
