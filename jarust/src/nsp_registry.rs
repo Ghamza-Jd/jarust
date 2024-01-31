@@ -82,6 +82,52 @@ impl NamespaceRegistry {
 
         Ok(())
     }
+
+    pub(crate) fn insert_subnsp(&mut self, nsp: &str) -> mpsc::Receiver<JaResponse> {
+        let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let abs_nsp = &format!("{}/{}", self.shared.root_nsp, nsp);
+        {
+            self.exclusive
+                .write()
+                .expect("Failed to acquire write lock")
+                .namespaces
+                .insert(abs_nsp.into(), tx);
+        }
+        log::trace!("Namespace created {{ id: {abs_nsp} }}");
+        rx
+    }
+
+    pub(crate) async fn pub_root(&self, message: JaResponse) -> JaResult<()> {
+        let nsp = &self.shared.root_nsp;
+        let channel = {
+            let guard = self.exclusive.read().expect("Failed to acquire read lock");
+            guard.namespaces.get(nsp).cloned()
+        };
+
+        if let Some(channel) = channel {
+            if channel.send(message.clone()).await.is_err() {
+                return Err(JaError::SendError);
+            }
+        }
+
+        Ok(())
+    }
+
+    pub(crate) async fn pub_subnsp(&self, subnsp: &str, message: JaResponse) -> JaResult<()> {
+        let nsp = &format!("{}/{}", self.shared.root_nsp, subnsp);
+        let channel = {
+            let guard = self.exclusive.read().expect("Failed to acquire read lock");
+            guard.namespaces.get(nsp).cloned()
+        };
+
+        if let Some(channel) = channel {
+            if channel.send(message.clone()).await.is_err() {
+                return Err(JaError::SendError);
+            }
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
