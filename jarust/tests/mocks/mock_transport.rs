@@ -26,12 +26,15 @@ impl Transport for MockTransport {
 
     async fn connect(&mut self, _: &str) -> JaResult<mpsc::Receiver<String>> {
         let (tx, rx) = mpsc::channel(32);
-        let mut receiver = self.rx.take().unwrap();
-        tokio::spawn(async move {
-            while let Some(msg) = receiver.recv().await {
-                tx.send(msg).await.unwrap();
-            }
-        });
+
+        if let Some(mut receiver) = self.rx.take() {
+            tokio::spawn(async move {
+                while let Some(msg) = receiver.recv().await {
+                    tx.send(msg).await.unwrap();
+                }
+            });
+        };
+
         Ok(rx)
     }
 
