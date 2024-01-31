@@ -11,7 +11,7 @@ use jarust::transport::trans::Transport;
 
 #[tokio::test]
 async fn test_connection() {
-    let config = JaConfig::new("mock://some.janus.com", None, "janus");
+    let config = JaConfig::new("mock://some.janus.com", None, "mock");
     let transport = MockTransport::new();
     let connection = jarust::connect_with_transport(config, transport).await;
     assert!(connection.is_ok());
@@ -19,8 +19,9 @@ async fn test_connection() {
 
 #[tokio::test]
 async fn test_session_creation_success() {
-    let config = JaConfig::new("mock://some.janus.com", None, "janus");
-    let transport = MockTransport::new();
+    let config = JaConfig::new("mock://some.janus.com", None, "mock");
+    let mut transport = MockTransport::new();
+    let server = transport.get_mock_server().unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: JaResponseProtocol::Success {
@@ -31,12 +32,12 @@ async fn test_session_creation_success() {
         sender: None,
     })
     .unwrap();
-    transport.mock_recv_msg(&msg).await;
 
     let mut connection = jarust::connect_with_transport(config, transport)
         .await
         .unwrap();
 
+    server.mock_send_to_client(&msg).await;
     let session = connection.create(10).await;
 
     assert!(session.is_ok());
@@ -44,8 +45,9 @@ async fn test_session_creation_success() {
 
 #[tokio::test]
 async fn test_session_creation_failure() {
-    let config = JaConfig::new("mock://some.janus.com", None, "janus");
-    let transport = MockTransport::new();
+    let config = JaConfig::new("mock://some.janus.com", None, "mock");
+    let mut transport = MockTransport::new();
+    let server = transport.get_mock_server().unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: JaResponseProtocol::Error {
@@ -59,12 +61,12 @@ async fn test_session_creation_failure() {
         sender: None,
     })
     .unwrap();
-    transport.mock_recv_msg(&msg).await;
 
     let mut connection = jarust::connect_with_transport(config, transport)
         .await
         .unwrap();
 
+    server.mock_send_to_client(&msg).await;
     let session = connection.create(10).await;
 
     assert!(matches!(session.unwrap_err(), JaError::JanusError { .. }))

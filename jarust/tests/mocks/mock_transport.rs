@@ -2,15 +2,27 @@ use async_trait::async_trait;
 use jarust::prelude::*;
 use jarust::transport::trans::Transport;
 use tokio::sync::mpsc;
+use tokio::task::AbortHandle;
+
+pub struct MockServer {
+    tx: mpsc::Sender<String>,
+}
+
+impl MockServer {
+    pub async fn mock_send_to_client(&self, msg: &str) {
+        self.tx.send(msg.to_string()).await.unwrap();
+    }
+}
 
 pub struct MockTransport {
-    tx: mpsc::Sender<String>,
     rx: Option<mpsc::Receiver<String>>,
+    server: Option<MockServer>,
+    abort_handle: Option<AbortHandle>,
 }
 
 impl MockTransport {
-    pub async fn mock_recv_msg(&self, msg: &str) {
-        self.tx.send(msg.to_string()).await.unwrap();
+    pub fn get_mock_server(&mut self) -> Option<MockServer> {
+        self.server.take()
     }
 }
 
@@ -21,18 +33,23 @@ impl Transport for MockTransport {
         Self: Sized,
     {
         let (tx, rx) = mpsc::channel(32);
-        Self { tx, rx: Some(rx) }
+        Self {
+            rx: Some(rx),
+            server: Some(MockServer { tx }),
+            abort_handle: None,
+        }
     }
 
     async fn connect(&mut self, _: &str) -> JaResult<mpsc::Receiver<String>> {
         let (tx, rx) = mpsc::channel(32);
 
         if let Some(mut receiver) = self.rx.take() {
-            tokio::spawn(async move {
+            let join_handle = tokio::spawn(async move {
                 while let Some(msg) = receiver.recv().await {
                     tx.send(msg).await.unwrap();
                 }
             });
+            self.abort_handle = Some(join_handle.abort_handle());
         };
 
         Ok(rx)
@@ -44,5 +61,9 @@ impl Transport for MockTransport {
 }
 
 impl Drop for MockTransport {
-    fn drop(&mut self) {}
+    fn drop(&mut self) {
+        if let Some(abort_handle) = self.abort_handle.take() {
+            abort_handle.abort();
+        }
+    }
 }
