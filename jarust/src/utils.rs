@@ -1,7 +1,7 @@
 use crate::japrotocol::JaResponse;
 use serde_json::Value;
 
-pub fn get_subnamespace_from_request(request: &Value) -> Option<String> {
+pub fn get_route_path_from_request(request: &Value) -> Option<String> {
     if let (Some(session_id), Some(handle_id)) = (
         request["session_id"].as_u64(),
         request["handle_id"].as_u64(),
@@ -14,7 +14,7 @@ pub fn get_subnamespace_from_request(request: &Value) -> Option<String> {
     }
 }
 
-pub fn get_subnamespace_from_response(response: JaResponse) -> Option<String> {
+pub fn get_route_path_from_response(response: JaResponse) -> Option<String> {
     let Some(session_id) = response.session_id else {
         return None;
     };

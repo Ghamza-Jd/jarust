@@ -9,8 +9,8 @@ use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use crate::transport::trans::Transport;
 use crate::transport::trans::TransportProtocol;
-use crate::utils::get_subnamespace_from_request;
-use crate::utils::get_subnamespace_from_response;
+use crate::utils::get_route_path_from_request;
+use crate::utils::get_route_path_from_response;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -65,57 +65,49 @@ impl JaConnection {
         inbound_stream: mpsc::Receiver<String>,
         router: JaRouter,
         transaction_manager: TransactionManager,
-        root_namespace: &str,
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
         while let Some(next) = stream.recv().await {
             let message = serde_json::from_str::<JaResponse>(&next)?;
 
-            // Check if we have a pending transaction and demux to the proper namespace
+            // Check if we have a pending transaction and demux to the proper route
             if let Some(pending) = message
                 .transaction
                 .clone()
                 .and_then(|x| transaction_manager.get(&x))
             {
-                router.publish(&pending.namespace, message).await?;
-                // router.
+                if pending.path == router.root_path() {
+                    router.pub_root(message).await?;
+                } else {
+                    router.pub_subroute(&pending.path, message).await?;
+                }
                 transaction_manager.success_close(&pending.id);
                 continue;
             }
 
-            // Try get the namespace from the response
-            if let Some(namespace) = get_subnamespace_from_response(message.clone()) {
-                let namespace = format!("{root_namespace}/{namespace}");
-                router.publish(&namespace, message).await?;
+            // Try get the route from the response
+            if let Some(path) = get_route_path_from_response(message.clone()) {
+                router.pub_subroute(&path, message).await?;
                 continue;
             }
 
-            // Fallback to publishing on the root namespace
+            // Fallback to publishing on the root route
             router.pub_root(message).await?;
         }
         Ok(())
     }
 
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
-        let (router, root_channel) = JaRouter::new(&config.root_namespace);
+        let (router, root_channel) = JaRouter::new(&config.namespace);
         let transaction_manager = TransactionManager::new();
 
-        let root_namespace = config.root_namespace.clone();
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
 
         let demux_join_handle = tokio::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
-            async move {
-                JaConnection::demux_task(
-                    receiver,
-                    router,
-                    transaction_manager,
-                    &root_namespace.clone(),
-                )
-                .await
-            }
+            async move { JaConnection::demux_task(receiver, router, transaction_manager).await }
         });
 
         let shared = Shared {
@@ -169,7 +161,7 @@ impl JaConnection {
             }
         };
 
-        let channel = self.create_subnamespace(&format!("{session_id}")).await;
+        let channel = self.add_subroute(&format!("{session_id}")).await;
 
         let session = JaSession::new(self.clone(), channel, session_id, ka_interval).await;
         self.exclusive
@@ -213,16 +205,13 @@ impl JaConnection {
             return Err(err);
         };
 
-        let root_namespace = self.shared.config.root_namespace.clone();
-        let namespace = match get_subnamespace_from_request(&request) {
-            Some(namespace) => format!("{root_namespace}/{namespace}"),
-            None => root_namespace,
-        };
+        let path =
+            get_route_path_from_request(&request).unwrap_or(self.shared.config.namespace.clone());
 
         let mut guard = self.exclusive.lock().await;
         guard
             .transaction_manager
-            .create_transaction(transaction, janus_request, &namespace);
+            .create_transaction(transaction, janus_request, &path);
         guard.transport_protocol.send(message.as_bytes()).await
     }
 
@@ -233,8 +222,8 @@ impl JaConnection {
         request
     }
 
-    pub(crate) async fn create_subnamespace(&self, namespace: &str) -> mpsc::Receiver<JaResponse> {
-        self.exclusive.lock().await.router.add_subroute(&namespace)
+    pub(crate) async fn add_subroute(&self, end: &str) -> mpsc::Receiver<JaResponse> {
+        self.exclusive.lock().await.router.add_subroute(&end)
     }
 }
 
