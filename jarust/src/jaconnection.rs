@@ -9,7 +9,6 @@ use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use crate::transport::trans::Transport;
 use crate::transport::trans::TransportProtocol;
-use crate::utils::generate_transaction;
 use crate::utils::get_subnamespace_from_request;
 use crate::utils::get_subnamespace_from_response;
 use serde_json::json;
@@ -228,7 +227,7 @@ impl JaConnection {
     }
 
     fn decorate_request(&self, mut request: Value) -> Value {
-        let transaction = generate_transaction();
+        let transaction = TransactionManager::random_transaction();
         request["apisecret"] = self.shared.config.apisecret.clone().into();
         request["transaction"] = transaction.into();
         request

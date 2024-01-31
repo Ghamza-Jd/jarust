@@ -1,3 +1,5 @@
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::ops::DerefMut;
@@ -104,5 +106,13 @@ impl TransactionManager {
                 tx.request
             );
         }
+    }
+
+    pub fn random_transaction() -> String {
+        rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(12)
+            .map(char::from)
+            .collect()
     }
 }
