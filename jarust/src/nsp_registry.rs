@@ -8,11 +8,12 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use tokio::sync::mpsc;
 
+#[derive(Debug)]
 pub(crate) struct Inner {
     namespaces: HashMap<String, mpsc::Sender<JaResponse>>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct NamespaceRegistry(Arc<RwLock<Inner>>);
 
 impl Deref for NamespaceRegistry {

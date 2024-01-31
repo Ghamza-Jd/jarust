@@ -4,18 +4,19 @@ use std::ops::DerefMut;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct PendingTransaction {
     pub id: String,
     request: String,
     pub namespace: String,
 }
 
+#[derive(Debug)]
 pub(crate) struct Inner {
     transactions: HashMap<String, PendingTransaction>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct TransactionManager(Arc<RwLock<Inner>>);
 
 impl Deref for TransactionManager {

@@ -32,6 +32,7 @@ pub struct InnerHandle {
 #[derive(Clone)]
 pub struct JaHandle(Arc<InnerHandle>);
 
+#[derive(Debug)]
 pub struct WeakJaHandle(Weak<InnerHandle>);
 
 impl WeakJaHandle {
