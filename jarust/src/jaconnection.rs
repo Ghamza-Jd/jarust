@@ -5,7 +5,6 @@ use crate::japrotocol::JaResponseProtocol;
 use crate::jarouter::JaRouter;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
-use crate::nsp_registry::NamespaceRegistry;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use crate::transport::trans::Transport;
