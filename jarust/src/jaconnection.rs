@@ -96,7 +96,7 @@ impl JaConnection {
     }
 
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
-        let (router, root_channel) = JaRouter::new(&config.namespace);
+        let (router, root_channel) = JaRouter::new(&config.namespace).await;
         let transaction_manager = TransactionManager::new();
 
         let (transport_protocol, receiver) =
@@ -221,7 +221,7 @@ impl JaConnection {
     }
 
     pub(crate) async fn add_subroute(&self, end: &str) -> mpsc::Receiver<JaResponse> {
-        self.exclusive.lock().await.router.add_subroute(&end)
+        self.exclusive.lock().await.router.add_subroute(end).await
     }
 }
 
