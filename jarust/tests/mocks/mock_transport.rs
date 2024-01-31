@@ -3,7 +3,16 @@ use jarust::prelude::*;
 use jarust::transport::trans::Transport;
 use tokio::sync::mpsc;
 
-pub struct MockTransport;
+pub struct MockTransport {
+    tx: mpsc::Sender<String>,
+    rx: Option<mpsc::Receiver<String>>,
+}
+
+impl MockTransport {
+    pub async fn mock_recv_msg(&self, msg: &str) {
+        self.tx.send(msg.to_string()).await.unwrap();
+    }
+}
 
 #[async_trait]
 impl Transport for MockTransport {
@@ -11,15 +20,26 @@ impl Transport for MockTransport {
     where
         Self: Sized,
     {
-        Self
+        let (tx, rx) = mpsc::channel(32);
+        Self { tx, rx: Some(rx) }
     }
 
     async fn connect(&mut self, _: &str) -> JaResult<mpsc::Receiver<String>> {
-        let (_, rx) = mpsc::channel(32);
+        let (tx, rx) = mpsc::channel(32);
+        let mut receiver = self.rx.take().unwrap();
+        tokio::spawn(async move {
+            while let Some(msg) = receiver.recv().await {
+                tx.send(msg).await.unwrap();
+            }
+        });
         Ok(rx)
     }
 
     async fn send(&mut self, _: &[u8]) -> JaResult<()> {
         Ok(())
     }
+}
+
+impl Drop for MockTransport {
+    fn drop(&mut self) {}
 }

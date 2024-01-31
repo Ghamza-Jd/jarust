@@ -22,11 +22,13 @@ use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 use tokio::task::AbortHandle;
 
+#[derive(Debug)]
 struct Shared {
     demux_abort_handle: AbortHandle,
     config: JaConfig,
 }
 
+#[derive(Debug)]
 struct Exclusive {
     nsp_registry: NamespaceRegistry,
     transport_protocol: TransportProtocol,
@@ -35,12 +37,13 @@ struct Exclusive {
     transaction_manager: TransactionManager,
 }
 
+#[derive(Debug)]
 pub struct InnerConnection {
     shared: Shared,
     exclusive: Mutex<Exclusive>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct JaConnection(Arc<InnerConnection>);
 
 impl Deref for JaConnection {

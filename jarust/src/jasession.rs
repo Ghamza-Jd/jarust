@@ -18,25 +18,29 @@ use tokio::sync::Mutex;
 use tokio::task::AbortHandle;
 use tokio::time;
 
+#[derive(Debug)]
 pub struct Shared {
     id: u64,
     connection: JaConnection,
 }
 
+#[derive(Debug)]
 pub struct Exclusive {
     receiver: mpsc::Receiver<JaResponse>,
     handles: HashMap<u64, WeakJaHandle>,
     abort_handle: Option<AbortHandle>,
 }
 
+#[derive(Debug)]
 pub struct InnerSession {
     shared: Shared,
     exclusive: Mutex<Exclusive>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct JaSession(Arc<InnerSession>);
 
+#[derive(Debug)]
 pub struct WeakJaSession(Weak<InnerSession>);
 
 impl WeakJaSession {
