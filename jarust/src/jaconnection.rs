@@ -96,7 +96,7 @@ impl JaConnection {
     }
 
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
-        let mut nsp_registry = NamespaceRegistry::new();
+        let mut nsp_registry = NamespaceRegistry::new(&config.root_namespace);
         let transaction_manager = TransactionManager::new();
 
         let root_namespace = config.root_namespace.clone();
