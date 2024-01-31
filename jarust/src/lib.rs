@@ -9,7 +9,6 @@ pub mod prelude;
 pub mod transport;
 
 mod jarouter;
-mod nsp_registry;
 mod tmanager;
 mod utils;
 
