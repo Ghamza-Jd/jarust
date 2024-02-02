@@ -24,7 +24,9 @@ thiserror = "1.0.51"
 tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+rustls = "0.22.2"
+rustls-native-certs = "0.7.0"
+tokio-tungstenite = { version = "0.21.0", features = ["__rustls-tls"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 getrandom = { version = "0.2.12", features = ["js"] }

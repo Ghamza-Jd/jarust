@@ -45,5 +45,6 @@ fn init_logger() -> Result<(), SetLoggerError> {
         .with_module_level("tokio_tungstenite", LevelFilter::Off)
         .with_module_level("tungstenite", LevelFilter::Off)
         .with_module_level("want", LevelFilter::Off)
+        .with_module_level("rustls", LevelFilter::Off)
         .init()
 }
