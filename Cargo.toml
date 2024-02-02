@@ -3,7 +3,7 @@ resolver = "2"
 members = ["jarust", "jarust_make_plugin", "jarust_plugins"]
 
 [workspace.package]
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Hamza Jadid"]
 description = "A janus client SDK in Rust"
 readme = "README.md"
