@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
-        TransportType::Wss,
+        TransportType::Ws,
     )
     .await?;
     let session = connection.create(10).await?;
