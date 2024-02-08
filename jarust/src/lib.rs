@@ -21,7 +21,7 @@ use prelude::JaResult;
 /// Creates a new connection with janus server from the provided configs
 pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
     let transport = match transport_type {
-        jaconfig::TransportType::Wss => transport::wss::WebsocketTransport::new(),
+        jaconfig::TransportType::Ws => transport::web_socket::WebsocketTransport::new(),
     };
     connect_with_transport(jaconfig, transport).await
 }
@@ -29,7 +29,7 @@ pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaRes
 #[cfg(target_family = "wasm")]
 /// Creates a new connection with janus server from the provided configs
 pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
-    let transport = transport::wasm_wss::WasmWsTransport;
+    let transport = transport::wasm_web_socket::WasmWsTransport;
     connect_with_transport(jaconfig, transport).await
 }
 

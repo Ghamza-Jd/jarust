@@ -1,10 +1,9 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::echotest::events::EchoTestPluginEvent;
-use jarust_plugins::echotest::messages::EchoTestStartMsg;
-use jarust_plugins::echotest::EchoTest;
+use jarust::japlugin::Attach;
 use log::LevelFilter;
 use log::SetLoggerError;
+use serde_json::json;
 use simple_logger::SimpleLogger;
 
 #[tokio::main(flavor = "current_thread")]
@@ -12,27 +11,22 @@ async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
     let mut connection = jarust::connect(
-        JaConfig::new("ws://localhost:8188/ws", None, "janus"),
+        JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus"),
         TransportType::Ws,
     )
     .await?;
     let session = connection.create(10).await?;
-    let (handle, mut event_receiver, ..) = session.attach_echo_test().await?;
+    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
-        .start(EchoTestStartMsg {
-            audio: true,
-            video: true,
-            ..Default::default()
-        })
+        .message(json!({
+            "video": true,
+            "audio": true,
+        }))
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
-        match event {
-            EchoTestPluginEvent::Result { result, .. } => {
-                log::info!("result: {result}");
-            }
-        }
+        log::info!("response: {event:?}");
     }
 
     Ok(())

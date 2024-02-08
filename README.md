@@ -8,5 +8,13 @@ The library wraps the Janus core API and some of the most popular plugins APIs.
 
 ## Examples
 
-- [jarust examples](./jarust/examples/), example usage of jarust.
+To run the examples first you have to lunch the janus server.
+
+```sh
+docker compose up -d
+```
+
+Then you can run any of the these examples:
+
+- [jarust examples](./jarust/examples/), example usage of core jarust.
 - [plugins examples](./jarust_plugins/examples/), example usage of jarust's predefined plugins.
