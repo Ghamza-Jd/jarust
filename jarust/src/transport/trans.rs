@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use async_trait::async_trait;
+use std::fmt::Debug;
 use tokio::sync::mpsc;
 
 #[async_trait]
@@ -25,5 +26,11 @@ impl TransportProtocol {
 
     pub async fn send(&mut self, data: &[u8]) -> JaResult<()> {
         self.0.send(data).await
+    }
+}
+
+impl Debug for TransportProtocol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TransportProtocol").finish()
     }
 }

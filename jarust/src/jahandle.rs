@@ -22,19 +22,20 @@ struct Shared {
     abort_handle: AbortHandle,
 }
 
-struct SafeShared {
+struct Exclusive {
     ack_receiver: mpsc::Receiver<JaResponse>,
     result_receiver: mpsc::Receiver<JaResponse>,
 }
 
 pub struct InnerHandle {
     shared: Shared,
-    safe: Mutex<SafeShared>,
+    exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone)]
 pub struct JaHandle(Arc<InnerHandle>);
 
+#[derive(Debug)]
 pub struct WeakJaHandle(Weak<InnerHandle>);
 
 impl WeakJaHandle {
@@ -65,10 +66,13 @@ impl JaHandle {
             while let Some(item) = receiver.recv().await {
                 match item.janus {
                     JaResponseProtocol::Ack => {
-                        ack_sender.send(item.clone()).await.unwrap();
+                        ack_sender
+                            .send(item.clone())
+                            .await
+                            .expect("Ack channel closed");
                     }
                     JaResponseProtocol::Event { .. } => {
-                        event_sender.send(item).await.unwrap();
+                        event_sender.send(item).await.expect("Event channel closed");
                     }
                     JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
                         result_sender.send(item).await.unwrap();
@@ -83,7 +87,7 @@ impl JaHandle {
             session,
             abort_handle: join_handle.abort_handle(),
         };
-        let safe = SafeShared {
+        let exclusive = Exclusive {
             ack_receiver,
             result_receiver,
         };
@@ -91,7 +95,7 @@ impl JaHandle {
         (
             Self(Arc::new(InnerHandle {
                 shared,
-                safe: Mutex::new(safe),
+                exclusive: Mutex::new(exclusive),
             })),
             event_receiver,
         )
@@ -121,7 +125,7 @@ impl JaHandle {
         });
         self.send_request(request).await?;
         let response = {
-            let mut guard = self.safe.lock().await;
+            let mut guard = self.exclusive.lock().await;
             guard.result_receiver.recv().await.unwrap()
         };
 
@@ -150,9 +154,12 @@ impl JaHandle {
             "body": body
         });
         self.send_request(request).await?;
-        let response = {
-            let mut guard = self.safe.lock().await;
-            guard.ack_receiver.recv().await.unwrap()
+        let response = match self.exclusive.lock().await.ack_receiver.recv().await {
+            Some(response) => response,
+            None => {
+                log::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
         };
 
         Ok(response)
@@ -177,7 +184,7 @@ impl JaHandle {
         };
         self.send_request(request).await?;
         let response = {
-            let mut guard = self.safe.lock().await;
+            let mut guard = self.exclusive.lock().await;
             guard.ack_receiver.recv().await.unwrap()
         };
 

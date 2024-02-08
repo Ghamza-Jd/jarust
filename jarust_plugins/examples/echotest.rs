@@ -11,12 +11,10 @@ use simple_logger::SimpleLogger;
 async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
-    let mut connection = jarust::connect(JaConfig::new(
-        "wss://janus.conf.meetecho.com/ws",
-        None,
+    let mut connection = jarust::connect(
+        JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus"),
         TransportType::Wss,
-        "janus",
-    ))
+    )
     .await?;
     let session = connection.create(10).await?;
     let (handle, mut event_receiver, ..) = session.attach_echo_test().await?;
@@ -25,6 +23,7 @@ async fn main() -> anyhow::Result<()> {
         .start(EchoTestStartMsg {
             audio: true,
             video: true,
+            ..Default::default()
         })
         .await?;
 
@@ -46,5 +45,6 @@ fn init_logger() -> Result<(), SetLoggerError> {
         .with_module_level("tokio_tungstenite", LevelFilter::Off)
         .with_module_level("tungstenite", LevelFilter::Off)
         .with_module_level("want", LevelFilter::Off)
+        .with_module_level("rustls", LevelFilter::Off)
         .init()
 }

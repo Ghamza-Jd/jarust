@@ -19,25 +19,29 @@ use tokio::sync::Mutex;
 use tokio::task::AbortHandle;
 use tokio::time;
 
+#[derive(Debug)]
 pub struct Shared {
     id: u64,
     connection: JaConnection,
 }
 
-pub struct SafeShared {
+#[derive(Debug)]
+pub struct Exclusive {
     receiver: mpsc::Receiver<JaResponse>,
     handles: HashMap<u64, WeakJaHandle>,
     abort_handle: Option<AbortHandle>,
 }
 
+#[derive(Debug)]
 pub struct InnerSession {
     shared: Shared,
-    safe: Mutex<SafeShared>,
+    exclusive: Mutex<Exclusive>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct JaSession(Arc<InnerSession>);
 
+#[derive(Debug)]
 pub struct WeakJaSession(Weak<InnerSession>);
 
 impl WeakJaSession {
@@ -62,7 +66,7 @@ impl JaSession {
         ka_interval: u32,
     ) -> Self {
         let shared = Shared { id, connection };
-        let safe = SafeShared {
+        let safe = Exclusive {
             receiver,
             handles: HashMap::new(),
             abort_handle: None,
@@ -70,7 +74,7 @@ impl JaSession {
 
         let session = Self(Arc::new(InnerSession {
             shared,
-            safe: Mutex::new(safe),
+            exclusive: Mutex::new(safe),
         }));
 
         let this = session.clone();
@@ -79,7 +83,7 @@ impl JaSession {
             let _ = this.keep_alive(ka_interval).await;
         });
 
-        session.safe.lock().await.abort_handle = Some(join_handle.abort_handle());
+        session.exclusive.lock().await.abort_handle = Some(join_handle.abort_handle());
 
         session
     }
@@ -100,7 +104,13 @@ impl JaSession {
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
             .await?;
-            self.safe.lock().await.receiver.recv().await.unwrap();
+            let _ = match self.exclusive.lock().await.receiver.recv().await {
+                Some(response) => response,
+                None => {
+                    log::error!("Incomplete packet");
+                    return Err(JaError::IncompletePacket);
+                }
+            };
             log::trace!("keep-alive OK {{ id: {id} }}");
         }
     }
@@ -110,7 +120,7 @@ impl JaSession {
     }
 }
 
-impl Drop for SafeShared {
+impl Drop for Exclusive {
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
             log::trace!("Keepalive task aborted");
@@ -130,9 +140,13 @@ impl Attach for JaSession {
         });
 
         self.send_request(request).await?;
-        let response = {
-            let mut guard = self.safe.lock().await;
-            guard.receiver.recv().await.unwrap()
+
+        let response = match self.exclusive.lock().await.receiver.recv().await {
+            Some(response) => response,
+            None => {
+                log::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
         };
 
         let handle_id = match response.janus {
@@ -154,12 +168,12 @@ impl Attach for JaSession {
         let connection = self.shared.connection.clone();
 
         let receiver = connection
-            .create_subnamespace(&format!("{}/{}", self.shared.id, handle_id))
+            .add_subroute(&format!("{}/{}", self.shared.id, handle_id))
             .await;
 
         let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id);
 
-        self.safe
+        self.exclusive
             .lock()
             .await
             .handles

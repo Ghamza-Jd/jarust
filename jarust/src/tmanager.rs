@@ -1,21 +1,24 @@
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct PendingTransaction {
     pub id: String,
     request: String,
-    pub namespace: String,
+    pub path: String,
 }
 
+#[derive(Debug)]
 pub(crate) struct Inner {
     transactions: HashMap<String, PendingTransaction>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct TransactionManager(Arc<RwLock<Inner>>);
 
 impl Deref for TransactionManager {
@@ -40,29 +43,42 @@ impl TransactionManager {
     }
 
     fn contains(&self, id: &str) -> bool {
-        self.read().unwrap().transactions.contains_key(id)
+        self.read()
+            .expect("Failed to aquire read lock")
+            .transactions
+            .contains_key(id)
     }
 
     pub(crate) fn get(&self, id: &str) -> Option<PendingTransaction> {
-        self.read().unwrap().transactions.get(id).cloned()
+        self.read()
+            .expect("Failed to aquire read lock")
+            .transactions
+            .get(id)
+            .cloned()
     }
 
     fn _size(&self) -> usize {
-        self.read().unwrap().transactions.len()
+        self.read()
+            .expect("Failed to aquire read lock")
+            .transactions
+            .len()
     }
 
     fn insert(&self, id: &str, transaction: PendingTransaction) {
         self.write()
-            .unwrap()
+            .expect("Failed to aquire write lock")
             .transactions
             .insert(id.into(), transaction);
     }
 
     fn remove(&self, id: &str) {
-        self.write().unwrap().transactions.remove(id);
+        self.write()
+            .expect("Failed to aquire write lock")
+            .transactions
+            .remove(id);
     }
 
-    pub(crate) fn create_transaction(&self, id: &str, request: &str, namespace: &str) {
+    pub(crate) fn create_transaction(&self, id: &str, request: &str, path: &str) {
         if self.contains(id) {
             return;
         }
@@ -70,13 +86,11 @@ impl TransactionManager {
         let pending_transaction = PendingTransaction {
             id: id.into(),
             request: request.into(),
-            namespace: namespace.into(),
+            path: path.into(),
         };
 
         self.insert(id, pending_transaction);
-        log::trace!(
-            "Transaction created {{ id: {id}, namespace: {namespace}, request: {request} }}"
-        );
+        log::trace!("Transaction created {{ id: {id}, path: {path}, request: {request} }}");
     }
 
     pub(crate) fn success_close(&self, id: &str) {
@@ -84,11 +98,19 @@ impl TransactionManager {
         if let Some(tx) = tx {
             self.remove(&tx.id);
             log::trace!(
-                "Transaction closed successfully {{ id: {}, namespace: {}, request: {} }}",
+                "Transaction closed successfully {{ id: {}, path: {}, request: {} }}",
                 tx.id,
-                tx.namespace,
+                tx.path,
                 tx.request
             );
         }
+    }
+
+    pub fn random_transaction() -> String {
+        rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(12)
+            .map(char::from)
+            .collect()
     }
 }

@@ -35,7 +35,7 @@ pub enum JaHandleRequestProtocol {
 }
 
 /// The top-level response
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JaResponse {
     #[serde(flatten)]
     pub janus: JaResponseProtocol,
@@ -46,7 +46,7 @@ pub struct JaResponse {
     pub establishment_protocol: Option<EstablishmentProtocol>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "janus")]
 pub enum JaResponseProtocol {
     #[serde(rename = "error")]
@@ -61,18 +61,18 @@ pub enum JaResponseProtocol {
     Event(JaEventProtocol),
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JaData {
     pub id: u64,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JaResponseError {
     pub code: u16,
     pub reason: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "janus")]
 pub enum JaSuccessProtocol {
     #[serde(untagged)]
@@ -84,7 +84,7 @@ pub enum JaSuccessProtocol {
     },
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "janus")]
 pub enum JaEventProtocol {
     #[serde(rename = "event")]
@@ -112,7 +112,7 @@ pub enum JaEventProtocol {
     Trickle,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum JsepType {
     #[serde(rename = "offer")]
     Offer,
