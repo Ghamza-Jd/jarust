@@ -11,7 +11,7 @@ async fn main() -> anyhow::Result<()> {
     init_logger()?;
 
     let mut connection = jarust::connect(
-        JaConfig::new("ws://localhost:8188/ws", None, "janus"),
+        JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus"),
         TransportType::Ws,
     )
     .await?;
