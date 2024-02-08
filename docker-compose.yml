@@ -1,8 +1,8 @@
-version: '2.1'
+version: '3.8'
 
 services:
   janus-gateway:
-    name: janus-server
+    container_name: janus-dev-server
     image: 'canyan/janus-gateway:latest'
     command: ["/usr/local/bin/janus", "-F", "/usr/local/etc/janus"]
     ports:
