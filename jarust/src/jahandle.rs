@@ -120,9 +120,9 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the expected response
-    pub async fn message_with_result<Result>(&self, body: Value) -> JaResult<Result>
+    pub async fn message_with_result<R>(&self, body: Value) -> JaResult<R>
     where
-        Result: DeserializeOwned,
+        R: DeserializeOwned,
     {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
@@ -136,7 +136,7 @@ impl JaHandle {
 
         let result = match response.janus {
             JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
-                match serde_json::from_value::<Result>(plugin_data) {
+                match serde_json::from_value::<R>(plugin_data) {
                     Ok(result) => result,
                     Err(error) => {
                         log::error!("Failed to parse with error {error:#?}");

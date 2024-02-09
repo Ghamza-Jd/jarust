@@ -25,26 +25,11 @@ impl AudioBridgeHandle {
     ///
     /// Random room number will be used if `room` is `None`
     pub async fn create_room(&self, room: Option<u64>) -> JaResult<(u64, bool)> {
-        let response = self
-            .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeCreateMsg::new(AudioBridgeCreateOptions {
-                    room,
-                    ..Default::default()
-                }),
-            )?)
-            .await?;
-
-        let result = match response.event {
-            AudioBridgePluginEvent::CreateRoom {
-                room, permanent, ..
-            } => (room, permanent),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
-        Ok(result)
+        self.create_room_with_config(AudioBridgeCreateOptions {
+            room,
+            ..Default::default()
+        })
+        .await
     }
 
     /// Create a new audio room dynamically with the given configuration,
