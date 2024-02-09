@@ -148,6 +148,7 @@ mod tests {
                 transaction: None,
                 session_id: None,
                 sender: None,
+                establishment_protocol: None,
             })
             .await
             .unwrap();
@@ -157,6 +158,7 @@ mod tests {
                 transaction: None,
                 session_id: None,
                 sender: None,
+                establishment_protocol: None,
             })
             .await
             .unwrap();
@@ -169,6 +171,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
+                    establishment_protocol: None,
                 },
             )
             .await

@@ -7,6 +7,7 @@ use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::JaResponseError;
 use jarust::japrotocol::JaResponseProtocol;
+use jarust::japrotocol::JaSuccessProtocol;
 use jarust::transport::trans::Transport;
 
 #[tokio::test]
@@ -24,12 +25,13 @@ async fn test_session_creation_success() {
     let server = transport.get_mock_server().unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
-        janus: JaResponseProtocol::Success {
+        janus: JaResponseProtocol::Success(JaSuccessProtocol::Data {
             data: JaData { id: 0 },
-        },
+        }),
         transaction: None,
         session_id: None,
         sender: None,
+        establishment_protocol: None,
     })
     .unwrap();
 
@@ -59,6 +61,7 @@ async fn test_session_creation_failure() {
         transaction: None,
         session_id: None,
         sender: None,
+        establishment_protocol: None,
     })
     .unwrap();
 

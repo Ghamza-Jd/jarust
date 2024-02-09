@@ -23,8 +23,9 @@ serde.workspace = true
 tokio = { version = "1.35.1", features = ["sync"] }
 
 [features]
-default = ["echotest"]
+default = ["echotest", "audio_bridge"]
 echotest = []
+audio_bridge = []
 
 [dev-dependencies]
 anyhow = "1.0.79"

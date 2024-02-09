@@ -4,6 +4,7 @@ use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSessionRequestProtocol;
+use crate::japrotocol::JaSuccessProtocol;
 use crate::prelude::*;
 use async_trait::async_trait;
 use serde_json::json;
@@ -130,6 +131,7 @@ impl Drop for Exclusive {
 
 #[async_trait]
 impl Attach for JaSession {
+    /// Attach a plugin to the current session
     async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
         log::info!("Attaching new handle {{ id: {} }}", self.shared.id);
 
@@ -149,7 +151,7 @@ impl Attach for JaSession {
         };
 
         let handle_id = match response.janus {
-            JaResponseProtocol::Success { data } => data.id,
+            JaResponseProtocol::Success(JaSuccessProtocol::Data { data }) => data.id,
             JaResponseProtocol::Error { error } => {
                 let what = JaError::JanusError {
                     code: error.code,

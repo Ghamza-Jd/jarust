@@ -22,7 +22,7 @@ impl EchoTest for JaSession {
                 serde_json::from_value::<EchoTestPluginData>(plugin_data)?.event
             }
             _ => {
-                log::error!("unexpected response");
+                log::error!("unexpected response {message:#?}");
                 return Err(JaError::UnexpectedResponse);
             }
         };

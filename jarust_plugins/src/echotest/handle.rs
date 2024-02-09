@@ -1,12 +1,12 @@
 use super::messages::EchoTestStartMsg;
-use jarust::japrotocol::JsepType;
+use jarust::japrotocol::{EstablishmentProtocol, JsepType};
 use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::task::AbortHandle;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
-    abort_handle: Option<AbortHandle>,
+    abort_handles: Option<Vec<AbortHandle>>,
 }
 
 impl EchoTestHandle {
@@ -22,20 +22,25 @@ impl EchoTestHandle {
             return Err(err);
         }
         self.handle
-            .message_with_jsep(serde_json::to_value(request)?, jsep)
+            .message_with_establishment_protocol(
+                serde_json::to_value(request)?,
+                EstablishmentProtocol::JSEP(jsep),
+            )
             .await?;
         Ok(())
     }
 }
 
 impl PluginTask for EchoTestHandle {
-    fn assign_abort(&mut self, abort_handle: AbortHandle) {
-        self.abort_handle = Some(abort_handle);
+    fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>) {
+        self.abort_handles = Some(abort_handles);
     }
 
     fn abort_plugin(&mut self) {
-        if let Some(abort_handle) = self.abort_handle.take() {
-            abort_handle.abort();
+        if let Some(abort_handles) = self.abort_handles.take() {
+            for abort_handle in abort_handles {
+                abort_handle.abort();
+            }
         };
     }
 }
@@ -44,7 +49,7 @@ impl From<JaHandle> for EchoTestHandle {
     fn from(handle: JaHandle) -> Self {
         Self {
             handle,
-            abort_handle: None,
+            abort_handles: None,
         }
     }
 }

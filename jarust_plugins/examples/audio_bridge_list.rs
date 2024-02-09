@@ -1,8 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::echotest::events::EchoTestPluginEvent;
-use jarust_plugins::echotest::messages::EchoTestStartMsg;
-use jarust_plugins::echotest::EchoTest;
+use jarust_plugins::audio_bridge::AudioBridge;
 use log::LevelFilter;
 use log::SetLoggerError;
 use simple_logger::SimpleLogger;
@@ -17,23 +15,10 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
     let session = connection.create(10).await?;
-    let (handle, mut event_receiver, ..) = session.attach_echo_test().await?;
+    let (handle, ..) = session.attach_audio_bridge().await?;
 
-    handle
-        .start(EchoTestStartMsg {
-            audio: true,
-            video: true,
-            ..Default::default()
-        })
-        .await?;
-
-    while let Some(event) = event_receiver.recv().await {
-        match event {
-            EchoTestPluginEvent::Result { result, .. } => {
-                log::info!("result: {result}");
-            }
-        }
-    }
+    let result = handle.list().await?;
+    log::info!("Rooms {:#?}", result);
 
     Ok(())
 }
@@ -45,6 +30,5 @@ fn init_logger() -> Result<(), SetLoggerError> {
         .with_module_level("tokio_tungstenite", LevelFilter::Off)
         .with_module_level("tungstenite", LevelFilter::Off)
         .with_module_level("want", LevelFilter::Off)
-        .with_module_level("rustls", LevelFilter::Off)
         .init()
 }

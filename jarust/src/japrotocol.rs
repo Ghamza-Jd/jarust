@@ -42,19 +42,21 @@ pub struct JaResponse {
     pub transaction: Option<String>,
     pub session_id: Option<u64>,
     pub sender: Option<u64>,
+    #[serde(flatten)]
+    pub establishment_protocol: Option<EstablishmentProtocol>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "janus")]
 pub enum JaResponseProtocol {
-    #[serde(rename = "success")]
-    Success { data: JaData },
     #[serde(rename = "error")]
     Error { error: JaResponseError },
     #[serde(rename = "server_info")]
     ServerInfo,
     #[serde(rename = "ack")]
     Ack,
+    #[serde(rename = "success")]
+    Success(JaSuccessProtocol),
     #[serde(untagged)]
     Event(JaEventProtocol),
 }
@@ -68,6 +70,18 @@ pub struct JaData {
 pub struct JaResponseError {
     pub code: u16,
     pub reason: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(tag = "janus")]
+pub enum JaSuccessProtocol {
+    #[serde(untagged)]
+    Data { data: JaData },
+    #[serde(untagged)]
+    Plugin {
+        #[serde(rename = "plugindata")]
+        plugin_data: Value,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -98,7 +112,7 @@ pub enum JaEventProtocol {
     Trickle,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum JsepType {
     #[serde(rename = "offer")]
     Offer,
@@ -106,9 +120,29 @@ pub enum JsepType {
     Answer,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Jsep {
     #[serde(rename = "type")]
     pub jsep_type: JsepType,
     pub sdp: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RTP {
+    pub ip: String,
+    pub port: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payload_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audiolevel_ext: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fec: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum EstablishmentProtocol {
+    #[serde(rename = "jsep")]
+    JSEP(Jsep),
+    #[serde(rename = "rtp")]
+    RTP(RTP),
 }

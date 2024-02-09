@@ -1,10 +1,12 @@
 use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
-use crate::japrotocol::Jsep;
+use crate::japrotocol::JaSuccessProtocol;
 use crate::jasession::JaSession;
 use crate::prelude::*;
+use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
 use std::ops::Deref;
@@ -22,6 +24,7 @@ struct Shared {
 
 struct Exclusive {
     ack_receiver: mpsc::Receiver<JaResponse>,
+    result_receiver: mpsc::Receiver<JaResponse>,
 }
 
 pub struct InnerHandle {
@@ -56,6 +59,7 @@ impl JaHandle {
         id: u64,
     ) -> (Self, mpsc::Receiver<JaResponse>) {
         let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
         let join_handle = tokio::spawn(async move {
@@ -70,6 +74,12 @@ impl JaHandle {
                     JaResponseProtocol::Event { .. } => {
                         event_sender.send(item).await.expect("Event channel closed");
                     }
+                    JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
+                        result_sender
+                            .send(item)
+                            .await
+                            .expect("Result channel closed");
+                    }
                     _ => {}
                 }
             }
@@ -80,12 +90,15 @@ impl JaHandle {
             session,
             abort_handle: join_handle.abort_handle(),
         };
-        let safe = Exclusive { ack_receiver };
+        let exclusive = Exclusive {
+            ack_receiver,
+            result_receiver,
+        };
 
         (
             Self(Arc::new(InnerHandle {
                 shared,
-                exclusive: Mutex::new(safe),
+                exclusive: Mutex::new(exclusive),
             })),
             event_receiver,
         )
@@ -97,6 +110,7 @@ impl JaHandle {
         session.send_request(request).await
     }
 
+    /// Send a one-shot message
     pub async fn message(&self, body: Value) -> JaResult<()> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
@@ -105,11 +119,45 @@ impl JaHandle {
         self.send_request(request).await
     }
 
-    pub async fn message_with_jsep(&self, body: Value, jsep: Jsep) -> JaResult<JaResponse> {
+    /// Send a message and wait for the expected response
+    pub async fn message_with_result<R>(&self, body: Value) -> JaResult<R>
+    where
+        R: DeserializeOwned,
+    {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
-            "body": body,
-            "jsep": jsep
+            "body": body
+        });
+        self.send_request(request).await?;
+        let response = {
+            let mut guard = self.exclusive.lock().await;
+            guard.result_receiver.recv().await.unwrap()
+        };
+
+        let result = match response.janus {
+            JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
+                match serde_json::from_value::<R>(plugin_data) {
+                    Ok(result) => result,
+                    Err(error) => {
+                        log::error!("Failed to parse with error {error:#?}");
+                        return Err(JaError::UnexpectedResponse);
+                    }
+                }
+            }
+            _ => {
+                log::error!("Request failed");
+                return Err(JaError::UnexpectedResponse);
+            }
+        };
+
+        Ok(result)
+    }
+
+    /// Send a message and wait for the ack
+    pub async fn message_with_ack(&self, body: Value) -> JaResult<JaResponse> {
+        let request = json!({
+            "janus": JaHandleRequestProtocol::Message,
+            "body": body
         });
         self.send_request(request).await?;
         let response = match self.exclusive.lock().await.ack_receiver.recv().await {
@@ -119,6 +167,34 @@ impl JaHandle {
                 return Err(JaError::IncompletePacket);
             }
         };
+
+        Ok(response)
+    }
+
+    /// Send a message with a specific establishment protocol and wait for the ack
+    pub async fn message_with_establishment_protocol(
+        &self,
+        body: Value,
+        protocol: EstablishmentProtocol,
+    ) -> JaResult<JaResponse> {
+        let request = match protocol {
+            EstablishmentProtocol::JSEP(jsep) => json!({
+                "janus": JaHandleRequestProtocol::Message,
+                "body": body,
+                "jsep": jsep
+            }),
+            EstablishmentProtocol::RTP(rtp) => json!({
+                "janus": JaHandleRequestProtocol::Message,
+                "body": body,
+                "rtp": rtp
+            }),
+        };
+        self.send_request(request).await?;
+        let response = {
+            let mut guard = self.exclusive.lock().await;
+            guard.ack_receiver.recv().await.unwrap()
+        };
+
         Ok(response)
     }
 
