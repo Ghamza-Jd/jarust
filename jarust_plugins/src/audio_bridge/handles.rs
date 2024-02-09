@@ -221,9 +221,7 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
+            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -237,9 +235,7 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
+            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -258,9 +254,7 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
+            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -279,9 +273,7 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
+            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -297,9 +289,7 @@ impl AudioBridgeHandle {
             AudioBridgePluginEvent::ListParticipants { room, participants } => {
                 Ok((room, participants))
             }
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
+            _ => Err(JaError::UnexpectedResponse),
         }
     }
 }
