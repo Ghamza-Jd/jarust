@@ -36,7 +36,7 @@ impl AudioBridgeHandle {
                 room, permanent, ..
             } => (room, permanent),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
 
@@ -59,7 +59,7 @@ impl AudioBridgeHandle {
                 room, permanent, ..
             } => (room, permanent),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
 
@@ -77,7 +77,7 @@ impl AudioBridgeHandle {
         let result = match response.event {
             AudioBridgePluginEvent::EditRoom { room, .. } => room,
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
 
@@ -101,7 +101,7 @@ impl AudioBridgeHandle {
                 room, permanent, ..
             } => (room, permanent),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
 
@@ -121,17 +121,17 @@ impl AudioBridgeHandle {
                         serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
                         protocol,
                     )
-                    .await
+                    .await?
             }
             None => {
                 self.handle
                     .message_with_ack(serde_json::to_value(AudioBridgeJoinMsg::new(
                         room, options,
                     ))?)
-                    .await
+                    .await?
             }
-        }
-        .map(|_| ())
+        };
+        Ok(())
     }
 
     pub async fn list(&self) -> JaResult<Vec<Room>> {
@@ -145,7 +145,7 @@ impl AudioBridgeHandle {
         let result = match response.event {
             AudioBridgePluginEvent::List { list, .. } => list,
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
         Ok(result)
@@ -168,7 +168,7 @@ impl AudioBridgeHandle {
         let result = match response.event {
             AudioBridgePluginEvent::Allowed { room, allowed, .. } => (room, allowed),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
         Ok(result)
@@ -185,7 +185,7 @@ impl AudioBridgeHandle {
         let result = match response.event {
             AudioBridgePluginEvent::ExistsRoom { exists, .. } => exists,
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         };
         Ok(result)
@@ -206,7 +206,7 @@ impl AudioBridgeHandle {
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         }
     }
@@ -221,7 +221,7 @@ impl AudioBridgeHandle {
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         }
     }
@@ -241,7 +241,7 @@ impl AudioBridgeHandle {
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         }
     }
@@ -261,7 +261,7 @@ impl AudioBridgeHandle {
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         }
     }
@@ -278,7 +278,7 @@ impl AudioBridgeHandle {
                 Ok((room, participants))
             }
             _ => {
-                panic!("Unexpected Response!")
+                return Err(JaError::UnexpectedResponse);
             }
         }
     }
