@@ -20,6 +20,10 @@ pub struct AudioBridgeHandle {
 }
 
 impl AudioBridgeHandle {
+    /// Create a new audio room dynamically with the given room number,
+    /// as an alternative to using the configuration file
+    ///
+    /// Random room number will be used if `room` is `None`
     pub async fn create_room(&self, room: Option<u64>) -> JaResult<(u64, bool)> {
         let response = self
             .handle
@@ -43,6 +47,10 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Create a new audio room dynamically with the given configuration,
+    /// as an alternative to using the configuration file
+    ///
+    /// Random room number will be used if `room` is `None`
     pub async fn create_room_with_config(
         &self,
         options: AudioBridgeCreateOptions,
@@ -66,6 +74,7 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Allows you to dynamically edit some room properties (e.g., the PIN)
     pub async fn edit_room(&self, room: u64, options: AudioBridgeEditOptions) -> JaResult<u64> {
         let response = self
             .handle
@@ -84,6 +93,8 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Eemoves an audio conference bridge and destroys it,
+    /// kicking all the users out as part of the process
     pub async fn destroy_room(
         &self,
         room: u64,
@@ -108,6 +119,7 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Join an audio room with the given room number and options.
     pub async fn join_room(
         &self,
         room: u64,
@@ -134,6 +146,7 @@ impl AudioBridgeHandle {
         Ok(())
     }
 
+    /// Lists all the available rooms.
     pub async fn list(&self) -> JaResult<Vec<Room>> {
         let response = self
             .handle
@@ -151,6 +164,7 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Allows you to edit who's allowed to join a room via ad-hoc tokens
     pub async fn allowed(
         &self,
         room: u64,
@@ -174,6 +188,7 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Allows you to check whether a specific audio conference room exists
     pub async fn exists(&self, room: u64) -> JaResult<bool> {
         let response = self
             .handle
@@ -191,6 +206,7 @@ impl AudioBridgeHandle {
         Ok(result)
     }
 
+    /// Allows you to kick a participant out of a specific room
     pub async fn kick(
         &self,
         room: u64,
@@ -211,6 +227,7 @@ impl AudioBridgeHandle {
         }
     }
 
+    /// Allows you to kick all participants out of a specific room
     pub async fn kick_all(&self, room: u64, options: AudioBridgeKickAllOptions) -> JaResult<()> {
         let response = self
             .handle
@@ -226,6 +243,7 @@ impl AudioBridgeHandle {
         }
     }
 
+    /// Allows you to suspend a participant in a specific room
     pub async fn suspend(
         &self,
         room: u64,
@@ -246,6 +264,7 @@ impl AudioBridgeHandle {
         }
     }
 
+    /// Allows you to resume a suspended participant in a specific room
     pub async fn resume(
         &self,
         room: u64,
@@ -266,6 +285,7 @@ impl AudioBridgeHandle {
         }
     }
 
+    /// Lists all the participants of a specific room and their details
     pub async fn list_participants(&self, room: u64) -> JaResult<(u64, Vec<Participant>)> {
         let response = self
             .handle
