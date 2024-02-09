@@ -131,6 +131,7 @@ impl Drop for Exclusive {
 
 #[async_trait]
 impl Attach for JaSession {
+    /// Attach a plugin to the current session
     async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
         log::info!("Attaching new handle {{ id: {} }}", self.shared.id);
 

@@ -75,7 +75,10 @@ impl JaHandle {
                         event_sender.send(item).await.expect("Event channel closed");
                     }
                     JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
-                        result_sender.send(item).await.unwrap();
+                        result_sender
+                            .send(item)
+                            .await
+                            .expect("Result channel closed");
                     }
                     _ => {}
                 }
@@ -107,6 +110,7 @@ impl JaHandle {
         session.send_request(request).await
     }
 
+    /// Send a one-shot message
     pub async fn message(&self, body: Value) -> JaResult<()> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
@@ -115,6 +119,7 @@ impl JaHandle {
         self.send_request(request).await
     }
 
+    /// Send a message and wait for the expected response
     pub async fn message_with_result<Result>(&self, body: Value) -> JaResult<Result>
     where
         Result: DeserializeOwned,
@@ -148,6 +153,7 @@ impl JaHandle {
         Ok(result)
     }
 
+    /// Send a message and wait for the ack
     pub async fn message_with_ack(&self, body: Value) -> JaResult<JaResponse> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
@@ -165,6 +171,7 @@ impl JaHandle {
         Ok(response)
     }
 
+    /// Send a message with a specific establishment protocol and wait for the ack
     pub async fn message_with_establishment_protocol(
         &self,
         body: Value,
