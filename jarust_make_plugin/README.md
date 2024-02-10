@@ -15,7 +15,7 @@ tokio = { version = "<version>", features = ["sync"] }
 
 ## Usage
 
-```rs
+```rust
 use jarust::prelude::*;
 use jarust_make_plugin::make_plugin;
 
@@ -24,7 +24,7 @@ make_plugin!(EchoTest, "janus.plugin.echotest");
 
 This will generate this trait:
 
-```rs
+```rust
 #[async_trait::async_trait]
 pub trait EchoTest: Attach {
     type Event: Send + Sync + 'static;
