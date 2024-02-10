@@ -13,8 +13,6 @@ use crate::transport::trans::TransportProtocol;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
@@ -36,26 +34,14 @@ struct Exclusive {
 }
 
 #[derive(Debug)]
-pub struct InnerConnection {
+struct InnerConnection {
     shared: Shared,
     exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone, Debug)]
-pub struct JaConnection(Arc<InnerConnection>);
-
-impl Deref for JaConnection {
-    type Target = Arc<InnerConnection>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for JaConnection {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+pub struct JaConnection {
+    inner: Arc<InnerConnection>,
 }
 
 impl JaConnection {
@@ -124,7 +110,7 @@ impl JaConnection {
             shared,
             exclusive: Mutex::new(safe),
         });
-        Ok(Self(connection))
+        Ok(Self { inner: connection })
     }
 
     /// Creates a new session with janus server.
@@ -136,7 +122,7 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let response = match self.exclusive.lock().await.receiver.recv().await {
+        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
             Some(response) => response,
             None => {
                 log::error!("Incomplete packet");
@@ -163,7 +149,8 @@ impl JaConnection {
         let channel = self.add_subroute(&format!("{session_id}")).await;
 
         let session = JaSession::new(self.clone(), channel, session_id, ka_interval).await;
-        self.exclusive
+        self.inner
+            .exclusive
             .lock()
             .await
             .sessions
@@ -180,7 +167,7 @@ impl JaConnection {
         });
 
         self.send_request(request).await?;
-        let response = match self.exclusive.lock().await.receiver.recv().await {
+        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
             Some(response) => response,
             None => {
                 log::error!("Incomplete packet");
@@ -204,10 +191,10 @@ impl JaConnection {
             return Err(err);
         };
 
-        let path =
-            JaRouter::path_from_request(&request).unwrap_or(self.shared.config.namespace.clone());
+        let path = JaRouter::path_from_request(&request)
+            .unwrap_or(self.inner.shared.config.namespace.clone());
 
-        let mut guard = self.exclusive.lock().await;
+        let mut guard = self.inner.exclusive.lock().await;
         guard
             .transaction_manager
             .create_transaction(transaction, janus_request, &path);
@@ -216,13 +203,19 @@ impl JaConnection {
 
     fn decorate_request(&self, mut request: Value) -> Value {
         let transaction = TransactionManager::random_transaction();
-        request["apisecret"] = self.shared.config.apisecret.clone().into();
+        request["apisecret"] = self.inner.shared.config.apisecret.clone().into();
         request["transaction"] = transaction.into();
         request
     }
 
     pub(crate) async fn add_subroute(&self, end: &str) -> mpsc::Receiver<JaResponse> {
-        self.exclusive.lock().await.router.add_subroute(end).await
+        self.inner
+            .exclusive
+            .lock()
+            .await
+            .router
+            .add_subroute(end)
+            .await
     }
 }
 

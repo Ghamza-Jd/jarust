@@ -10,7 +10,6 @@ use async_trait::async_trait;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
-use std::ops::Deref;
 use std::sync::Arc;
 use std::sync::Weak;
 use std::time::Duration;
@@ -33,29 +32,19 @@ pub struct Exclusive {
 }
 
 #[derive(Debug)]
-pub struct InnerSession {
+struct InnerSession {
     shared: Shared,
     exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone, Debug)]
-pub struct JaSession(Arc<InnerSession>);
-
-#[derive(Debug)]
-pub struct WeakJaSession(Weak<InnerSession>);
-
-impl WeakJaSession {
-    pub(crate) fn _upgarde(&self) -> Option<JaSession> {
-        self.0.upgrade().map(JaSession)
-    }
+pub struct JaSession {
+    inner: Arc<InnerSession>,
 }
 
-impl Deref for JaSession {
-    type Target = Arc<InnerSession>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+#[derive(Debug)]
+pub struct WeakJaSession {
+    _inner: Weak<InnerSession>,
 }
 
 impl JaSession {
@@ -72,10 +61,12 @@ impl JaSession {
             abort_handle: None,
         };
 
-        let session = Self(Arc::new(InnerSession {
-            shared,
-            exclusive: Mutex::new(safe),
-        }));
+        let session = Self {
+            inner: Arc::new(InnerSession {
+                shared,
+                exclusive: Mutex::new(safe),
+            }),
+        };
 
         let this = session.clone();
 
@@ -83,20 +74,20 @@ impl JaSession {
             let _ = this.keep_alive(ka_interval).await;
         });
 
-        session.exclusive.lock().await.abort_handle = Some(join_handle.abort_handle());
+        session.inner.exclusive.lock().await.abort_handle = Some(join_handle.abort_handle());
 
         session
     }
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
-        let mut connection = self.shared.connection.clone();
-        request["session_id"] = self.shared.id.into();
+        let mut connection = self.inner.shared.connection.clone();
+        request["session_id"] = self.inner.shared.id.into();
         connection.send_request(request).await
     }
 
     async fn keep_alive(self, ka_interval: u32) -> JaResult<()> {
         let mut interval = time::interval(Duration::from_secs(ka_interval.into()));
-        let id = { self.shared.id };
+        let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
             log::trace!("Sending keep-alive {{ id: {id}, timeout: {ka_interval}s }}");
@@ -104,7 +95,7 @@ impl JaSession {
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
             .await?;
-            let _ = match self.exclusive.lock().await.receiver.recv().await {
+            let _ = match self.inner.exclusive.lock().await.receiver.recv().await {
                 Some(response) => response,
                 None => {
                     log::error!("Incomplete packet");
@@ -116,7 +107,9 @@ impl JaSession {
     }
 
     pub(crate) fn downgrade(&self) -> WeakJaSession {
-        WeakJaSession(Arc::downgrade(self))
+        WeakJaSession {
+            _inner: Arc::downgrade(&self.inner),
+        }
     }
 }
 
@@ -133,7 +126,7 @@ impl Drop for Exclusive {
 impl Attach for JaSession {
     /// Attach a plugin to the current session
     async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
-        log::info!("Attaching new handle {{ id: {} }}", self.shared.id);
+        log::info!("Attaching new handle {{ id: {} }}", self.inner.shared.id);
 
         let request = json!({
             "janus": JaSessionRequestProtocol::AttachPlugin,
@@ -142,7 +135,7 @@ impl Attach for JaSession {
 
         self.send_request(request).await?;
 
-        let response = match self.exclusive.lock().await.receiver.recv().await {
+        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
             Some(response) => response,
             None => {
                 log::error!("Incomplete packet");
@@ -166,15 +159,16 @@ impl Attach for JaSession {
             }
         };
 
-        let connection = self.shared.connection.clone();
+        let connection = self.inner.shared.connection.clone();
 
         let receiver = connection
-            .add_subroute(&format!("{}/{}", self.shared.id, handle_id))
+            .add_subroute(&format!("{}/{}", self.inner.shared.id, handle_id))
             .await;
 
         let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id);
 
-        self.exclusive
+        self.inner
+            .exclusive
             .lock()
             .await
             .handles
