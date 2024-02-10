@@ -9,7 +9,6 @@ use crate::prelude::*;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
-use std::ops::Deref;
 use std::sync::Arc;
 use std::sync::Weak;
 use tokio::sync::mpsc;
@@ -27,29 +26,19 @@ struct Exclusive {
     result_receiver: mpsc::Receiver<JaResponse>,
 }
 
-pub struct InnerHandle {
+struct InnerHandle {
     shared: Shared,
     exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone)]
-pub struct JaHandle(Arc<InnerHandle>);
-
-#[derive(Debug)]
-pub struct WeakJaHandle(Weak<InnerHandle>);
-
-impl WeakJaHandle {
-    pub(crate) fn _upgarde(&self) -> Option<JaHandle> {
-        self.0.upgrade().map(JaHandle)
-    }
+pub struct JaHandle {
+    inner: Arc<InnerHandle>,
 }
 
-impl Deref for JaHandle {
-    type Target = Arc<InnerHandle>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+#[derive(Debug)]
+pub struct WeakJaHandle {
+    _inner: Weak<InnerHandle>,
 }
 
 impl JaHandle {
@@ -96,17 +85,19 @@ impl JaHandle {
         };
 
         (
-            Self(Arc::new(InnerHandle {
-                shared,
-                exclusive: Mutex::new(exclusive),
-            })),
+            Self {
+                inner: Arc::new(InnerHandle {
+                    shared,
+                    exclusive: Mutex::new(exclusive),
+                }),
+            },
             event_receiver,
         )
     }
 
     async fn send_request(&self, mut request: Value) -> JaResult<()> {
-        let session = self.shared.session.clone();
-        request["handle_id"] = self.shared.id.into();
+        let session = self.inner.shared.session.clone();
+        request["handle_id"] = self.inner.shared.id.into();
         session.send_request(request).await
     }
 
@@ -130,7 +121,7 @@ impl JaHandle {
         });
         self.send_request(request).await?;
         let response = {
-            let mut guard = self.exclusive.lock().await;
+            let mut guard = self.inner.exclusive.lock().await;
             guard.result_receiver.recv().await.unwrap()
         };
 
@@ -160,7 +151,7 @@ impl JaHandle {
             "body": body
         });
         self.send_request(request).await?;
-        let response = match self.exclusive.lock().await.ack_receiver.recv().await {
+        let response = match self.inner.exclusive.lock().await.ack_receiver.recv().await {
             Some(response) => response,
             None => {
                 log::error!("Incomplete packet");
@@ -191,7 +182,7 @@ impl JaHandle {
         };
         self.send_request(request).await?;
         let response = {
-            let mut guard = self.exclusive.lock().await;
+            let mut guard = self.inner.exclusive.lock().await;
             guard.ack_receiver.recv().await.unwrap()
         };
 
@@ -199,7 +190,7 @@ impl JaHandle {
     }
 
     pub async fn detach(&self) -> JaResult<()> {
-        log::info!("Detaching handle {{ id: {} }}", self.shared.id);
+        log::info!("Detaching handle {{ id: {} }}", self.inner.shared.id);
         let request = json!({
             "janus": JaHandleRequestProtocol::DetachPlugin,
         });
@@ -209,7 +200,9 @@ impl JaHandle {
     }
 
     pub(crate) fn downgrade(&self) -> WeakJaHandle {
-        WeakJaHandle(Arc::downgrade(self))
+        WeakJaHandle {
+            _inner: Arc::downgrade(&self.inner),
+        }
     }
 }
 
