@@ -18,7 +18,3 @@ doctest = false
 convert_case = "0.6.0"
 quote = "1.0.35"
 syn = "2.0.46"
-
-[features]
-default = ["echotest"]
-echotest = []
