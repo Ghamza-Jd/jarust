@@ -1,8 +1,9 @@
 use async_trait::async_trait;
+use jarust::jatask;
+use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use jarust::transport::trans::Transport;
 use tokio::sync::mpsc;
-use tokio::task::AbortHandle;
 
 pub struct MockServer {
     tx: mpsc::Sender<String>,
@@ -44,12 +45,12 @@ impl Transport for MockTransport {
         let (tx, rx) = mpsc::channel(32);
 
         if let Some(mut receiver) = self.rx.take() {
-            let join_handle = tokio::spawn(async move {
+            let abort_handle = jatask::spawn(async move {
                 while let Some(msg) = receiver.recv().await {
                     tx.send(msg).await.unwrap();
                 }
             });
-            self.abort_handle = Some(join_handle.abort_handle());
+            self.abort_handle = Some(abort_handle);
         };
 
         Ok(rx)

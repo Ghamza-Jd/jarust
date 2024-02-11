@@ -5,6 +5,8 @@ use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::jasession::JaSession;
+use crate::jatask;
+use crate::jatask::AbortHandle;
 use crate::prelude::*;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -13,7 +15,6 @@ use std::sync::Arc;
 use std::sync::Weak;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::task::AbortHandle;
 
 struct Shared {
     id: u64,
@@ -51,7 +52,7 @@ impl JaHandle {
         let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
-        let join_handle = tokio::spawn(async move {
+        let abort_handle = jatask::spawn(async move {
             while let Some(item) = receiver.recv().await {
                 match item.janus {
                     JaResponseProtocol::Ack => {
@@ -77,7 +78,7 @@ impl JaHandle {
         let shared = Shared {
             id,
             session,
-            abort_handle: join_handle.abort_handle(),
+            abort_handle,
         };
         let exclusive = Exclusive {
             ack_receiver,

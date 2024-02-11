@@ -10,9 +10,10 @@ use super::{
     },
     results::{AudioBridgePluginData, AudioBridgePluginEvent, Participant, Room},
 };
-use jarust::{japrotocol::EstablishmentProtocol, prelude::*};
+use jarust::japrotocol::EstablishmentProtocol;
+use jarust::jatask::AbortHandle;
+use jarust::prelude::*;
 use std::ops::Deref;
-use tokio::task::AbortHandle;
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,

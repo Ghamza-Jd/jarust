@@ -5,6 +5,7 @@ pub mod jahandle;
 pub mod japlugin;
 pub mod japrotocol;
 pub mod jasession;
+pub mod jatask;
 pub mod prelude;
 pub mod transport;
 
