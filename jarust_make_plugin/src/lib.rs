@@ -50,14 +50,13 @@ pub fn make_plugin(input: TokenStream) -> TokenStream {
             ) -> JaResult<(Self::Handle, tokio::sync::mpsc::Receiver<Self::Event>)> {
                 let (handle, mut receiver) = self.attach(#id).await?;
                 let (tx, rx) = tokio::sync::mpsc::channel(CHANNEL_BUFFER_SIZE);
-                let join_handle = tokio::spawn(async move {
+                let abort_handle = jatask::spawn(async move {
                     while let Some(msg) = receiver.recv().await {
                         let msg = Self::#parse_fn_name(msg)?;
                         let _ = tx.send(msg).await;
                     }
                     Ok::<(), JaError>(())
                 });
-                let abort_handle = join_handle.abort_handle();
                 let mut handle: Self::Handle = handle.into();
                 handle.assign_aborts(vec![abort_handle]);
                 Ok((handle, rx))

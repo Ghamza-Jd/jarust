@@ -1,9 +1,9 @@
 use crate::japrotocol::JaResponse;
+use crate::jatask::AbortHandle;
 use crate::prelude::JaHandle;
 use crate::prelude::JaResult;
 use async_trait::async_trait;
 use tokio::sync::mpsc;
-use tokio::task::AbortHandle;
 
 pub trait PluginTask {
     fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>);

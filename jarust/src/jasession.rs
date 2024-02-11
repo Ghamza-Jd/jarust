@@ -5,6 +5,8 @@ use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::japrotocol::JaSuccessProtocol;
+use crate::jatask;
+use crate::jatask::AbortHandle;
 use crate::prelude::*;
 use async_trait::async_trait;
 use serde_json::json;
@@ -15,7 +17,6 @@ use std::sync::Weak;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::task::AbortHandle;
 use tokio::time;
 
 #[derive(Debug)]
@@ -70,11 +71,11 @@ impl JaSession {
 
         let this = session.clone();
 
-        let join_handle = tokio::spawn(async move {
+        let abort_handle = jatask::spawn(async move {
             let _ = this.keep_alive(ka_interval).await;
         });
 
-        session.inner.exclusive.lock().await.abort_handle = Some(join_handle.abort_handle());
+        session.inner.exclusive.lock().await.abort_handle = Some(abort_handle);
 
         session
     }

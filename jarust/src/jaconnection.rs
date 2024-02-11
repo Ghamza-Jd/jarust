@@ -6,17 +6,18 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::jarouter::JaRouter;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
+use crate::jatask;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use crate::transport::trans::Transport;
 use crate::transport::trans::TransportProtocol;
+use jatask::AbortHandle;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::task::AbortHandle;
 
 #[derive(Debug)]
 struct Shared {
@@ -89,14 +90,14 @@ impl JaConnection {
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
 
-        let demux_join_handle = tokio::spawn({
+        let demux_abort_handle = jatask::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
             async move { JaConnection::demux_task(receiver, router, transaction_manager).await }
         });
 
         let shared = Shared {
-            demux_abort_handle: demux_join_handle.abort_handle(),
+            demux_abort_handle,
             config,
         };
         let safe = Exclusive {

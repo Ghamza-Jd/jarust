@@ -1,5 +1,7 @@
 use super::trans::Transport;
 use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+use crate::jatask;
+use crate::jatask::AbortHandle;
 use crate::prelude::*;
 use async_trait::async_trait;
 use futures_util::stream::SplitSink;
@@ -9,7 +11,6 @@ use rustls::RootCertStore;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
-use tokio::task::AbortHandle;
 use tokio_tungstenite::connect_async_tls_with_config;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::Message;
@@ -45,7 +46,7 @@ impl Transport for WebsocketTransport {
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
-        let forward_join_handle = tokio::spawn(async move {
+        let abort_handle = jatask::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
                     let _ = tx.send(text).await;
@@ -54,7 +55,7 @@ impl Transport for WebsocketTransport {
         });
 
         self.sender = Some(sender);
-        self.abort_handle = Some(forward_join_handle.abort_handle());
+        self.abort_handle = Some(abort_handle);
         Ok(rx)
     }
 

@@ -1,8 +1,8 @@
 use super::messages::EchoTestStartMsg;
 use jarust::japrotocol::{EstablishmentProtocol, JsepType};
+use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use std::ops::Deref;
-use tokio::task::AbortHandle;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
