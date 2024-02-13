@@ -5,7 +5,9 @@ use serde_json::json;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::TRACE)
+        .init();
 
     let mut connection = jarust::connect(
         JaConfig::new("wss://janus.conf.meetecho.com/ws", None, "janus"),
@@ -23,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
-        tracing::info!("response: {event:?}");
+        tracing::info!("response: {event:#?}");
     }
 
     Ok(())

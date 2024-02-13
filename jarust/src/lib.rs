@@ -17,6 +17,7 @@ use jaconfig::JaConfig;
 use jaconfig::TransportType;
 use jaconnection::JaConnection;
 use prelude::JaResult;
+use tracing::Level;
 
 #[cfg(not(target_family = "wasm"))]
 /// Creates a new connection with janus server from the provided configs
@@ -35,11 +36,11 @@ pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaRes
 }
 
 /// Creates a new connection with janus server from the provided configs and custom transport
+#[tracing::instrument(level = Level::TRACE)]
 pub async fn connect_with_transport(
     jaconfig: JaConfig,
     transport: impl Transport,
 ) -> JaResult<JaConnection> {
     tracing::info!("Creating new connection");
-    tracing::trace!("Creating connection with server configuration {jaconfig:?}");
     JaConnection::open(jaconfig, transport).await
 }

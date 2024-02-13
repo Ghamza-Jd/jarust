@@ -8,6 +8,7 @@ use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use rustls::RootCertStore;
+use std::fmt::Debug;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
@@ -89,5 +90,11 @@ impl Drop for WebsocketTransport {
             tracing::trace!("Dropping wss transport");
             join_handle.abort();
         }
+    }
+}
+
+impl Debug for WebsocketTransport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Websocket").finish()
     }
 }

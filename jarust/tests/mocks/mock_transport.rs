@@ -3,6 +3,7 @@ use jarust::jatask;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use jarust::transport::trans::Transport;
+use std::fmt::Debug;
 use tokio::sync::mpsc;
 
 pub struct MockServer {
@@ -66,5 +67,11 @@ impl Drop for MockTransport {
         if let Some(abort_handle) = self.abort_handle.take() {
             abort_handle.abort();
         }
+    }
+}
+
+impl Debug for MockTransport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Mock").finish()
     }
 }
