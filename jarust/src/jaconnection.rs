@@ -116,7 +116,7 @@ impl JaConnection {
 
     /// Creates a new session with janus server.
     pub async fn create(&mut self, ka_interval: u32) -> JaResult<JaSession> {
-        log::info!("Creating new session");
+        tracing::info!("Creating new session");
 
         let request = json!({
             "janus": JaConnectionRequestProtocol::CreateSession,
@@ -126,7 +126,7 @@ impl JaConnection {
         let response = match self.inner.exclusive.lock().await.receiver.recv().await {
             Some(response) => response,
             None => {
-                log::error!("Incomplete packet");
+                tracing::error!("Incomplete packet");
                 return Err(JaError::IncompletePacket);
             }
         };
@@ -138,11 +138,11 @@ impl JaConnection {
                     code: error.code,
                     reason: error.reason,
                 };
-                log::error!("{what}");
+                tracing::error!("{what}");
                 return Err(what);
             }
             _ => {
-                log::error!("Unexpected response");
+                tracing::error!("Unexpected response");
                 return Err(JaError::UnexpectedResponse);
             }
         };
@@ -157,7 +157,7 @@ impl JaConnection {
             .sessions
             .insert(session_id, session.downgrade());
 
-        log::info!("Session created {{ id: {session_id} }}");
+        tracing::info!("Session created {{ id: {session_id} }}");
 
         Ok(session)
     }
@@ -171,7 +171,7 @@ impl JaConnection {
         let response = match self.inner.exclusive.lock().await.receiver.recv().await {
             Some(response) => response,
             None => {
-                log::error!("Incomplete packet");
+                tracing::error!("Incomplete packet");
                 return Err(JaError::IncompletePacket);
             }
         };
@@ -188,7 +188,7 @@ impl JaConnection {
             let err = JaError::InvalidJanusRequest {
                 reason: "request type and/or transaction are missing".to_owned(),
             };
-            log::error!("{err}");
+            tracing::error!("{err}");
             return Err(err);
         };
 
@@ -222,7 +222,7 @@ impl JaConnection {
 
 impl Drop for InnerConnection {
     fn drop(&mut self) {
-        log::trace!("Connection dropped");
+        tracing::trace!("Connection dropped");
         self.shared.demux_abort_handle.abort();
     }
 }

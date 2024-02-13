@@ -91,7 +91,7 @@ impl JaSession {
         let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
-            log::trace!("Sending keep-alive {{ id: {id}, timeout: {ka_interval}s }}");
+            tracing::trace!("Sending keep-alive {{ id: {id}, timeout: {ka_interval}s }}");
             self.send_request(json!({
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
@@ -99,11 +99,11 @@ impl JaSession {
             let _ = match self.inner.exclusive.lock().await.receiver.recv().await {
                 Some(response) => response,
                 None => {
-                    log::error!("Incomplete packet");
+                    tracing::error!("Incomplete packet");
                     return Err(JaError::IncompletePacket);
                 }
             };
-            log::trace!("keep-alive OK {{ id: {id} }}");
+            tracing::trace!("keep-alive OK {{ id: {id} }}");
         }
     }
 
@@ -117,7 +117,7 @@ impl JaSession {
 impl Drop for Exclusive {
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
-            log::trace!("Keepalive task aborted");
+            tracing::trace!("Keepalive task aborted");
             join_handle.abort();
         }
     }
@@ -127,7 +127,7 @@ impl Drop for Exclusive {
 impl Attach for JaSession {
     /// Attach a plugin to the current session
     async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
-        log::info!("Attaching new handle {{ id: {} }}", self.inner.shared.id);
+        tracing::info!("Attaching new handle {{ id: {} }}", self.inner.shared.id);
 
         let request = json!({
             "janus": JaSessionRequestProtocol::AttachPlugin,
@@ -139,7 +139,7 @@ impl Attach for JaSession {
         let response = match self.inner.exclusive.lock().await.receiver.recv().await {
             Some(response) => response,
             None => {
-                log::error!("Incomplete packet");
+                tracing::error!("Incomplete packet");
                 return Err(JaError::IncompletePacket);
             }
         };
@@ -151,11 +151,11 @@ impl Attach for JaSession {
                     code: error.code,
                     reason: error.reason,
                 };
-                log::error!("{what}");
+                tracing::error!("{what}");
                 return Err(what);
             }
             _ => {
-                log::error!("Unexpected response");
+                tracing::error!("Unexpected response");
                 return Err(JaError::UnexpectedResponse);
             }
         };
@@ -175,7 +175,7 @@ impl Attach for JaSession {
             .handles
             .insert(handle_id, handle.downgrade());
 
-        log::info!("Handle created {{ id: {handle_id} }}");
+        tracing::info!("Handle created {{ id: {handle_id} }}");
 
         Ok((handle, event_receiver))
     }

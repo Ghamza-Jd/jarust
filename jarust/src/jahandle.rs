@@ -131,13 +131,13 @@ impl JaHandle {
                 match serde_json::from_value::<R>(plugin_data) {
                     Ok(result) => result,
                     Err(error) => {
-                        log::error!("Failed to parse with error {error:#?}");
+                        tracing::error!("Failed to parse with error {error:#?}");
                         return Err(JaError::UnexpectedResponse);
                     }
                 }
             }
             _ => {
-                log::error!("Request failed");
+                tracing::error!("Request failed");
                 return Err(JaError::UnexpectedResponse);
             }
         };
@@ -155,7 +155,7 @@ impl JaHandle {
         let response = match self.inner.exclusive.lock().await.ack_receiver.recv().await {
             Some(response) => response,
             None => {
-                log::error!("Incomplete packet");
+                tracing::error!("Incomplete packet");
                 return Err(JaError::IncompletePacket);
             }
         };
@@ -191,7 +191,7 @@ impl JaHandle {
     }
 
     pub async fn detach(&self) -> JaResult<()> {
-        log::info!("Detaching handle {{ id: {} }}", self.inner.shared.id);
+        tracing::info!("Detaching handle {{ id: {} }}", self.inner.shared.id);
         let request = json!({
             "janus": JaHandleRequestProtocol::DetachPlugin,
         });
@@ -209,7 +209,7 @@ impl JaHandle {
 
 impl Drop for InnerHandle {
     fn drop(&mut self) {
-        log::trace!("Dropping handle {{ id: {} }}", self.shared.id);
+        tracing::trace!("Dropping handle {{ id: {} }}", self.shared.id);
         self.shared.abort_handle.abort();
     }
 }

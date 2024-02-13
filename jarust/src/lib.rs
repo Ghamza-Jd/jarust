@@ -39,7 +39,7 @@ pub async fn connect_with_transport(
     jaconfig: JaConfig,
     transport: impl Transport,
 ) -> JaResult<JaConnection> {
-    log::info!("Creating new connection");
-    log::trace!("Creating connection with server configuration {jaconfig:?}");
+    tracing::info!("Creating new connection");
+    tracing::trace!("Creating connection with server configuration {jaconfig:?}");
     JaConnection::open(jaconfig, transport).await
 }

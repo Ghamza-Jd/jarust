@@ -64,7 +64,7 @@ impl Transport for WebsocketTransport {
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;
         } else {
-            log::error!("Transport not opened!");
+            tracing::error!("Transport not opened!");
             return Err(JaError::TransportNotOpened);
         }
         Ok(())
@@ -86,7 +86,7 @@ impl WebsocketTransport {
 impl Drop for WebsocketTransport {
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
-            log::trace!("Dropping wss transport");
+            tracing::trace!("Dropping wss transport");
             join_handle.abort();
         }
     }

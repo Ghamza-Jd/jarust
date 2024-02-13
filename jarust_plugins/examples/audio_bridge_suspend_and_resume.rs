@@ -6,13 +6,10 @@ use jarust_plugins::audio_bridge::messages::AudioBridgeJoinOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeResumeOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeSuspendOptions;
 use jarust_plugins::audio_bridge::AudioBridge;
-use log::LevelFilter;
-use log::SetLoggerError;
-use simple_logger::SimpleLogger;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    init_logger()?;
+    tracing_subscriber::fmt::init();
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -28,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
             ..Default::default()
         })
         .await?;
-    log::info!("Created Room {}, permanent: {}", room, permanent);
+    tracing::info!("Created Room {}, permanent: {}", room, permanent);
 
     let _ = handle
         .join_room(
@@ -45,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
     if let Some((event, ..)) = event_receiver.recv().await {
         match event {
             AudioBridgePluginEvent::JoinRoom { id, room, .. } => {
-                log::info!("Joined room {}, Paricipant id: {}", room, id);
+                tracing::info!("Joined room {}, Paricipant id: {}", room, id);
 
                 let suspend_result = handle
                     .suspend(
@@ -58,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
                     )
                     .await;
                 if let Ok(()) = suspend_result {
-                    log::info!("Paricipant {} suspended", id);
+                    tracing::info!("Paricipant {} suspended", id);
 
                     let resume_result = handle
                         .resume(
@@ -72,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
                         .await;
 
                     if let Ok(()) = resume_result {
-                        log::info!("Paricipant {} resumed", id);
+                        tracing::info!("Paricipant {} resumed", id);
                     }
                 }
             }
@@ -80,14 +77,4 @@ async fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
-}
-
-fn init_logger() -> Result<(), SetLoggerError> {
-    SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
-        .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Off)
-        .with_module_level("tungstenite", LevelFilter::Off)
-        .with_module_level("want", LevelFilter::Off)
-        .init()
 }

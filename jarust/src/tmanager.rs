@@ -37,7 +37,7 @@ impl DerefMut for TransactionManager {
 
 impl TransactionManager {
     pub(crate) fn new() -> Self {
-        log::trace!("Creating new transaction manager");
+        tracing::trace!("Creating new transaction manager");
         let transactions = HashMap::new();
         Self(Arc::new(RwLock::new(Inner { transactions })))
     }
@@ -90,14 +90,14 @@ impl TransactionManager {
         };
 
         self.insert(id, pending_transaction);
-        log::trace!("Transaction created {{ id: {id}, path: {path}, request: {request} }}");
+        tracing::trace!("Transaction created {{ id: {id}, path: {path}, request: {request} }}");
     }
 
     pub(crate) fn success_close(&self, id: &str) {
         let tx = self.get(id);
         if let Some(tx) = tx {
             self.remove(&tx.id);
-            log::trace!(
+            tracing::trace!(
                 "Transaction closed successfully {{ id: {}, path: {}, request: {} }}",
                 tx.id,
                 tx.path,

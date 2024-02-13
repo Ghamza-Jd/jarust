@@ -55,7 +55,7 @@ impl JaRouter {
                 .routes
                 .insert(path.into(), tx);
         }
-        log::trace!("Route created {{ path: {path} }}");
+        tracing::trace!("Route created {{ path: {path} }}");
         rx
     }
 

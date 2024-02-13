@@ -3,13 +3,10 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::echotest::events::EchoTestPluginEvent;
 use jarust_plugins::echotest::messages::EchoTestStartMsg;
 use jarust_plugins::echotest::EchoTest;
-use log::LevelFilter;
-use log::SetLoggerError;
-use simple_logger::SimpleLogger;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    init_logger()?;
+    tracing_subscriber::fmt::init();
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -30,21 +27,10 @@ async fn main() -> anyhow::Result<()> {
     while let Some(event) = event_receiver.recv().await {
         match event {
             EchoTestPluginEvent::Result { result, .. } => {
-                log::info!("result: {result}");
+                tracing::info!("result: {result}");
             }
         }
     }
 
     Ok(())
-}
-
-fn init_logger() -> Result<(), SetLoggerError> {
-    SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
-        .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Off)
-        .with_module_level("tungstenite", LevelFilter::Off)
-        .with_module_level("want", LevelFilter::Off)
-        .with_module_level("rustls", LevelFilter::Off)
-        .init()
 }

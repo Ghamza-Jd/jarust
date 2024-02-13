@@ -3,13 +3,10 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::messages::AudioBridgeCreateOptions;
 use jarust_plugins::audio_bridge::messages::AudioBridgeDestroyOptions;
 use jarust_plugins::audio_bridge::AudioBridge;
-use log::LevelFilter;
-use log::SetLoggerError;
-use simple_logger::SimpleLogger;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    init_logger()?;
+    tracing_subscriber::fmt::init();
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -20,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, ..) = session.attach_audio_bridge().await?;
 
     let exist = handle.exists(4321).await?;
-    log::info!("Room exists?: {}", exist);
+    tracing::info!("Room exists?: {}", exist);
 
     if !exist {
         let _ = handle
@@ -32,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
             .await?;
 
         let exist = handle.exists(4321).await?;
-        log::info!("Room exists?: {}", exist);
+        tracing::info!("Room exists?: {}", exist);
 
         if exist {
             let _ = handle
@@ -46,19 +43,9 @@ async fn main() -> anyhow::Result<()> {
                 .await;
 
             let exist = handle.exists(4321).await?;
-            log::info!("Room exists?: {}", exist);
+            tracing::info!("Room exists?: {}", exist);
         }
     }
 
     Ok(())
-}
-
-fn init_logger() -> Result<(), SetLoggerError> {
-    SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
-        .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Off)
-        .with_module_level("tungstenite", LevelFilter::Off)
-        .with_module_level("want", LevelFilter::Off)
-        .init()
 }

@@ -18,7 +18,7 @@ impl EchoTestHandle {
             let err = JaError::InvalidJanusRequest {
                 reason: "jsep must be an offer".to_owned(),
             };
-            log::error!("{err}");
+            tracing::error!("{err}");
             return Err(err);
         }
         self.handle

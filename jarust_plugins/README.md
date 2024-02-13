@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
     while let Some(event) = event_receiver.recv().await {
         match event {
             EchoTestPluginEvent::Result { result, .. } => {
-                log::info!("result: {result}");
+                tracing::info!("result: {result}");
             }
         }
     }
@@ -86,7 +86,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, ..) = session.attach_audio_bridge().await?;
 
     let result = handle.list().await?;
-    log::info!("Rooms {:#?}", result);
+    tracing::info!("Rooms {:#?}", result);
 
     Ok(())
 }
