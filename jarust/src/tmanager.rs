@@ -93,6 +93,7 @@ impl TransactionManager {
         tracing::trace!("Transaction created {{ id: {id}, path: {path}, request: {request} }}");
     }
 
+    #[tracing::instrument(parent = None, skip(self))]
     pub(crate) fn success_close(&self, id: &str) {
         let tx = self.get(id);
         if let Some(tx) = tx {
