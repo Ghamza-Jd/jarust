@@ -25,7 +25,7 @@ impl AudioBridge for JaSession {
                 message.establishment_protocol,
             ),
             _ => {
-                log::error!("unexpected response");
+                tracing::error!("unexpected response");
                 return Err(JaError::UnexpectedResponse);
             }
         };

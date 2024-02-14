@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use tokio::sync::mpsc;
 
 #[async_trait]
-pub trait Transport: Send + Sync + 'static {
+pub trait Transport: Debug + Send + Sync + 'static {
     fn new() -> Self
     where
         Self: Sized;

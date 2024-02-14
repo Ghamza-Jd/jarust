@@ -16,13 +16,13 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::echotest::events::EchoTestPluginEvent;
 use jarust_plugins::echotest::messages::EchoTestStartMsg;
 use jarust_plugins::echotest::EchoTest;
-use log::LevelFilter;
-use log::SetLoggerError;
-use simple_logger::SimpleLogger;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    init_logger()?;
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
+        .init();
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -43,23 +43,12 @@ async fn main() -> anyhow::Result<()> {
     while let Some(event) = event_receiver.recv().await {
         match event {
             EchoTestPluginEvent::Result { result, .. } => {
-                log::info!("result: {result}");
+                tracing::info!("result: {result}");
             }
         }
     }
 
     Ok(())
-}
-
-fn init_logger() -> Result<(), SetLoggerError> {
-    SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
-        .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Off)
-        .with_module_level("tungstenite", LevelFilter::Off)
-        .with_module_level("want", LevelFilter::Off)
-        .with_module_level("rustls", LevelFilter::Off)
-        .init()
 }
 ```
 
@@ -69,13 +58,13 @@ fn init_logger() -> Result<(), SetLoggerError> {
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::AudioBridge;
-use log::LevelFilter;
-use log::SetLoggerError;
-use simple_logger::SimpleLogger;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    init_logger()?;
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
+        .init();
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -86,18 +75,8 @@ async fn main() -> anyhow::Result<()> {
     let (handle, ..) = session.attach_audio_bridge().await?;
 
     let result = handle.list().await?;
-    log::info!("Rooms {:#?}", result);
+    tracing::info!("Rooms {:#?}", result);
 
     Ok(())
-}
-
-fn init_logger() -> Result<(), SetLoggerError> {
-    SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
-        .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Off)
-        .with_module_level("tungstenite", LevelFilter::Off)
-        .with_module_level("want", LevelFilter::Off)
-        .init()
 }
 ```

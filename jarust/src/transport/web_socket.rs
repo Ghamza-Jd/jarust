@@ -8,6 +8,7 @@ use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use rustls::RootCertStore;
+use std::fmt::Debug;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
@@ -64,7 +65,7 @@ impl Transport for WebsocketTransport {
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;
         } else {
-            log::error!("Transport not opened!");
+            tracing::error!("Transport not opened!");
             return Err(JaError::TransportNotOpened);
         }
         Ok(())
@@ -86,8 +87,14 @@ impl WebsocketTransport {
 impl Drop for WebsocketTransport {
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
-            log::trace!("Dropping wss transport");
+            tracing::trace!("Dropping wss transport");
             join_handle.abort();
         }
+    }
+}
+
+impl Debug for WebsocketTransport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Websocket").finish()
     }
 }
