@@ -23,14 +23,14 @@ Checkout the existing plugins: [jarust_plugins](https://crates.io/crates/jarust_
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
-use log::LevelFilter;
-use log::SetLoggerError;
 use serde_json::json;
-use simple_logger::SimpleLogger;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    init_logger()?;
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
+        .init();
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -48,20 +48,9 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
-        tracing::info!("response: {event:?}");
+        tracing::info!("response: {event:#?}");
     }
 
     Ok(())
-}
-
-fn init_logger() -> Result<(), SetLoggerError> {
-    SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
-        .with_colors(true)
-        .with_module_level("tokio_tungstenite", LevelFilter::Off)
-        .with_module_level("tungstenite", LevelFilter::Off)
-        .with_module_level("want", LevelFilter::Off)
-        .with_module_level("rustls", LevelFilter::Off)
-        .init()
 }
 ```
