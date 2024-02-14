@@ -29,6 +29,7 @@ pub(crate) struct JaRouter {
 }
 
 impl JaRouter {
+    #[tracing::instrument(level = tracing::Level::TRACE)]
     pub(crate) async fn new(root_path: &str) -> (Self, mpsc::Receiver<JaResponse>) {
         let shared = Shared {
             root_path: root_path.to_string(),
@@ -42,9 +43,11 @@ impl JaRouter {
         });
         let mut jarouter = Self { inner };
         let channel = jarouter.make_root_route().await;
+        tracing::debug!("created new JaRouter");
         (jarouter, channel)
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     async fn make_route(&mut self, path: &str) -> mpsc::Receiver<JaResponse> {
         let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         {
@@ -55,7 +58,7 @@ impl JaRouter {
                 .routes
                 .insert(path.into(), tx);
         }
-        tracing::trace!("Route created {{ path: {path} }}");
+        tracing::trace!("created new route");
         rx
     }
 
@@ -69,6 +72,7 @@ impl JaRouter {
         self.make_route(path).await
     }
 
+    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self, message))]
     async fn publish(&self, path: &str, message: JaResponse) -> JaResult<()> {
         let channel = {
             let guard = self.inner.exclusive.read().await;
@@ -79,6 +83,7 @@ impl JaRouter {
                 return Err(JaError::SendError);
             }
         }
+        tracing::trace!("published");
         Ok(())
     }
 
