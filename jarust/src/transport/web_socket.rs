@@ -88,7 +88,7 @@ impl Drop for WebsocketTransport {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
-            tracing::trace!("Dropping wss transport");
+            tracing::debug!("Dropping wss transport");
             join_handle.abort();
         }
     }

@@ -55,7 +55,7 @@ impl JaConnection {
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
         while let Some(next) = stream.recv().await {
-            tracing::trace!("Received {next}");
+            tracing::debug!("Received {next}");
             let message = serde_json::from_str::<JaResponse>(&next)?;
 
             // Check if we have a pending transaction and demux to the proper route
@@ -160,7 +160,7 @@ impl JaConnection {
             .sessions
             .insert(session_id, session.downgrade());
 
-        tracing::info!("Session created {{ id: {session_id} }}");
+        tracing::info!("Session created {{ session_id: {session_id} }}");
 
         Ok(session)
     }
@@ -202,7 +202,7 @@ impl JaConnection {
         guard
             .transaction_manager
             .create_transaction(transaction, &path);
-        tracing::trace!("Sending {message}");
+        tracing::debug!("Sending {message}");
         guard.transport_protocol.send(message.as_bytes()).await
     }
 
@@ -229,7 +229,7 @@ impl JaConnection {
 impl Drop for InnerConnection {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip_all)]
     fn drop(&mut self) {
-        tracing::trace!("Connection dropped");
+        tracing::debug!("Connection dropped");
         self.shared.demux_abort_handle.abort();
     }
 }

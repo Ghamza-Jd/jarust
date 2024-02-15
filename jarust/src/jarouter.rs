@@ -58,7 +58,7 @@ impl JaRouter {
                 .routes
                 .insert(path.into(), tx);
         }
-        tracing::trace!("created new route");
+        tracing::trace!("New route created");
         rx
     }
 
@@ -83,7 +83,7 @@ impl JaRouter {
                 return Err(JaError::SendError);
             }
         }
-        tracing::trace!("published");
+        tracing::trace!("Published");
         Ok(())
     }
 

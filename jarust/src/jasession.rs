@@ -92,7 +92,7 @@ impl JaSession {
         let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
-            tracing::trace!("Sending {{ id: {id} }}");
+            tracing::debug!("Sending {{ id: {id} }}");
             self.send_request(json!({
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
@@ -104,7 +104,7 @@ impl JaSession {
                     return Err(JaError::IncompletePacket);
                 }
             };
-            tracing::trace!("OK");
+            tracing::debug!("OK");
         }
     }
 
@@ -118,7 +118,7 @@ impl JaSession {
 impl Drop for InnerSession {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
     fn drop(&mut self) {
-        tracing::trace!("Session dropped");
+        tracing::debug!("Session dropped");
     }
 }
 
@@ -126,7 +126,7 @@ impl Drop for Exclusive {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
-            tracing::trace!("Keepalive task aborted");
+            tracing::debug!("Keepalive task aborted");
             join_handle.abort();
         }
     }

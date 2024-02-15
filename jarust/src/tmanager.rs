@@ -37,7 +37,7 @@ impl DerefMut for TransactionManager {
 impl TransactionManager {
     #[tracing::instrument(level = tracing::Level::TRACE)]
     pub(crate) fn new() -> Self {
-        tracing::trace!("Creating new transaction manager");
+        tracing::debug!("Creating new transaction manager");
         let transactions = HashMap::new();
         Self(Arc::new(RwLock::new(Inner { transactions })))
     }
