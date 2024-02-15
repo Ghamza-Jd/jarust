@@ -10,6 +10,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
         .init();
+    let timeout = std::time::Duration::from_secs(10);
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -20,12 +21,15 @@ async fn main() -> anyhow::Result<()> {
     let (handle, ..) = session.attach_audio_bridge().await?;
 
     let _ = handle
-        .create_room_with_config(AudioBridgeCreateOptions {
-            room: Some(4321),
-            description: Some("A nice description".to_string()),
-            secret: Some("superdupersecret".to_string()),
-            ..Default::default()
-        })
+        .create_room_with_config(
+            AudioBridgeCreateOptions {
+                room: Some(4321),
+                description: Some("A nice description".to_string()),
+                secret: Some("superdupersecret".to_string()),
+                ..Default::default()
+            },
+            timeout,
+        )
         .await?;
 
     let room = handle
@@ -36,6 +40,7 @@ async fn main() -> anyhow::Result<()> {
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
             },
+            timeout,
         )
         .await?;
 

@@ -27,4 +27,6 @@ pub enum JaError {
     UnexpectedResponse,
     #[error("Janus error {{ code: {code}, reason: {reason}}}")]
     JanusError { code: u16, reason: String },
+    #[error("Request timeout")]
+    RequestTimeout,
 }
