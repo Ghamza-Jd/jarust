@@ -9,7 +9,6 @@ use std::sync::RwLock;
 #[derive(Clone, Debug)]
 pub(crate) struct PendingTransaction {
     pub id: String,
-    request: String,
     pub path: String,
 }
 
@@ -36,6 +35,7 @@ impl DerefMut for TransactionManager {
 }
 
 impl TransactionManager {
+    #[tracing::instrument(level = tracing::Level::TRACE)]
     pub(crate) fn new() -> Self {
         tracing::trace!("Creating new transaction manager");
         let transactions = HashMap::new();
@@ -78,19 +78,19 @@ impl TransactionManager {
             .remove(id);
     }
 
-    pub(crate) fn create_transaction(&self, id: &str, request: &str, path: &str) {
+    #[tracing::instrument(parent = None, skip(self))]
+    pub(crate) fn create_transaction(&self, id: &str, path: &str) {
         if self.contains(id) {
             return;
         }
 
         let pending_transaction = PendingTransaction {
             id: id.into(),
-            request: request.into(),
             path: path.into(),
         };
 
         self.insert(id, pending_transaction);
-        tracing::trace!("Transaction created {{ id: {id}, path: {path}, request: {request} }}");
+        tracing::trace!("Transaction created");
     }
 
     #[tracing::instrument(parent = None, skip(self))]
@@ -98,12 +98,7 @@ impl TransactionManager {
         let tx = self.get(id);
         if let Some(tx) = tx {
             self.remove(&tx.id);
-            tracing::trace!(
-                "Transaction closed successfully {{ id: {}, path: {}, request: {} }}",
-                tx.id,
-                tx.path,
-                tx.request
-            );
+            tracing::trace!("Transaction closed successfully");
         }
     }
 

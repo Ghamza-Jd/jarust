@@ -72,7 +72,7 @@ impl JaRouter {
         self.make_route(path).await
     }
 
-    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self, message))]
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, message))]
     async fn publish(&self, path: &str, message: JaResponse) -> JaResult<()> {
         let channel = {
             let guard = self.inner.exclusive.read().await;

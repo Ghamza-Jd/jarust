@@ -187,9 +187,7 @@ impl JaConnection {
         let request = self.decorate_request(request);
         let message = serde_json::to_string(&request)?;
 
-        let (Some(janus_request), Some(transaction)) =
-            (request["janus"].as_str(), request["transaction"].as_str())
-        else {
+        let Some(transaction) = request["transaction"].as_str() else {
             let err = JaError::InvalidJanusRequest {
                 reason: "request type and/or transaction are missing".to_owned(),
             };
@@ -203,7 +201,7 @@ impl JaConnection {
         let mut guard = self.inner.exclusive.lock().await;
         guard
             .transaction_manager
-            .create_transaction(transaction, janus_request, &path);
+            .create_transaction(transaction, &path);
         tracing::trace!("Sending {message}");
         guard.transport_protocol.send(message.as_bytes()).await
     }
@@ -229,6 +227,7 @@ impl JaConnection {
 }
 
 impl Drop for InnerConnection {
+    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip_all)]
     fn drop(&mut self) {
         tracing::trace!("Connection dropped");
         self.shared.demux_abort_handle.abort();
