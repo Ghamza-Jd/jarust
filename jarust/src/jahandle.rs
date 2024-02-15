@@ -208,8 +208,9 @@ impl JaHandle {
 }
 
 impl Drop for InnerHandle {
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
     fn drop(&mut self) {
-        tracing::trace!("Dropping handle {{ id: {} }}", self.shared.id);
+        tracing::trace!("Handle Dropped");
         self.shared.abort_handle.abort();
     }
 }

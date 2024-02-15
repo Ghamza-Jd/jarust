@@ -86,12 +86,13 @@ impl JaSession {
         connection.send_request(request).await
     }
 
+    #[tracing::instrument(skip(self))]
     async fn keep_alive(self, ka_interval: u32) -> JaResult<()> {
         let mut interval = time::interval(Duration::from_secs(ka_interval.into()));
         let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
-            tracing::trace!("Sending keep-alive {{ id: {id}, timeout: {ka_interval}s }}");
+            tracing::trace!("Sending {{ id: {id} }}");
             self.send_request(json!({
                 "janus": JaSessionRequestProtocol::KeepAlive,
             }))
@@ -103,7 +104,7 @@ impl JaSession {
                     return Err(JaError::IncompletePacket);
                 }
             };
-            tracing::trace!("keep-alive OK {{ id: {id} }}");
+            tracing::trace!("OK");
         }
     }
 
@@ -114,7 +115,15 @@ impl JaSession {
     }
 }
 
+impl Drop for InnerSession {
+    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
+    fn drop(&mut self) {
+        tracing::trace!("Session dropped");
+    }
+}
+
 impl Drop for Exclusive {
+    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
         if let Some(join_handle) = self.abort_handle.take() {
             tracing::trace!("Keepalive task aborted");
@@ -126,8 +135,9 @@ impl Drop for Exclusive {
 #[async_trait]
 impl Attach for JaSession {
     /// Attach a plugin to the current session
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
-        tracing::info!("Attaching new handle {{ id: {} }}", self.inner.shared.id);
+        tracing::info!("Attaching new handle");
 
         let request = json!({
             "janus": JaSessionRequestProtocol::AttachPlugin,
@@ -175,7 +185,7 @@ impl Attach for JaSession {
             .handles
             .insert(handle_id, handle.downgrade());
 
-        tracing::info!("Handle created {{ id: {handle_id} }}");
+        tracing::info!("Handle created {{ handle_id: {handle_id} }}");
 
         Ok((handle, event_receiver))
     }
