@@ -47,7 +47,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<(u64, bool)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeCreateMsg::new(options))?,
                 timeout,
             )
@@ -74,7 +74,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<u64> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeEditMsg::new(room, options))?,
                 timeout,
             )
@@ -100,7 +100,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<(u64, bool)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeDestroyMsg::new(room, options))?,
                 timeout,
             )
@@ -129,7 +129,7 @@ impl AudioBridgeHandle {
         match protocol {
             Some(protocol) => {
                 self.handle
-                    .message_with_establishment_protocol(
+                    .send_waiton_ack_with_establishment(
                         serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
                         protocol,
                         timeout,
@@ -138,7 +138,7 @@ impl AudioBridgeHandle {
             }
             None => {
                 self.handle
-                    .message_with_ack(
+                    .send_waiton_ack(
                         serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
                         timeout,
                     )
@@ -152,7 +152,7 @@ impl AudioBridgeHandle {
     pub async fn list(&self, timeout: Duration) -> JaResult<Vec<Room>> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeListMsg::default())?,
                 timeout,
             )
@@ -178,7 +178,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<(u64, Vec<String>)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeAllowedMsg::new(room, action, allowed, options))?,
                 timeout,
             )
@@ -197,7 +197,7 @@ impl AudioBridgeHandle {
     pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<bool> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeExistsMsg::new(room))?,
                 timeout,
             )
@@ -222,7 +222,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeKickMsg::new(room, participant, options))?,
                 timeout,
             )
@@ -242,7 +242,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeKickAllMsg::new(room, options))?,
                 timeout,
             )
@@ -263,7 +263,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeSuspendMsg::new(room, participant, options))?,
                 timeout,
             )
@@ -284,7 +284,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeResumeMsg::new(room, participant, options))?,
                 timeout,
             )
@@ -303,7 +303,7 @@ impl AudioBridgeHandle {
     ) -> JaResult<(u64, Vec<Participant>)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(
+            .send_waiton_result::<AudioBridgePluginData>(
                 serde_json::to_value(AudioBridgeListParticipantsMsg::new(room))?,
                 timeout,
             )

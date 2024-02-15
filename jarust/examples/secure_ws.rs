@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
-        .message(json!({
+        .fire_and_forget(json!({
             "video": true,
             "audio": true,
         }))

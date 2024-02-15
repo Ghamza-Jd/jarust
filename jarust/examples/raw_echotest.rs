@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
-        .message_with_ack(
+        .send_waiton_ack(
             json!({
                 "video": true,
                 "audio": true,
