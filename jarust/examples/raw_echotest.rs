@@ -27,7 +27,6 @@ async fn main() -> anyhow::Result<()> {
 
     while let Some(event) = event_receiver.recv().await {
         tracing::info!("response: {event:#?}");
-        break;
     }
 
     Ok(())
