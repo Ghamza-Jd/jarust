@@ -9,6 +9,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
         .init();
+    let timeout = std::time::Duration::from_secs(10);
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -19,14 +20,17 @@ async fn main() -> anyhow::Result<()> {
     let (handle, ..) = session.attach_audio_bridge().await?;
 
     let (room, permanent) = handle
-        .create_room_with_config(AudioBridgeCreateOptions {
-            secret: Some("superdupersecret".to_string()),
-            ..Default::default()
-        })
+        .create_room_with_config(
+            AudioBridgeCreateOptions {
+                secret: Some("superdupersecret".to_string()),
+                ..Default::default()
+            },
+            timeout,
+        )
         .await?;
     tracing::info!("Created Room {}, permanent: {}", room, permanent);
 
-    let (room, participants) = handle.list_participants(room).await?;
+    let (room, participants) = handle.list_participants(room, timeout).await?;
     tracing::info!("Participants in room {}: {:#?}", room, participants);
 
     Ok(())

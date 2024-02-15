@@ -3,6 +3,7 @@ use jarust::japrotocol::{EstablishmentProtocol, JsepType};
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use std::ops::Deref;
+use std::time::Duration;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
@@ -10,7 +11,7 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
-    pub async fn start(&self, mut request: EchoTestStartMsg) -> JaResult<()> {
+    pub async fn start(&self, mut request: EchoTestStartMsg, timeout: Duration) -> JaResult<()> {
         let Some(jsep) = request.jsep.take() else {
             return self.handle.message(serde_json::to_value(request)?).await;
         };
@@ -25,6 +26,7 @@ impl EchoTestHandle {
             .message_with_establishment_protocol(
                 serde_json::to_value(request)?,
                 EstablishmentProtocol::JSEP(jsep),
+                timeout,
             )
             .await?;
         Ok(())

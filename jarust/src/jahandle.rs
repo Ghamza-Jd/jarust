@@ -13,6 +13,7 @@ use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
 use std::sync::Weak;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
@@ -102,6 +103,50 @@ impl JaHandle {
         session.send_request(request).await
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
+    async fn poll_response(&self, timeout: Duration) -> JaResult<JaResponse> {
+        tracing::trace!("Polling response");
+        let response = match tokio::time::timeout(
+            timeout,
+            self.inner.exclusive.lock().await.result_receiver.recv(),
+        )
+        .await
+        {
+            Ok(Some(response)) => response,
+            Ok(None) => {
+                tracing::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
+            Err(_) => {
+                tracing::error!("Request timeout");
+                return Err(JaError::RequestTimeout);
+            }
+        };
+        Ok(response)
+    }
+
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
+    async fn poll_ack(&self, timeout: Duration) -> JaResult<JaResponse> {
+        tracing::trace!("Polling ack");
+        let response = match tokio::time::timeout(
+            timeout,
+            self.inner.exclusive.lock().await.ack_receiver.recv(),
+        )
+        .await
+        {
+            Ok(Some(response)) => response,
+            Ok(None) => {
+                tracing::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
+            Err(_) => {
+                tracing::error!("Request timeout");
+                return Err(JaError::RequestTimeout);
+            }
+        };
+        Ok(response)
+    }
+
     /// Send a one-shot message
     pub async fn message(&self, body: Value) -> JaResult<()> {
         let request = json!({
@@ -112,7 +157,7 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the expected response
-    pub async fn message_with_result<R>(&self, body: Value) -> JaResult<R>
+    pub async fn message_with_result<R>(&self, body: Value, timeout: Duration) -> JaResult<R>
     where
         R: DeserializeOwned,
     {
@@ -121,10 +166,7 @@ impl JaHandle {
             "body": body
         });
         self.send_request(request).await?;
-        let response = {
-            let mut guard = self.inner.exclusive.lock().await;
-            guard.result_receiver.recv().await.unwrap()
-        };
+        let response = self.poll_response(timeout).await?;
 
         let result = match response.janus {
             JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
@@ -146,20 +188,13 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the ack
-    pub async fn message_with_ack(&self, body: Value) -> JaResult<JaResponse> {
+    pub async fn message_with_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
             "body": body
         });
         self.send_request(request).await?;
-        let response = match self.inner.exclusive.lock().await.ack_receiver.recv().await {
-            Some(response) => response,
-            None => {
-                tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
-            }
-        };
-
+        let response = self.poll_ack(timeout).await?;
         Ok(response)
     }
 
@@ -168,6 +203,7 @@ impl JaHandle {
         &self,
         body: Value,
         protocol: EstablishmentProtocol,
+        timeout: Duration,
     ) -> JaResult<JaResponse> {
         let request = match protocol {
             EstablishmentProtocol::JSEP(jsep) => json!({
@@ -182,10 +218,7 @@ impl JaHandle {
             }),
         };
         self.send_request(request).await?;
-        let response = {
-            let mut guard = self.inner.exclusive.lock().await;
-            guard.ack_receiver.recv().await.unwrap()
-        };
+        let response = self.poll_ack(timeout).await?;
 
         Ok(response)
     }

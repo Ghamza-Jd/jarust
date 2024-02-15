@@ -19,10 +19,13 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
-        .message(json!({
-            "video": true,
-            "audio": true,
-        }))
+        .message_with_ack(
+            json!({
+                "video": true,
+                "audio": true,
+            }),
+            std::time::Duration::from_secs(2),
+        )
         .await?;
 
     while let Some(event) = event_receiver.recv().await {

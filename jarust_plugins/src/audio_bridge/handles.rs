@@ -13,7 +13,7 @@ use super::{
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
-use std::ops::Deref;
+use std::{ops::Deref, time::Duration};
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,
@@ -25,11 +25,14 @@ impl AudioBridgeHandle {
     /// as an alternative to using the configuration file
     ///
     /// Random room number will be used if `room` is `None`
-    pub async fn create_room(&self, room: Option<u64>) -> JaResult<(u64, bool)> {
-        self.create_room_with_config(AudioBridgeCreateOptions {
-            room,
-            ..Default::default()
-        })
+    pub async fn create_room(&self, room: Option<u64>, timeout: Duration) -> JaResult<(u64, bool)> {
+        self.create_room_with_config(
+            AudioBridgeCreateOptions {
+                room,
+                ..Default::default()
+            },
+            timeout,
+        )
         .await
     }
 
@@ -40,12 +43,14 @@ impl AudioBridgeHandle {
     pub async fn create_room_with_config(
         &self,
         options: AudioBridgeCreateOptions,
+        timeout: Duration,
     ) -> JaResult<(u64, bool)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeCreateMsg::new(options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeCreateMsg::new(options))?,
+                timeout,
+            )
             .await?;
 
         let result = match response.event {
@@ -61,12 +66,18 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to dynamically edit some room properties (e.g., the PIN)
-    pub async fn edit_room(&self, room: u64, options: AudioBridgeEditOptions) -> JaResult<u64> {
+    pub async fn edit_room(
+        &self,
+        room: u64,
+        options: AudioBridgeEditOptions,
+        timeout: Duration,
+    ) -> JaResult<u64> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeEditMsg::new(room, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeEditMsg::new(room, options))?,
+                timeout,
+            )
             .await?;
 
         let result = match response.event {
@@ -85,12 +96,14 @@ impl AudioBridgeHandle {
         &self,
         room: u64,
         options: AudioBridgeDestroyOptions,
+        timeout: Duration,
     ) -> JaResult<(u64, bool)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeDestroyMsg::new(room, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeDestroyMsg::new(room, options))?,
+                timeout,
+            )
             .await?;
 
         let result = match response.event {
@@ -111,6 +124,7 @@ impl AudioBridgeHandle {
         room: u64,
         options: AudioBridgeJoinOptions,
         protocol: Option<EstablishmentProtocol>,
+        timeout: Duration,
     ) -> JaResult<()> {
         match protocol {
             Some(protocol) => {
@@ -118,14 +132,16 @@ impl AudioBridgeHandle {
                     .message_with_establishment_protocol(
                         serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
                         protocol,
+                        timeout,
                     )
                     .await?
             }
             None => {
                 self.handle
-                    .message_with_ack(serde_json::to_value(AudioBridgeJoinMsg::new(
-                        room, options,
-                    ))?)
+                    .message_with_ack(
+                        serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
+                        timeout,
+                    )
                     .await?
             }
         };
@@ -133,12 +149,13 @@ impl AudioBridgeHandle {
     }
 
     /// Lists all the available rooms.
-    pub async fn list(&self) -> JaResult<Vec<Room>> {
+    pub async fn list(&self, timeout: Duration) -> JaResult<Vec<Room>> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeListMsg::default(),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeListMsg::default())?,
+                timeout,
+            )
             .await?;
 
         let result = match response.event {
@@ -157,12 +174,14 @@ impl AudioBridgeHandle {
         action: AudioBridgeAction,
         allowed: Vec<String>,
         options: AudioBridgeAllowedOptions,
+        timeout: Duration,
     ) -> JaResult<(u64, Vec<String>)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeAllowedMsg::new(room, action, allowed, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeAllowedMsg::new(room, action, allowed, options))?,
+                timeout,
+            )
             .await?;
 
         let result = match response.event {
@@ -175,12 +194,13 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to check whether a specific audio conference room exists
-    pub async fn exists(&self, room: u64) -> JaResult<bool> {
+    pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<bool> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeExistsMsg::new(room),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeExistsMsg::new(room))?,
+                timeout,
+            )
             .await?;
 
         let result = match response.event {
@@ -198,12 +218,14 @@ impl AudioBridgeHandle {
         room: u64,
         participant: u64,
         options: AudioBridgeKickOptions,
+        timeout: Duration,
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeKickMsg::new(room, participant, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeKickMsg::new(room, participant, options))?,
+                timeout,
+            )
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
@@ -212,12 +234,18 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to kick all participants out of a specific room
-    pub async fn kick_all(&self, room: u64, options: AudioBridgeKickAllOptions) -> JaResult<()> {
+    pub async fn kick_all(
+        &self,
+        room: u64,
+        options: AudioBridgeKickAllOptions,
+        timeout: Duration,
+    ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeKickAllMsg::new(room, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeKickAllMsg::new(room, options))?,
+                timeout,
+            )
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
@@ -231,12 +259,14 @@ impl AudioBridgeHandle {
         room: u64,
         participant: u64,
         options: AudioBridgeSuspendOptions,
+        timeout: Duration,
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeSuspendMsg::new(room, participant, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeSuspendMsg::new(room, participant, options))?,
+                timeout,
+            )
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
@@ -250,12 +280,14 @@ impl AudioBridgeHandle {
         room: u64,
         participant: u64,
         options: AudioBridgeResumeOptions,
+        timeout: Duration,
     ) -> JaResult<()> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeResumeMsg::new(room, participant, options),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeResumeMsg::new(room, participant, options))?,
+                timeout,
+            )
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
@@ -264,12 +296,17 @@ impl AudioBridgeHandle {
     }
 
     /// Lists all the participants of a specific room and their details
-    pub async fn list_participants(&self, room: u64) -> JaResult<(u64, Vec<Participant>)> {
+    pub async fn list_participants(
+        &self,
+        room: u64,
+        timeout: Duration,
+    ) -> JaResult<(u64, Vec<Participant>)> {
         let response = self
             .handle
-            .message_with_result::<AudioBridgePluginData>(serde_json::to_value(
-                AudioBridgeListParticipantsMsg::new(room),
-            )?)
+            .message_with_result::<AudioBridgePluginData>(
+                serde_json::to_value(AudioBridgeListParticipantsMsg::new(room))?,
+                timeout,
+            )
             .await?;
         match response.event {
             AudioBridgePluginEvent::ListParticipants { room, participants } => {

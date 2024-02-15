@@ -8,6 +8,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
         .init();
+    let timeout = std::time::Duration::from_secs(10);
 
     let mut connection = jarust::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -17,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let result = handle.list().await?;
+    let result = handle.list(timeout).await?;
     tracing::info!("Rooms {:#?}", result);
 
     Ok(())
