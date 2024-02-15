@@ -1,3 +1,4 @@
+use crate::demuxer::Demuxer;
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::japrotocol::JaResponse;
@@ -46,45 +47,6 @@ pub struct JaConnection {
 }
 
 impl JaConnection {
-    /// Async task to handle demultiplexing of the inbound stream
-    #[tracing::instrument(name = "incoming_event", level = tracing::Level::TRACE, skip_all)]
-    async fn demux_task(
-        inbound_stream: mpsc::Receiver<String>,
-        router: JaRouter,
-        transaction_manager: TransactionManager,
-    ) -> JaResult<()> {
-        let mut stream = inbound_stream;
-        while let Some(next) = stream.recv().await {
-            tracing::debug!("Received {next}");
-            let message = serde_json::from_str::<JaResponse>(&next)?;
-
-            // Check if we have a pending transaction and demux to the proper route
-            if let Some(pending) = message
-                .transaction
-                .clone()
-                .and_then(|x| transaction_manager.get(&x))
-            {
-                if pending.path == router.root_path() {
-                    router.pub_root(message).await?;
-                } else {
-                    router.pub_subroute(&pending.path, message).await?;
-                }
-                transaction_manager.success_close(&pending.id);
-                continue;
-            }
-
-            // Try get the route from the response
-            if let Some(path) = JaRouter::path_from_response(message.clone()) {
-                router.pub_subroute(&path, message).await?;
-                continue;
-            }
-
-            // Fallback to publishing on the root route
-            router.pub_root(message).await?;
-        }
-        Ok(())
-    }
-
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
         let (router, root_channel) = JaRouter::new(&config.namespace).await;
         let transaction_manager = TransactionManager::new();
@@ -95,7 +57,7 @@ impl JaConnection {
         let demux_abort_handle = jatask::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
-            async move { JaConnection::demux_task(receiver, router, transaction_manager).await }
+            async move { Demuxer::demux_task(receiver, router, transaction_manager).await }
         });
 
         let shared = Shared {
@@ -166,23 +128,6 @@ impl JaConnection {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn server_info(&mut self) -> JaResult<JaResponse> {
-        let request = json!({
-            "janus": JaConnectionRequestProtocol::ServerInfo,
-        });
-
-        self.send_request(request).await?;
-        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
-            Some(response) => response,
-            None => {
-                tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
-            }
-        };
-        Ok(response)
-    }
-
-    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<()> {
         let request = self.decorate_request(request);
         let message = serde_json::to_string(&request)?;
@@ -223,6 +168,25 @@ impl JaConnection {
             .router
             .add_subroute(end)
             .await
+    }
+}
+
+impl JaConnection {
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
+    pub async fn server_info(&mut self) -> JaResult<JaResponse> {
+        let request = json!({
+            "janus": JaConnectionRequestProtocol::ServerInfo,
+        });
+
+        self.send_request(request).await?;
+        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
+            Some(response) => response,
+            None => {
+                tracing::error!("Incomplete packet");
+                return Err(JaError::IncompletePacket);
+            }
+        };
+        Ok(response)
     }
 }
 

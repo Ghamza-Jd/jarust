@@ -9,6 +9,7 @@ pub mod jatask;
 pub mod prelude;
 pub mod transport;
 
+mod demuxer;
 mod jarouter;
 mod tmanager;
 
