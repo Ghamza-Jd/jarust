@@ -148,7 +148,7 @@ impl JaHandle {
     }
 
     /// Send a one-shot message
-    pub async fn message(&self, body: Value) -> JaResult<()> {
+    pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
             "body": body
@@ -157,7 +157,7 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the expected response
-    pub async fn message_with_result<R>(&self, body: Value, timeout: Duration) -> JaResult<R>
+    pub async fn send_waiton_result<R>(&self, body: Value, timeout: Duration) -> JaResult<R>
     where
         R: DeserializeOwned,
     {
@@ -188,7 +188,7 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the ack
-    pub async fn message_with_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
+    pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
         let request = json!({
             "janus": JaHandleRequestProtocol::Message,
             "body": body
@@ -199,7 +199,7 @@ impl JaHandle {
     }
 
     /// Send a message with a specific establishment protocol and wait for the ack
-    pub async fn message_with_establishment_protocol(
+    pub async fn send_waiton_ack_with_establishment(
         &self,
         body: Value,
         protocol: EstablishmentProtocol,

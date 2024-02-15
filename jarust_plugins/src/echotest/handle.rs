@@ -13,7 +13,10 @@ pub struct EchoTestHandle {
 impl EchoTestHandle {
     pub async fn start(&self, mut request: EchoTestStartMsg, timeout: Duration) -> JaResult<()> {
         let Some(jsep) = request.jsep.take() else {
-            return self.handle.message(serde_json::to_value(request)?).await;
+            return self
+                .handle
+                .fire_and_forget(serde_json::to_value(request)?)
+                .await;
         };
         if jsep.jsep_type != JsepType::Offer {
             let err = JaError::InvalidJanusRequest {
@@ -23,7 +26,7 @@ impl EchoTestHandle {
             return Err(err);
         }
         self.handle
-            .message_with_establishment_protocol(
+            .send_waiton_ack_with_establishment(
                 serde_json::to_value(request)?,
                 EstablishmentProtocol::JSEP(jsep),
                 timeout,
