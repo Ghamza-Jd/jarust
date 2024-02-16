@@ -1,7 +1,11 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
+use jarust::japrotocol::EstablishmentProtocol;
+use jarust::japrotocol::Jsep;
+use jarust::japrotocol::JsepType;
 use serde_json::json;
+use std::time::Duration;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
@@ -23,6 +27,20 @@ async fn main() -> anyhow::Result<()> {
             "video": true,
             "audio": true,
         }))
+        .await?;
+
+    handle
+        .send_waiton_ack_with_establishment(
+            json!({
+                "video": true,
+                "audio": true,
+            }),
+            EstablishmentProtocol::JSEP(Jsep {
+                sdp: "".to_string(),
+                jsep_type: JsepType::Offer,
+            }),
+            Duration::from_secs(10),
+        )
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
