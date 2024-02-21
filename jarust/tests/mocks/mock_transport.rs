@@ -30,7 +30,7 @@ impl MockTransport {
 
 #[async_trait]
 impl Transport for MockTransport {
-    fn new() -> Self
+    fn create_transport() -> Self
     where
         Self: Sized,
     {
