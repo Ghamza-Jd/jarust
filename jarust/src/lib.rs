@@ -20,11 +20,23 @@ use jaconnection::JaConnection;
 use prelude::JaResult;
 use tracing::Level;
 
-#[cfg(not(target_family = "wasm"))]
 /// Creates a new connection with janus server from the provided configs
+///
+/// ## Example:
+///
+///
+/// ```rust
+/// let mut connection = jarust::connect(
+///     JaConfig::new("ws://localhost:8188/ws", None, "janus"),
+///     TransportType::Ws,
+/// )
+/// .await
+/// .unwrap();
+/// ```
+#[cfg(not(target_family = "wasm"))]
 pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
     let transport = match transport_type {
-        jaconfig::TransportType::Ws => transport::web_socket::WebsocketTransport::new(),
+        jaconfig::TransportType::Ws => transport::web_socket::WebsocketTransport::create_transport(),
     };
     connect_with_transport(jaconfig, transport).await
 }
@@ -36,7 +48,10 @@ pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaRes
     connect_with_transport(jaconfig, transport).await
 }
 
-/// Creates a new connection with janus server from the provided configs and custom transport
+/// Creates a new connection with janus server from the provided configs and custom transport.
+///
+/// Same as [`connect`], but takes a struct that implements [`Transport`] to be used instead
+/// of using one of the predefined transport types [`TransportType`]
 #[tracing::instrument(level = Level::TRACE)]
 pub async fn connect_with_transport(
     jaconfig: JaConfig,

@@ -28,7 +28,7 @@ pub struct WebsocketTransport {
 
 #[async_trait]
 impl Transport for WebsocketTransport {
-    fn new() -> Self {
+    fn create_transport() -> Self {
         Self {
             sender: None,
             abort_handle: None,

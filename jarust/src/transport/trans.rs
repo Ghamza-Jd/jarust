@@ -5,10 +5,15 @@ use tokio::sync::mpsc;
 
 #[async_trait]
 pub trait Transport: Debug + Send + Sync + 'static {
-    fn new() -> Self
+    /// Creates a new transport
+    fn create_transport() -> Self
     where
         Self: Sized;
+
+    /// Connect the transport with the server. Returns a channel receiver.
     async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>>;
+
+    /// Send a message over the transport.
     async fn send(&mut self, data: &[u8]) -> JaResult<()>;
 }
 
