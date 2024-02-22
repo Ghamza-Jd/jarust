@@ -24,7 +24,6 @@ use tracing::Level;
 ///
 /// ## Example:
 ///
-///
 /// ```rust
 /// let mut connection = jarust::connect(
 ///     JaConfig::new("ws://localhost:8188/ws", None, "janus"),
@@ -36,7 +35,9 @@ use tracing::Level;
 #[cfg(not(target_family = "wasm"))]
 pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
     let transport = match transport_type {
-        jaconfig::TransportType::Ws => transport::web_socket::WebsocketTransport::create_transport(),
+        jaconfig::TransportType::Ws => {
+            transport::web_socket::WebsocketTransport::create_transport()
+        }
     };
     connect_with_transport(jaconfig, transport).await
 }
