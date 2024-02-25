@@ -19,6 +19,7 @@ async fn main() -> anyhow::Result<()> {
     .await?;
     let session = connection.create(10).await?;
     let (handle, mut event_receiver, ..) = session.attach_echo_test().await?;
+    let handle = handle.clone();
 
     handle
         .start(

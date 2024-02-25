@@ -1,5 +1,6 @@
 use super::messages::EchoTestStartMsg;
-use jarust::japrotocol::{EstablishmentProtocol, JsepType};
+use jarust::japrotocol::EstablishmentProtocol;
+use jarust::japrotocol::JsepType;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use std::ops::Deref;
@@ -70,5 +71,14 @@ impl Deref for EchoTestHandle {
 impl Drop for EchoTestHandle {
     fn drop(&mut self) {
         self.abort_plugin();
+    }
+}
+
+impl Clone for EchoTestHandle {
+    fn clone(&self) -> Self {
+        Self {
+            handle: self.handle.clone(),
+            abort_handles: None,
+        }
     }
 }
