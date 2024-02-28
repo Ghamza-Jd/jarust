@@ -24,8 +24,6 @@ tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
 tracing.workspace = true
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-rustls = "0.22.2"
-rustls-native-certs = "0.7.0"
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
