@@ -7,15 +7,12 @@ use async_trait::async_trait;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
-use rustls::RootCertStore;
+use tokio_tungstenite::connect_async;
 use std::fmt::Debug;
-use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
-use tokio_tungstenite::connect_async_tls_with_config;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::Connector;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::WebSocketStream;
 
@@ -40,9 +37,7 @@ impl Transport for WebsocketTransport {
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
 
-        let connector = Connector::Rustls(WebsocketTransport::make_tls_client_config()?);
-        let (stream, _) =
-            connect_async_tls_with_config(request, None, true, Some(connector)).await?;
+        let (stream, ..) = connect_async(request).await?;
 
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
@@ -69,18 +64,6 @@ impl Transport for WebsocketTransport {
             return Err(JaError::TransportNotOpened);
         }
         Ok(())
-    }
-}
-
-impl WebsocketTransport {
-    fn make_tls_client_config() -> JaResult<Arc<rustls::ClientConfig>> {
-        let mut root_store = RootCertStore::empty();
-        let platform_certs = rustls_native_certs::load_native_certs()?;
-        root_store.add_parsable_certificates(platform_certs);
-        let client_config = rustls::ClientConfig::builder()
-            .with_root_certificates(root_store)
-            .with_no_client_auth();
-        Ok(Arc::new(client_config))
     }
 }
 
