@@ -223,6 +223,27 @@ impl JaHandle {
         Ok(response)
     }
 
+    /// Send a one-shot message with a specific establishment protocol
+    pub async fn fire_and_forget_with_establishment(
+        &self,
+        body: Value,
+        protocol: EstablishmentProtocol,
+    ) -> JaResult<()> {
+        let request = match protocol {
+            EstablishmentProtocol::JSEP(jsep) => json!({
+                "janus": JaHandleRequestProtocol::Message,
+                "body": body,
+                "jsep": jsep
+            }),
+            EstablishmentProtocol::RTP(rtp) => json!({
+                "janus": JaHandleRequestProtocol::Message,
+                "body": body,
+                "rtp": rtp
+            }),
+        };
+        self.send_request(request).await
+    }
+
     pub async fn detach(&self) -> JaResult<()> {
         tracing::info!("Detaching handle {{ id: {} }}", self.inner.shared.id);
         let request = json!({
