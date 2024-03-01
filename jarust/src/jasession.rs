@@ -27,7 +27,7 @@ pub struct Shared {
 
 #[derive(Debug)]
 pub struct Exclusive {
-    receiver: mpsc::Receiver<JaResponse>,
+    receiver: JaResponseStream,
     handles: HashMap<u64, WeakJaHandle>,
     abort_handle: Option<AbortHandle>,
 }
@@ -51,7 +51,7 @@ pub struct WeakJaSession {
 impl JaSession {
     pub async fn new(
         connection: JaConnection,
-        receiver: mpsc::Receiver<JaResponse>,
+        receiver: JaResponseStream,
         id: u64,
         ka_interval: u32,
     ) -> Self {
@@ -136,7 +136,7 @@ impl Drop for Exclusive {
 impl Attach for JaSession {
     /// Attach a plugin to the current session
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, mpsc::Receiver<JaResponse>)> {
+    async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, JaResponseStream)> {
         tracing::info!("Attaching new handle");
 
         let request = json!({
