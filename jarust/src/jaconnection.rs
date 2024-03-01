@@ -20,6 +20,8 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
+pub type JaResponseStream = mpsc::Receiver<JaResponse>;
+
 #[derive(Debug)]
 struct Shared {
     demux_abort_handle: AbortHandle,
@@ -30,7 +32,7 @@ struct Shared {
 struct Exclusive {
     router: JaRouter,
     transport_protocol: TransportProtocol,
-    receiver: mpsc::Receiver<JaResponse>,
+    receiver: JaResponseStream,
     sessions: HashMap<u64, WeakJaSession>,
     transaction_manager: TransactionManager,
 }
@@ -160,7 +162,7 @@ impl JaConnection {
         request
     }
 
-    pub(crate) async fn add_subroute(&self, end: &str) -> mpsc::Receiver<JaResponse> {
+    pub(crate) async fn add_subroute(&self, end: &str) -> JaResponseStream {
         self.inner
             .exclusive
             .lock()

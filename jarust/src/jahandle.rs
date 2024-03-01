@@ -24,8 +24,8 @@ struct Shared {
 }
 
 struct Exclusive {
-    ack_receiver: mpsc::Receiver<JaResponse>,
-    result_receiver: mpsc::Receiver<JaResponse>,
+    ack_receiver: JaResponseStream,
+    result_receiver: JaResponseStream,
 }
 
 struct InnerHandle {
@@ -46,9 +46,9 @@ pub struct WeakJaHandle {
 impl JaHandle {
     pub(crate) fn new(
         session: JaSession,
-        mut receiver: mpsc::Receiver<JaResponse>,
+        mut receiver: JaResponseStream,
         id: u64,
-    ) -> (Self, mpsc::Receiver<JaResponse>) {
+    ) -> (Self, JaResponseStream) {
         let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
