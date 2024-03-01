@@ -17,7 +17,7 @@ impl MockServer {
 }
 
 pub struct MockTransport {
-    rx: Option<mpsc::Receiver<String>>,
+    rx: Option<MessageStream>,
     server: Option<MockServer>,
     abort_handle: Option<AbortHandle>,
 }
@@ -42,7 +42,7 @@ impl Transport for MockTransport {
         }
     }
 
-    async fn connect(&mut self, _: &str) -> JaResult<mpsc::Receiver<String>> {
+    async fn connect(&mut self, _: &str) -> JaResult<MessageStream> {
         let (tx, rx) = mpsc::channel(32);
 
         if let Some(mut receiver) = self.rx.take() {

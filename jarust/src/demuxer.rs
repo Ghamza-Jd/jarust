@@ -2,7 +2,6 @@ use crate::japrotocol::JaResponseProtocol;
 use crate::jarouter::JaRouter;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
-use tokio::sync::mpsc;
 
 pub(crate) struct Demuxer;
 
@@ -10,7 +9,7 @@ impl Demuxer {
     /// Async task to handle demultiplexing of the inbound stream
     #[tracing::instrument(name = "incoming_event", level = tracing::Level::TRACE, skip_all)]
     pub(crate) async fn demux_task(
-        inbound_stream: mpsc::Receiver<String>,
+        inbound_stream: MessageStream,
         router: JaRouter,
         transaction_manager: TransactionManager,
     ) -> JaResult<()> {
@@ -18,6 +17,7 @@ impl Demuxer {
         while let Some(next) = stream.recv().await {
             tracing::debug!("Received {next}");
 
+            // Parse the incoming message
             let message = match serde_json::from_str::<JaResponse>(&next) {
                 Ok(response) => match &response.janus {
                     JaResponseProtocol::Error { error } => {
@@ -32,6 +32,7 @@ impl Demuxer {
                 }
             };
 
+            // Try send the message to the proper route
             if let Err(what) = Self::demux_message(message, &router, &transaction_manager).await {
                 tracing::error!("Error demuxing message: {what}");
             }
