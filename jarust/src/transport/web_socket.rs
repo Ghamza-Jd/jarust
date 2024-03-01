@@ -35,7 +35,7 @@ impl Transport for WebsocketTransport {
         }
     }
 
-    async fn connect(&mut self, uri: &str) -> JaResult<mpsc::Receiver<String>> {
+    async fn connect(&mut self, uri: &str) -> JaResult<MessageStream> {
         let mut request = uri.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);

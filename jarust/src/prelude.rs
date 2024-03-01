@@ -7,5 +7,6 @@ pub use crate::japrotocol::JaResponse;
 pub use crate::jasession::JaSession;
 pub use crate::jatask;
 pub use crate::jatask::AbortHandle;
+pub use crate::transport::trans::MessageStream;
 
 pub type JaResult<T> = core::result::Result<T, JaError>;

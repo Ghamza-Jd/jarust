@@ -12,7 +12,7 @@ impl Transport for WasmWsTransport {
         Self
     }
 
-    async fn connect(&mut self, _uri: &str) -> JaResult<mpsc::Receiver<String>> {
+    async fn connect(&mut self, _uri: &str) -> JaResult<MessageStream> {
         tracing::error!("WASM support is WIP!");
         todo!("WASM support is WIP!")
     }
