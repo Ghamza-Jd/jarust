@@ -1,7 +1,6 @@
 use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
-use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::japrotocol::JaSuccessProtocol;
@@ -15,7 +14,6 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Weak;
 use std::time::Duration;
-use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 use tokio::time;
 
