@@ -12,7 +12,10 @@ use jarust::transport::trans::Transport;
 
 #[tokio::test]
 async fn test_connection() {
-    let config = JaConfig::new("mock://some.janus.com", None, "mock");
+    let config = JaConfig::builder()
+        .url("mock://some.janus.com")
+        .namespace("mock")
+        .build();
     let transport = MockTransport::create_transport();
     let connection = jarust::connect_with_transport(config, transport).await;
     assert!(connection.is_ok());
@@ -20,7 +23,10 @@ async fn test_connection() {
 
 #[tokio::test]
 async fn test_session_creation_success() {
-    let config = JaConfig::new("mock://some.janus.com", None, "mock");
+    let config = JaConfig::builder()
+        .url("mock://some.janus.com")
+        .namespace("mock")
+        .build();
     let mut transport = MockTransport::create_transport();
     let server = transport.get_mock_server().unwrap();
 
@@ -47,7 +53,10 @@ async fn test_session_creation_success() {
 
 #[tokio::test]
 async fn test_session_creation_failure() {
-    let config = JaConfig::new("mock://some.janus.com", None, "mock");
+    let config = JaConfig::builder()
+        .url("mock://some.janus.com")
+        .namespace("mock")
+        .build();
     let mut transport = MockTransport::create_transport();
     let server = transport.get_mock_server().unwrap();
 
