@@ -10,9 +10,10 @@ use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
-        .init();
+    let env_filter = EnvFilter::from_default_env()
+        .add_directive("jarust=trace".parse()?)
+        .add_directive("secure_ws=trace".parse()?);
+    tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let config = JaConfig::builder()
         .url("wss://janus.conf.meetecho.com/ws")

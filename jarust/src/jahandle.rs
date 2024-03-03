@@ -44,37 +44,56 @@ pub struct WeakJaHandle {
 }
 
 impl JaHandle {
+    async fn demux_recv_stream(
+        inbound_stream: JaResponseStream,
+        ack_sender: mpsc::Sender<JaResponse>,
+        result_sender: mpsc::Sender<JaResponse>,
+        event_sender: mpsc::Sender<JaResponse>,
+    ) {
+        let mut stream = inbound_stream;
+        while let Some(item) = stream.recv().await {
+            match item.janus {
+                JaResponseProtocol::Ack => {
+                    ack_sender
+                        .send(item.clone())
+                        .await
+                        .expect("Ack channel closed");
+                }
+                JaResponseProtocol::Event { .. } => {
+                    event_sender.send(item).await.expect("Event channel closed");
+                }
+                JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
+                    result_sender
+                        .send(item)
+                        .await
+                        .expect("Result channel closed");
+                }
+                JaResponseProtocol::Error { .. } => {
+                    event_sender
+                        .send(item)
+                        .await
+                        .expect("Result channel closed");
+                }
+                _ => {}
+            }
+        }
+    }
+
     pub(crate) fn new(
         session: JaSession,
-        mut receiver: JaResponseStream,
+        receiver: JaResponseStream,
         id: u64,
     ) -> (Self, JaResponseStream) {
         let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
-        let abort_handle = jatask::spawn(async move {
-            while let Some(item) = receiver.recv().await {
-                match item.janus {
-                    JaResponseProtocol::Ack => {
-                        ack_sender
-                            .send(item.clone())
-                            .await
-                            .expect("Ack channel closed");
-                    }
-                    JaResponseProtocol::Event { .. } => {
-                        event_sender.send(item).await.expect("Event channel closed");
-                    }
-                    JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
-                        result_sender
-                            .send(item)
-                            .await
-                            .expect("Result channel closed");
-                    }
-                    _ => {}
-                }
-            }
-        });
+        let abort_handle = jatask::spawn(JaHandle::demux_recv_stream(
+            receiver,
+            ack_sender,
+            result_sender,
+            event_sender,
+        ));
 
         let shared = Shared {
             id,
@@ -85,16 +104,14 @@ impl JaHandle {
             ack_receiver,
             result_receiver,
         };
+        let jahandle = Self {
+            inner: Arc::new(InnerHandle {
+                shared,
+                exclusive: Mutex::new(exclusive),
+            }),
+        };
 
-        (
-            Self {
-                inner: Arc::new(InnerHandle {
-                    shared,
-                    exclusive: Mutex::new(exclusive),
-                }),
-            },
-            event_receiver,
-        )
+        (jahandle, event_receiver)
     }
 
     async fn send_request(&self, mut request: Value) -> JaResult<()> {
