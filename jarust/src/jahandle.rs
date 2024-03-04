@@ -84,6 +84,8 @@ impl JaHandle {
         receiver: JaResponseStream,
         id: u64,
     ) -> (Self, JaResponseStream) {
+        // Todo: keep the event a channel, while make the others a cache (HashMap) and the sender should consume
+        // the value by providing the key
         let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
