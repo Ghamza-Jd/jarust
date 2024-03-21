@@ -75,8 +75,8 @@ impl JaConfigBuilder<WithUrlTypeState> {
         } = self;
         let namespace = namespace.unwrap_or(String::from("jarust"));
         JaConfig {
-            namespace: namespace,
-            apisecret: apisecret,
+            namespace,
+            apisecret,
             uri: url.0,
         }
     }
