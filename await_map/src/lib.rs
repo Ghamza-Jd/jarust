@@ -32,19 +32,29 @@ where
         }
     }
 
-    pub async fn get(&self, key: K) -> Option<V> {
-        if self.map.contains_key(&key) {
-            return Some(self.map.get(&key).unwrap().value().clone());
+    pub async fn get(&self, k: K) -> Option<V> {
+        if self.map.contains_key(&k) {
+            return self.map.get(&k).map(|entry| entry.value().clone());
         }
 
         let notify = Arc::new(Notify::new());
 
         let notifiers = self.notifiers.lock().await;
-        notifiers.entry(key.clone()).or_insert(notify.clone());
+        notifiers.entry(k.clone()).or_insert(notify.clone());
         drop(notifiers);
 
         notify.notified().await;
-        return Some(self.map.get(&key).unwrap().value().clone());
+        self.map.get(&k).map(|entry| entry.value().clone())
+    }
+}
+
+impl<K, V> Default for AwaitMap<K, V>
+where
+    K: Eq + Hash + Clone,
+    V: Clone,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
 
