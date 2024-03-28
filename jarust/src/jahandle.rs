@@ -21,8 +21,8 @@ struct Shared {
     id: u64,
     session: JaSession,
     abort_handle: AbortHandle,
-    ack_map: JaResponseMap,
-    result_map: JaResponseMap,
+    ack_map: Arc<AwaitMap<String, JaResponse>>,
+    result_map: Arc<AwaitMap<String, JaResponse>>,
 }
 
 struct InnerHandle {
@@ -39,13 +39,11 @@ pub struct WeakJaHandle {
     _inner: Weak<InnerHandle>,
 }
 
-type JaResponseMap = Arc<AwaitMap<String, JaResponse>>;
-
 impl JaHandle {
     async fn demux_recv_stream(
         inbound_stream: JaResponseStream,
-        ack_map: JaResponseMap,
-        result_map: JaResponseMap,
+        ack_map: Arc<AwaitMap<String, JaResponse>>,
+        result_map: Arc<AwaitMap<String, JaResponse>>,
         event_sender: mpsc::Sender<JaResponse>,
     ) {
         let mut stream = inbound_stream;
