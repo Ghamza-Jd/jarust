@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "await_map","jarust", "jarust_make_plugin", "jarust_plugins"]
+members = ["jarust", "jarust_make_plugin", "jarust_plugins"]
 
 [workspace.package]
 version = "0.2.4"
