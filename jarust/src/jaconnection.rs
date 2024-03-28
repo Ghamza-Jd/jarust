@@ -130,7 +130,7 @@ impl JaConnection {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<()> {
+    pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<String> {
         let request = self.decorate_request(request);
         let message = serde_json::to_string(&request)?;
 
@@ -150,7 +150,8 @@ impl JaConnection {
             .transaction_manager
             .create_transaction(transaction, &path);
         tracing::debug!("Sending {message}");
-        guard.transport_protocol.send(message.as_bytes()).await
+        guard.transport_protocol.send(message.as_bytes()).await?;
+        Ok(transaction.into())
     }
 
     fn decorate_request(&self, mut request: Value) -> Value {

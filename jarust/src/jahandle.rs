@@ -1,3 +1,4 @@
+use crate::await_map::AwaitMap;
 use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
@@ -15,22 +16,17 @@ use std::sync::Arc;
 use std::sync::Weak;
 use std::time::Duration;
 use tokio::sync::mpsc;
-use tokio::sync::Mutex;
 
 struct Shared {
     id: u64,
     session: JaSession,
     abort_handle: AbortHandle,
-}
-
-struct Exclusive {
-    ack_receiver: JaResponseStream,
-    result_receiver: JaResponseStream,
+    ack_map: JaResponseMap,
+    result_map: JaResponseMap,
 }
 
 struct InnerHandle {
     shared: Shared,
-    exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone)]
@@ -43,30 +39,30 @@ pub struct WeakJaHandle {
     _inner: Weak<InnerHandle>,
 }
 
+type JaResponseMap = Arc<AwaitMap<String, JaResponse>>;
+
 impl JaHandle {
     async fn demux_recv_stream(
         inbound_stream: JaResponseStream,
-        ack_sender: mpsc::Sender<JaResponse>,
-        result_sender: mpsc::Sender<JaResponse>,
+        ack_map: JaResponseMap,
+        result_map: JaResponseMap,
         event_sender: mpsc::Sender<JaResponse>,
     ) {
         let mut stream = inbound_stream;
         while let Some(item) = stream.recv().await {
             match item.janus {
                 JaResponseProtocol::Ack => {
-                    ack_sender
-                        .send(item.clone())
-                        .await
-                        .expect("Ack channel closed");
+                    if let Some(transaction) = item.transaction.clone() {
+                        ack_map.insert(transaction, item).await;
+                    }
                 }
                 JaResponseProtocol::Event { .. } => {
                     event_sender.send(item).await.expect("Event channel closed");
                 }
                 JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
-                    result_sender
-                        .send(item)
-                        .await
-                        .expect("Result channel closed");
+                    if let Some(transaction) = item.transaction.clone() {
+                        result_map.insert(transaction, item).await;
+                    }
                 }
                 JaResponseProtocol::Error { .. } => {
                     event_sender
@@ -84,16 +80,15 @@ impl JaHandle {
         receiver: JaResponseStream,
         id: u64,
     ) -> (Self, JaResponseStream) {
-        // Todo: keep the event a channel, while make the others a cache (HashMap) and the sender should consume
-        // the value by providing the key
-        let (ack_sender, ack_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
-        let (result_sender, result_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+
+        let ack_map = Arc::new(AwaitMap::<String, JaResponse>::new());
+        let result_map = Arc::new(AwaitMap::<String, JaResponse>::new());
 
         let abort_handle = jatask::spawn(JaHandle::demux_recv_stream(
             receiver,
-            ack_sender,
-            result_sender,
+            ack_map.clone(),
+            result_map.clone(),
             event_sender,
         ));
 
@@ -101,33 +96,29 @@ impl JaHandle {
             id,
             session,
             abort_handle,
+            ack_map,
+            result_map,
         };
-        let exclusive = Exclusive {
-            ack_receiver,
-            result_receiver,
-        };
+
         let jahandle = Self {
-            inner: Arc::new(InnerHandle {
-                shared,
-                exclusive: Mutex::new(exclusive),
-            }),
+            inner: Arc::new(InnerHandle { shared }),
         };
 
         (jahandle, event_receiver)
     }
 
-    async fn send_request(&self, mut request: Value) -> JaResult<()> {
+    async fn send_request(&self, mut request: Value) -> JaResult<String> {
         let session = self.inner.shared.session.clone();
         request["handle_id"] = self.inner.shared.id.into();
         session.send_request(request).await
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
-    async fn poll_response(&self, timeout: Duration) -> JaResult<JaResponse> {
+    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling response");
         let response = match tokio::time::timeout(
             timeout,
-            self.inner.exclusive.lock().await.result_receiver.recv(),
+            self.inner.shared.result_map.get(transaction.to_string()),
         )
         .await
         {
@@ -145,11 +136,11 @@ impl JaHandle {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
-    async fn poll_ack(&self, timeout: Duration) -> JaResult<JaResponse> {
+    async fn poll_ack(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling ack");
         let response = match tokio::time::timeout(
             timeout,
-            self.inner.exclusive.lock().await.ack_receiver.recv(),
+            self.inner.shared.ack_map.get(transaction.to_string()),
         )
         .await
         {
@@ -158,8 +149,8 @@ impl JaHandle {
                 tracing::error!("Incomplete packet");
                 return Err(JaError::IncompletePacket);
             }
-            Err(_) => {
-                tracing::error!("Request timeout");
+            Err(why) => {
+                tracing::error!("Request timeout {why}");
                 return Err(JaError::RequestTimeout);
             }
         };
@@ -172,7 +163,8 @@ impl JaHandle {
             "janus": JaHandleRequestProtocol::Message,
             "body": body
         });
-        self.send_request(request).await
+        self.send_request(request).await?;
+        Ok(())
     }
 
     /// Send a message and wait for the expected response
@@ -184,8 +176,8 @@ impl JaHandle {
             "janus": JaHandleRequestProtocol::Message,
             "body": body
         });
-        self.send_request(request).await?;
-        let response = self.poll_response(timeout).await?;
+        let transaction = self.send_request(request).await?;
+        let response = self.poll_response(&transaction, timeout).await?;
 
         let result = match response.janus {
             JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
@@ -212,8 +204,8 @@ impl JaHandle {
             "janus": JaHandleRequestProtocol::Message,
             "body": body
         });
-        self.send_request(request).await?;
-        let response = self.poll_ack(timeout).await?;
+        let transaction = self.send_request(request).await?;
+        let response = self.poll_ack(&transaction, timeout).await?;
         Ok(response)
     }
 
@@ -236,8 +228,8 @@ impl JaHandle {
                 "rtp": rtp
             }),
         };
-        self.send_request(request).await?;
-        let response = self.poll_ack(timeout).await?;
+        let transaction = self.send_request(request).await?;
+        let response = self.poll_ack(&transaction, timeout).await?;
 
         Ok(response)
     }
@@ -260,7 +252,8 @@ impl JaHandle {
                 "rtp": rtp
             }),
         };
-        self.send_request(request).await
+        self.send_request(request).await?;
+        Ok(())
     }
 
     pub async fn detach(&self) -> JaResult<()> {
