@@ -60,7 +60,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::AwaitMap;
+    use super::AwaitMap;
     use std::sync::Arc;
     use std::time::Duration;
 

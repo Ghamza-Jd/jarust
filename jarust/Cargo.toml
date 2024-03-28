@@ -15,6 +15,7 @@ doctest = false
 
 [dependencies]
 async-trait.workspace = true
+dashmap = "5.5.3"
 futures-util = "0.3.29"
 rand = "0.8.5"
 serde_json.workspace = true
