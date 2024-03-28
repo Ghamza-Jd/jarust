@@ -31,7 +31,7 @@ where
         tracing::debug!("Insert");
         self.map.insert(k.clone(), v);
         if let Some(notify) = self.notifiers.lock().await.remove(&k) {
-            notify.1.notify_one();
+            notify.1.notify_waiters();
             tracing::debug!("Notify a sleeping task");
         }
     }
@@ -44,10 +44,11 @@ where
             return self.map.get(&k).map(|entry| entry.value().clone());
         }
 
-        let notify = Arc::new(Notify::new());
-
         let notifiers = self.notifiers.lock().await;
-        notifiers.entry(k.clone()).or_insert(notify.clone());
+        let notify = notifiers
+            .entry(k.clone())
+            .or_insert(Arc::new(Notify::new()))
+            .clone();
         drop(notifiers);
 
         tracing::debug!("Sleep until notified");
@@ -72,9 +73,17 @@ mod tests {
     use super::AwaitMap;
     use std::sync::Arc;
     use std::time::Duration;
+    use tracing_subscriber::EnvFilter;
+
+    // Add this to a test to see the logs
+    fn tracing_sub() {
+        let env_filter =
+            EnvFilter::from_default_env().add_directive("jarust=trace".parse().unwrap());
+        tracing_subscriber::fmt().with_env_filter(env_filter).init();
+    }
 
     #[tokio::test]
-    async fn it_should_wait_on_get_until_data_is_present() {
+    async fn it_should_wait_until_data_got_inserted() {
         let await_map = Arc::new(AwaitMap::new());
 
         tokio::spawn({
@@ -87,5 +96,38 @@ mod tests {
 
         let res = await_map.get("key").await.unwrap();
         assert_eq!(res, 7);
+    }
+
+    #[tokio::test]
+    async fn it_should_notify_all_waiters() {
+        tracing_sub();
+        let await_map = Arc::new(AwaitMap::new());
+
+        tokio::spawn({
+            let map = await_map.clone();
+            async move {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                map.insert("key", 7).await;
+            }
+        });
+
+        let first_handle = tokio::spawn({
+            let map = await_map.clone();
+            async move {
+                let res = map.get("key").await.unwrap();
+                assert_eq!(res, 7);
+            }
+        });
+
+        let second_handle = tokio::spawn({
+            let map = await_map.clone();
+            async move {
+                let res = map.get("key").await.unwrap();
+                assert_eq!(res, 7);
+            }
+        });
+
+        first_handle.await.unwrap();
+        second_handle.await.unwrap();
     }
 }
