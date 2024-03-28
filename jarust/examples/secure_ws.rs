@@ -24,14 +24,17 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
-        .fire_and_forget(json!({
-            "video": true,
-            "audio": true,
-        }))
+        .send_waiton_ack(
+            json!({
+                "video": true,
+                "audio": true,
+            }),
+            Duration::from_secs(10),
+        )
         .await?;
 
     handle
-        .send_waiton_ack_with_establishment(
+        .fire_and_forget_with_establishment(
             json!({
                 "video": true,
                 "audio": true,
@@ -40,7 +43,6 @@ async fn main() -> anyhow::Result<()> {
                 sdp: "".to_string(),
                 jsep_type: JsepType::Offer,
             }),
-            Duration::from_secs(10),
         )
         .await?;
 
