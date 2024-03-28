@@ -78,7 +78,7 @@ impl JaSession {
         session
     }
 
-    pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<()> {
+    pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<String> {
         let mut connection = self.inner.shared.connection.clone();
         request["session_id"] = self.inner.shared.id.into();
         connection.send_request(request).await
