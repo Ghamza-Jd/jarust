@@ -1,4 +1,3 @@
-use crate::await_map::AwaitMap;
 use crate::jaconfig::CHANNEL_BUFFER_SIZE;
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
@@ -8,6 +7,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::jasession::JaSession;
 use crate::jatask;
 use crate::jatask::AbortHandle;
+use crate::napmap::NapMap;
 use crate::prelude::*;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -21,8 +21,8 @@ struct Shared {
     id: u64,
     session: JaSession,
     abort_handle: AbortHandle,
-    ack_map: Arc<AwaitMap<String, JaResponse>>,
-    result_map: Arc<AwaitMap<String, JaResponse>>,
+    ack_map: Arc<NapMap<String, JaResponse>>,
+    result_map: Arc<NapMap<String, JaResponse>>,
 }
 
 struct InnerHandle {
@@ -42,8 +42,8 @@ pub struct WeakJaHandle {
 impl JaHandle {
     async fn demux_recv_stream(
         inbound_stream: JaResponseStream,
-        ack_map: Arc<AwaitMap<String, JaResponse>>,
-        result_map: Arc<AwaitMap<String, JaResponse>>,
+        ack_map: Arc<NapMap<String, JaResponse>>,
+        result_map: Arc<NapMap<String, JaResponse>>,
         event_sender: mpsc::Sender<JaResponse>,
     ) {
         let mut stream = inbound_stream;
@@ -80,8 +80,8 @@ impl JaHandle {
     ) -> (Self, JaResponseStream) {
         let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
 
-        let ack_map = Arc::new(AwaitMap::<String, JaResponse>::new());
-        let result_map = Arc::new(AwaitMap::<String, JaResponse>::new());
+        let ack_map = Arc::new(NapMap::<String, JaResponse>::new());
+        let result_map = Arc::new(NapMap::<String, JaResponse>::new());
 
         let abort_handle = jatask::spawn(JaHandle::demux_recv_stream(
             receiver,

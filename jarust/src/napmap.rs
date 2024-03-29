@@ -5,11 +5,11 @@ use std::sync::Arc;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio::sync::Notify;
 
-/// ## AwaitMap
+/// ## NapMap
 ///
-/// `AwaitMap` is a `HashMap` that pauses the task that's trying to get the data
+/// `NapMap` is a `HashMap` that pauses the task that's trying to get the data
 /// if the requested data is not available.
-pub struct AwaitMap<K, V>
+pub struct NapMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
@@ -18,7 +18,7 @@ where
     notifiers: AsyncMutex<DashMap<K, Arc<Notify>>>,
 }
 
-impl<K, V> AwaitMap<K, V>
+impl<K, V> NapMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
@@ -66,7 +66,7 @@ where
     }
 }
 
-impl<K, V> Default for AwaitMap<K, V>
+impl<K, V> Default for NapMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
@@ -78,7 +78,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::AwaitMap;
+    use super::NapMap;
     use std::sync::Arc;
     use std::time::Duration;
     use tracing_subscriber::EnvFilter;
@@ -92,26 +92,26 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_wait_until_data_is_inserted() {
-        let await_map = Arc::new(AwaitMap::new());
+        let napmap = Arc::new(NapMap::new());
 
         tokio::spawn({
-            let map = await_map.clone();
+            let map = napmap.clone();
             async move {
                 tokio::time::sleep(Duration::from_secs(1)).await;
                 map.insert("key", 7).await;
             }
         });
 
-        let res = await_map.get("key").await.unwrap();
+        let res = napmap.get("key").await.unwrap();
         assert_eq!(res, 7);
     }
 
     #[tokio::test]
     async fn it_should_notify_all_waiters() {
-        let await_map = Arc::new(AwaitMap::new());
+        let napmap = Arc::new(NapMap::new());
 
         tokio::spawn({
-            let map = await_map.clone();
+            let map = napmap.clone();
             async move {
                 tokio::time::sleep(Duration::from_secs(1)).await;
                 map.insert("key", 7).await;
@@ -119,7 +119,7 @@ mod tests {
         });
 
         let first_handle = tokio::spawn({
-            let map = await_map.clone();
+            let map = napmap.clone();
             async move {
                 let res = map.get("key").await.unwrap();
                 assert_eq!(res, 7);
@@ -127,7 +127,7 @@ mod tests {
         });
 
         let second_handle = tokio::spawn({
-            let map = await_map.clone();
+            let map = napmap.clone();
             async move {
                 let res = map.get("key").await.unwrap();
                 assert_eq!(res, 7);
