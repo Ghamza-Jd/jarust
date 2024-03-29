@@ -5,6 +5,10 @@ use std::sync::Arc;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio::sync::Notify;
 
+/// ## AwaitMap
+///
+/// `AwaitMap` is a `HashMap` that pauses the task that's trying to get the data
+/// if the requested data is not available.
 pub struct AwaitMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
@@ -26,6 +30,8 @@ where
         }
     }
 
+    /// Inserts a key and a value into the map.
+    /// And notifies waiting tasks if any.
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, v))]
     pub async fn insert(&self, k: K, v: V) {
         tracing::trace!("Insert");
@@ -36,6 +42,8 @@ where
         }
     }
 
+    /// Get an immutable reference to an entry in the map.
+    /// If the data is already presented return it, else wait until the data is inserted.
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn get(&self, k: K) -> Option<V> {
         tracing::trace!("Get");
