@@ -26,19 +26,19 @@ where
         }
     }
 
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, v))]
     pub async fn insert(&self, k: K, v: V) {
-        tracing::debug!("Insert");
+        tracing::trace!("Insert");
         self.map.insert(k.clone(), v);
         if let Some(notify) = self.notifiers.lock().await.remove(&k) {
             notify.1.notify_waiters();
-            tracing::debug!("Notify a sleeping task");
+            tracing::trace!("Notified all waiting tasks");
         }
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn get(&self, k: K) -> Option<V> {
-        tracing::debug!("Get");
+        tracing::trace!("Get");
         if self.map.contains_key(&k) {
             tracing::debug!("Contains key");
             return self.map.get(&k).map(|entry| entry.value().clone());
@@ -51,9 +51,9 @@ where
             .clone();
         drop(notifiers);
 
-        tracing::debug!("Sleep until notified");
+        tracing::trace!("Waiting...");
         notify.notified().await;
-        tracing::debug!("Notified");
+        tracing::trace!("Notified, data is available");
         self.map.get(&k).map(|entry| entry.value().clone())
     }
 }
@@ -76,14 +76,14 @@ mod tests {
     use tracing_subscriber::EnvFilter;
 
     // Add this to a test to see the logs
-    fn tracing_sub() {
+    fn _tracing_sub() {
         let env_filter =
             EnvFilter::from_default_env().add_directive("jarust=trace".parse().unwrap());
         tracing_subscriber::fmt().with_env_filter(env_filter).init();
     }
 
     #[tokio::test]
-    async fn it_should_wait_until_data_got_inserted() {
+    async fn it_should_wait_until_data_is_inserted() {
         let await_map = Arc::new(AwaitMap::new());
 
         tokio::spawn({
@@ -100,7 +100,6 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_notify_all_waiters() {
-        tracing_sub();
         let await_map = Arc::new(AwaitMap::new());
 
         tokio::spawn({
