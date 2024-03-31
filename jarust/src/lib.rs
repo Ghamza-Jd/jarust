@@ -11,7 +11,6 @@ pub mod transport;
 
 mod demuxer;
 mod jarouter;
-mod napmap;
 mod tmanager;
 
 use crate::transport::trans::Transport;
