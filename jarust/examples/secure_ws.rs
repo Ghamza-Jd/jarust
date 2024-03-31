@@ -6,6 +6,7 @@ use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
 use serde_json::json;
 use std::time::Duration;
+use tokio::time;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
@@ -21,28 +22,38 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
-    handle
-        .send_waiton_ack(
-            json!({
-                "video": true,
-                "audio": true,
-            }),
-            Duration::from_secs(10),
-        )
-        .await?;
+    tokio::spawn(async move {
+        let mut interval = time::interval(time::Duration::from_secs(2));
 
-    handle
-        .fire_and_forget_with_establishment(
-            json!({
-                "video": true,
-                "audio": true,
-            }),
-            EstablishmentProtocol::JSEP(Jsep {
-                sdp: "".to_string(),
-                jsep_type: JsepType::Offer,
-            }),
-        )
-        .await?;
+        loop {
+            handle
+                .send_waiton_ack(
+                    json!({
+                        "video": true,
+                        "audio": true,
+                    }),
+                    Duration::from_secs(10),
+                )
+                .await
+                .unwrap();
+
+            handle
+                .fire_and_forget_with_establishment(
+                    json!({
+                        "video": true,
+                        "audio": true,
+                    }),
+                    EstablishmentProtocol::JSEP(Jsep {
+                        sdp: "".to_string(),
+                        jsep_type: JsepType::Offer,
+                    }),
+                )
+                .await
+                .unwrap();
+
+            interval.tick().await;
+        }
+    });
 
     while let Some(event) = event_receiver.recv().await {
         tracing::info!("response: {event:#?}");
