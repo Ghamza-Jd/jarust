@@ -1,35 +1,28 @@
-pub mod unbounded;
-
-use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::sync::Arc;
-use std::sync::RwLock;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio::sync::Notify;
+use tokio::sync::RwLock as AsyncRwLock;
 
-/// ## NapMap
-///
-/// `NapMap` is a `HashMap` that pauses the task that's trying to get the data
-/// if the requested data is not available.
-pub struct NapMap<K, V>
+pub struct UnboundedNapMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
 {
-    map: Arc<RwLock<IndexMap<K, V>>>,
+    map: Arc<AsyncRwLock<HashMap<K, V>>>,
     notifiers: Arc<AsyncMutex<HashMap<K, Arc<Notify>>>>,
 }
 
-impl<K, V> NapMap<K, V>
+impl<K, V> UnboundedNapMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
 {
     pub fn new() -> Self {
         Self {
-            map: Arc::new(RwLock::new(IndexMap::new())),
+            map: Arc::new(AsyncRwLock::new(HashMap::new())),
             notifiers: Arc::new(AsyncMutex::new(HashMap::new())),
         }
     }
@@ -39,7 +32,7 @@ where
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, v))]
     pub async fn insert(&self, k: K, v: V) {
         tracing::trace!("Insert");
-        self.map.write().unwrap().insert(k.clone(), v);
+        self.map.write().await.insert(k.clone(), v);
         if let Some(notify) = self.notifiers.lock().await.remove(&k) {
             notify.notify_waiters();
             tracing::trace!("Notified all waiting tasks");
@@ -51,9 +44,9 @@ where
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn get(&self, k: K) -> Option<V> {
         tracing::trace!("Get");
-        if self.map.read().unwrap().contains_key(&k) {
+        if self.map.read().await.contains_key(&k) {
             tracing::debug!("Contains key");
-            return self.map.read().unwrap().get(&k).map(|value| value.clone());
+            return self.map.read().await.get(&k).map(|value| value.clone());
         }
 
         let mut notifiers = self.notifiers.lock().await;
@@ -66,13 +59,21 @@ where
         tracing::trace!("Waiting...");
         notify.notified().await;
         tracing::trace!("Notified, data is available");
-        self.map.read().unwrap().get(&k).map(|value| value.clone())
+        self.map.read().await.get(&k).map(|value| value.clone())
+    }
+
+    pub async fn remove(&self, k: K) -> Option<V> {
+        self.map.write().await.remove(&k)
+    }
+
+    pub async fn len(&self) -> usize {
+        self.map.read().await.len()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::NapMap;
+    use super::UnboundedNapMap;
     use std::sync::Arc;
     use std::time::Duration;
     use tracing_subscriber::EnvFilter;
@@ -86,7 +87,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_wait_until_data_is_inserted() {
-        let napmap = Arc::new(NapMap::new());
+        let napmap = Arc::new(UnboundedNapMap::new());
 
         tokio::spawn({
             let map = napmap.clone();
@@ -102,7 +103,7 @@ mod tests {
 
     #[tokio::test]
     async fn it_should_notify_all_waiters() {
-        let napmap = Arc::new(NapMap::new());
+        let napmap = Arc::new(UnboundedNapMap::new());
 
         tokio::spawn({
             let map = napmap.clone();
