@@ -14,7 +14,7 @@ where
 {
     map: Arc<AsyncRwLock<IndexMap<K, V>>>,
     notifiers: Arc<AsyncMutex<HashMap<K, Arc<Notify>>>>,
-    size: usize,
+    bound: usize,
 }
 
 impl<K, V> NapMap<K, V>
@@ -22,11 +22,12 @@ where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
 {
-    pub fn new(size: usize) -> Self {
+    pub fn new(buffer: usize) -> Self {
+        assert!(buffer > 0, "bounded napmap requires buffer > 0");
         Self {
-            map: Arc::new(AsyncRwLock::new(IndexMap::with_capacity(size))),
+            map: Arc::new(AsyncRwLock::new(IndexMap::with_capacity(buffer))),
             notifiers: Arc::new(AsyncMutex::new(HashMap::new())),
-            size,
+            bound: buffer,
         }
     }
 
@@ -37,7 +38,7 @@ where
         tracing::trace!("Insert");
 
         let mut map = self.map.write().await;
-        if map.len() >= self.size {
+        if map.len() >= self.bound {
             map.pop();
         }
         map.insert(k.clone(), v);
@@ -144,7 +145,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_not_exceed_the_provided_size() {
+    async fn it_should_not_exceed_the_provided_buffer_size() {
         let napmap = Arc::new(NapMap::new(3));
         napmap.insert(1, 1).await;
         napmap.insert(2, 2).await;

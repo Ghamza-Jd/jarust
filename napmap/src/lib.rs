@@ -15,10 +15,10 @@ where
     UnboundedNapMap::new()
 }
 
-pub fn napmap<K, V>(size: usize) -> NapMap<K, V>
+pub fn napmap<K, V>(buffer: usize) -> NapMap<K, V>
 where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
 {
-    NapMap::new(size)
+    NapMap::new(buffer)
 }

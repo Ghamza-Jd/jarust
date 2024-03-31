@@ -117,9 +117,7 @@ impl JaRouter {
     }
 
     pub fn path_from_response(response: JaResponse) -> Option<String> {
-        let Some(session_id) = response.session_id else {
-            return None;
-        };
+        let session_id = response.session_id?;
         let Some(sender) = response.sender else {
             return Some(format!("{session_id}"));
         };
