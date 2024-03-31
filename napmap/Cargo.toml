@@ -1,0 +1,20 @@
+[package]
+name = "napmap"
+version = "0.1.0"
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
+tracing.workspace = true
+indexmap = "2.2.6"
+
+[dev-dependencies]
+tokio = { version = "1.35.1", features = ["time", "macros", "rt-multi-thread"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

@@ -1,7 +1,9 @@
-use dashmap::DashMap;
+use indexmap::IndexMap;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::sync::Arc;
+use std::sync::RwLock;
 use tokio::sync::Mutex as AsyncMutex;
 use tokio::sync::Notify;
 
@@ -14,8 +16,8 @@ where
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
 {
-    map: Arc<DashMap<K, V>>,
-    notifiers: AsyncMutex<DashMap<K, Arc<Notify>>>,
+    map: Arc<RwLock<IndexMap<K, V>>>,
+    notifiers: Arc<AsyncMutex<HashMap<K, Arc<Notify>>>>,
 }
 
 impl<K, V> NapMap<K, V>
@@ -25,8 +27,8 @@ where
 {
     pub fn new() -> Self {
         Self {
-            map: Arc::new(DashMap::new()),
-            notifiers: AsyncMutex::new(DashMap::new()),
+            map: Arc::new(RwLock::new(IndexMap::new())),
+            notifiers: Arc::new(AsyncMutex::new(HashMap::new())),
         }
     }
 
@@ -35,9 +37,9 @@ where
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, v))]
     pub async fn insert(&self, k: K, v: V) {
         tracing::trace!("Insert");
-        self.map.insert(k.clone(), v);
+        self.map.write().unwrap().insert(k.clone(), v);
         if let Some(notify) = self.notifiers.lock().await.remove(&k) {
-            notify.1.notify_waiters();
+            notify.notify_waiters();
             tracing::trace!("Notified all waiting tasks");
         }
     }
@@ -47,12 +49,12 @@ where
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn get(&self, k: K) -> Option<V> {
         tracing::trace!("Get");
-        if self.map.contains_key(&k) {
+        if self.map.read().unwrap().contains_key(&k) {
             tracing::debug!("Contains key");
-            return self.map.get(&k).map(|entry| entry.value().clone());
+            return self.map.read().unwrap().get(&k).map(|value| value.clone());
         }
 
-        let notifiers = self.notifiers.lock().await;
+        let mut notifiers = self.notifiers.lock().await;
         let notify = notifiers
             .entry(k.clone())
             .or_insert(Arc::new(Notify::new()))
@@ -62,17 +64,7 @@ where
         tracing::trace!("Waiting...");
         notify.notified().await;
         tracing::trace!("Notified, data is available");
-        self.map.get(&k).map(|entry| entry.value().clone())
-    }
-}
-
-impl<K, V> Default for NapMap<K, V>
-where
-    K: Eq + Hash + Clone + Debug,
-    V: Clone + Debug,
-{
-    fn default() -> Self {
-        Self::new()
+        self.map.read().unwrap().get(&k).map(|value| value.clone())
     }
 }
 
