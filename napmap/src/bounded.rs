@@ -56,7 +56,7 @@ where
         tracing::trace!("Get");
         if self.map.read().await.contains_key(&k) {
             tracing::debug!("Contains key");
-            return self.map.read().await.get(&k).map(|value| value.clone());
+            return self.map.read().await.get(&k).cloned();
         }
 
         let mut notifiers = self.notifiers.lock().await;
@@ -69,11 +69,15 @@ where
         tracing::trace!("Waiting...");
         notify.notified().await;
         tracing::trace!("Notified, data is available");
-        self.map.read().await.get(&k).map(|value| value.clone())
+        self.map.read().await.get(&k).cloned()
     }
 
     pub async fn len(&self) -> usize {
         self.map.read().await.len()
+    }
+
+    pub async fn is_empty(&self) -> bool {
+        self.map.read().await.is_empty()
     }
 }
 
