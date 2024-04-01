@@ -47,18 +47,16 @@ impl Demuxer {
         transaction_manager: &TransactionManager,
     ) -> JaResult<()> {
         // Check if we have a pending transaction and demux to the proper route
-        if let Some(pending) = message
-            .transaction
-            .clone()
-            .and_then(|x| transaction_manager.get(&x))
-        {
-            if pending.path == router.root_path() {
-                router.pub_root(message).await?;
-            } else {
-                router.pub_subroute(&pending.path, message).await?;
+        if let Some(transaction) = message.transaction.clone() {
+            if let Some(pending) = transaction_manager.get(&transaction).await {
+                if pending.path == router.root_path() {
+                    router.pub_root(message).await?;
+                } else {
+                    router.pub_subroute(&pending.path, message).await?;
+                }
+                transaction_manager.success_close(&pending.id).await;
+                return Ok(());
             }
-            transaction_manager.success_close(&pending.id);
-            return Ok(());
         }
 
         // Try get the route from the response

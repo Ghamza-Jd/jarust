@@ -1,10 +1,8 @@
+use indexmap::IndexMap;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
-use std::collections::HashMap;
-use std::ops::Deref;
-use std::ops::DerefMut;
 use std::sync::Arc;
-use std::sync::RwLock;
+use tokio::sync::RwLock;
 
 #[derive(Clone, Debug)]
 pub(crate) struct PendingTransaction {
@@ -13,74 +11,64 @@ pub(crate) struct PendingTransaction {
 }
 
 #[derive(Debug)]
-pub(crate) struct Inner {
-    transactions: HashMap<String, PendingTransaction>,
+struct Shared {
+    bound: usize,
+}
+
+#[derive(Debug)]
+struct Exclusive {
+    transactions: IndexMap<String, PendingTransaction>,
+}
+
+#[derive(Debug)]
+struct InnerTransactionManager {
+    shared: Shared,
+    exclusive: RwLock<Exclusive>,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct TransactionManager(Arc<RwLock<Inner>>);
-
-impl Deref for TransactionManager {
-    type Target = Arc<RwLock<Inner>>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for TransactionManager {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
+pub(crate) struct TransactionManager(Arc<InnerTransactionManager>);
 
 impl TransactionManager {
     #[tracing::instrument(level = tracing::Level::TRACE)]
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(buffer: usize) -> Self {
+        assert!(buffer > 0, "Requires buffer > 0");
         tracing::debug!("Creating new transaction manager");
-        let transactions = HashMap::new();
-        Self(Arc::new(RwLock::new(Inner { transactions })))
+        let transactions = IndexMap::with_capacity(buffer);
+        let inner = InnerTransactionManager {
+            shared: Shared { bound: buffer },
+            exclusive: RwLock::new(Exclusive { transactions }),
+        };
+        Self(Arc::new(inner))
     }
 
-    fn contains(&self, id: &str) -> bool {
-        self.read()
-            .expect("Failed to aquire read lock")
-            .transactions
-            .contains_key(id)
+    async fn contains(&self, id: &str) -> bool {
+        self.0.exclusive.read().await.transactions.contains_key(id)
     }
 
-    pub(crate) fn get(&self, id: &str) -> Option<PendingTransaction> {
-        self.read()
-            .expect("Failed to aquire read lock")
-            .transactions
-            .get(id)
-            .cloned()
+    pub(crate) async fn get(&self, id: &str) -> Option<PendingTransaction> {
+        self.0.exclusive.read().await.transactions.get(id).cloned()
     }
 
-    fn _size(&self) -> usize {
-        self.read()
-            .expect("Failed to aquire read lock")
-            .transactions
-            .len()
+    async fn _len(&self) -> usize {
+        self.0.exclusive.read().await.transactions.len()
     }
 
-    fn insert(&self, id: &str, transaction: PendingTransaction) {
-        self.write()
-            .expect("Failed to aquire write lock")
-            .transactions
-            .insert(id.into(), transaction);
+    async fn insert(&self, id: &str, transaction: PendingTransaction) {
+        let mut guard = self.0.exclusive.write().await;
+        if guard.transactions.len() >= self.0.shared.bound {
+            guard.transactions.pop();
+        }
+        guard.transactions.insert(id.into(), transaction);
     }
 
-    fn remove(&self, id: &str) {
-        self.write()
-            .expect("Failed to aquire write lock")
-            .transactions
-            .remove(id);
+    async fn remove(&self, id: &str) {
+        self.0.exclusive.write().await.transactions.shift_remove(id);
     }
 
     #[tracing::instrument(parent = None, skip(self))]
-    pub(crate) fn create_transaction(&self, id: &str, path: &str) {
-        if self.contains(id) {
+    pub(crate) async fn create_transaction(&self, id: &str, path: &str) {
+        if self.contains(id).await {
             return;
         }
 
@@ -89,15 +77,15 @@ impl TransactionManager {
             path: path.into(),
         };
 
-        self.insert(id, pending_transaction);
+        self.insert(id, pending_transaction).await;
         tracing::trace!("Transaction created");
     }
 
     #[tracing::instrument(parent = None, skip(self))]
-    pub(crate) fn success_close(&self, id: &str) {
-        let tx = self.get(id);
+    pub(crate) async fn success_close(&self, id: &str) {
+        let tx = self.get(id).await;
         if let Some(tx) = tx {
-            self.remove(&tx.id);
+            self.remove(&tx.id).await;
             tracing::trace!("Transaction closed successfully");
         }
     }

@@ -1,4 +1,4 @@
-use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+use crate::jaconfig::BUFFER_SIZE;
 use crate::japrotocol::JaResponse;
 use crate::prelude::*;
 use serde_json::Value;
@@ -49,7 +49,7 @@ impl JaRouter {
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     async fn make_route(&mut self, path: &str) -> JaResponseStream {
-        let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let (tx, rx) = mpsc::channel(BUFFER_SIZE);
         {
             self.inner
                 .exclusive
