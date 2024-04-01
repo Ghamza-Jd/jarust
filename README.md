@@ -1,4 +1,7 @@
-# About Jarust
+# Jarust &emsp; [![Latest Version]][crates.io]
+
+[Latest Version]: https://img.shields.io/crates/v/jarust.svg
+[crates.io]: https://crates.io/crates/jarust
 
 Jarust is a Rust adapter for [Janus WebRTC server](https://github.com/meetecho/janus-gateway)
 
