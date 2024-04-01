@@ -1,5 +1,5 @@
 use super::trans::Transport;
-use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+use crate::jaconfig::BUFFER_SIZE;
 use crate::jatask;
 use crate::jatask::AbortHandle;
 use crate::prelude::*;
@@ -45,7 +45,7 @@ impl Transport for WebsocketTransport {
             connect_async_tls_with_config(request, None, true, Some(connector)).await?;
 
         let (sender, mut receiver) = stream.split();
-        let (tx, rx) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let (tx, rx) = mpsc::channel(BUFFER_SIZE);
 
         let abort_handle = jatask::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {

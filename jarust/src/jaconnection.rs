@@ -51,7 +51,7 @@ pub struct JaConnection {
 impl JaConnection {
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
         let (router, root_channel) = JaRouter::new(&config.namespace).await;
-        let transaction_manager = TransactionManager::new();
+        let transaction_manager = TransactionManager::new(BUFFER_SIZE);
 
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;
@@ -148,7 +148,8 @@ impl JaConnection {
         let mut guard = self.inner.exclusive.lock().await;
         guard
             .transaction_manager
-            .create_transaction(transaction, &path);
+            .create_transaction(transaction, &path)
+            .await;
         tracing::debug!("Sending {message}");
         guard.transport_protocol.send(message.as_bytes()).await?;
         Ok(transaction.into())

@@ -1,4 +1,4 @@
-use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+use crate::jaconfig::BUFFER_SIZE;
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
@@ -78,7 +78,7 @@ impl JaHandle {
         receiver: JaResponseStream,
         id: u64,
     ) -> (Self, JaResponseStream) {
-        let (event_sender, event_receiver) = mpsc::channel(CHANNEL_BUFFER_SIZE);
+        let (event_sender, event_receiver) = mpsc::channel(BUFFER_SIZE);
 
         let ack_map = Arc::new(napmap::unbounded::<String, JaResponse>());
         let result_map = Arc::new(napmap::unbounded::<String, JaResponse>());

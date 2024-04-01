@@ -1,5 +1,5 @@
 pub use crate::error::JaError;
-pub use crate::jaconfig::CHANNEL_BUFFER_SIZE;
+pub use crate::jaconfig::BUFFER_SIZE;
 pub use crate::jaconnection::JaResponseStream;
 pub use crate::jahandle::JaHandle;
 pub use crate::japlugin::Attach;
