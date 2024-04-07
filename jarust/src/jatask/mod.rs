@@ -1,3 +1,6 @@
+#[cfg(not(any(feature = "tokio-rt")))]
+compile_error!("Feature \"tokio-rt\" must be enabled for this crate.");
+
 #[cfg(feature = "tokio-rt")]
 #[path = "tokio_rt.rs"]
 pub mod jatask_rt;

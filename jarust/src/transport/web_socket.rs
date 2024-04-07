@@ -1,3 +1,9 @@
+#[cfg(all(feature = "use-rustls", feature = "use-native-tls"))]
+compile_error!("Feature \"rustls\" and feature \"native-tls\" cannot be enabled at the same time");
+
+#[cfg(not(any(feature = "use-rustls", feature = "use-native-tls")))]
+compile_error!("Either feature \"rustls\" or \"native-tls\" must be enabled for this crate");
+
 use super::trans::Transport;
 use crate::jaconfig::BUFFER_SIZE;
 use crate::jatask;
@@ -7,17 +13,25 @@ use async_trait::async_trait;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
-use rustls::RootCertStore;
 use std::fmt::Debug;
-use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
-use tokio_tungstenite::connect_async_tls_with_config;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+use tokio_tungstenite::tungstenite::handshake::client::Request;
 use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::Connector;
 use tokio_tungstenite::MaybeTlsStream;
 use tokio_tungstenite::WebSocketStream;
+
+#[cfg(feature = "use-rustls")]
+use rustls::RootCertStore;
+#[cfg(feature = "use-rustls")]
+use std::sync::Arc;
+#[cfg(feature = "use-rustls")]
+use tokio_tungstenite::connect_async_tls_with_config;
+#[cfg(feature = "use-native-tls")]
+use tokio_tungstenite::connect_async_with_config;
+#[cfg(feature = "use-rustls")]
+use tokio_tungstenite::Connector;
 
 type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 
@@ -39,10 +53,7 @@ impl Transport for WebsocketTransport {
         let mut request = uri.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
-
-        let connector = Connector::Rustls(WebsocketTransport::make_tls_client_config()?);
-        let (stream, ..) =
-            connect_async_tls_with_config(request, None, true, Some(connector)).await?;
+        let stream = Self::connect_async(request).await?;
 
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::channel(BUFFER_SIZE);
@@ -73,6 +84,7 @@ impl Transport for WebsocketTransport {
 }
 
 impl WebsocketTransport {
+    #[cfg(feature = "use-rustls")]
     fn make_tls_client_config() -> JaResult<Arc<rustls::ClientConfig>> {
         let mut root_store = RootCertStore::empty();
         let platform_certs = rustls_native_certs::load_native_certs()?;
@@ -81,6 +93,24 @@ impl WebsocketTransport {
             .with_root_certificates(root_store)
             .with_no_client_auth();
         Ok(Arc::new(client_config))
+    }
+
+    async fn connect_async(
+        request: Request,
+    ) -> JaResult<WebSocketStream<MaybeTlsStream<TcpStream>>> {
+        #[cfg(feature = "use-rustls")]
+        {
+            let connector = Connector::Rustls(WebsocketTransport::make_tls_client_config()?);
+            let (stream, ..) =
+                connect_async_tls_with_config(request, None, true, Some(connector)).await?;
+            return Ok(stream);
+        }
+
+        #[cfg(feature = "use-native-tls")]
+        {
+            let (stream, ..) = connect_async_with_config(request, None, false).await?;
+            return Ok(stream);
+        }
     }
 }
 

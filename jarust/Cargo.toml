@@ -22,22 +22,24 @@ rand = "0.8.5"
 serde_json.workspace = true
 serde.workspace = true
 thiserror = "1.0.51"
-tokio = { version = "1.35.1", features = ["sync", "time", "rt"] }
+tokio = { workspace = true, features = ["sync", "time", "rt"] }
 tracing.workspace = true
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-rustls = "0.22.2"
-rustls-native-certs = "0.7.0"
-tokio-tungstenite = { version = "0.21.0", features = ["__rustls-tls"] }
+rustls = { version = "0.23.4", optional = true }
+rustls-native-certs = { version = "0.7.0", optional = true }
+tokio-tungstenite = "0.21.0"
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 getrandom = { version = "0.2.12", features = ["js"] }
 
 [dev-dependencies]
 anyhow = "1.0.79"
-tokio = { version = "1.35.1", features = ["time", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 [features]
-default = ["tokio-rt"]
+default = ["tokio-rt", "use-native-tls"]
 tokio-rt = []
+use-native-tls = ["tokio-tungstenite/native-tls"]
+use-rustls = ["rustls", "rustls-native-certs", "tokio-tungstenite/__rustls-tls"]

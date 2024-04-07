@@ -19,7 +19,7 @@ jarust = { version = "0.2.5", path = "../jarust" }
 jarust_make_plugin = { version = "0.2.5", path = "../jarust_make_plugin" }
 serde_json.workspace = true
 serde.workspace = true
-tokio = { version = "1.35.1", features = ["sync"] }
+tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 [features]
@@ -29,5 +29,5 @@ audio_bridge = []
 
 [dev-dependencies]
 anyhow = "1.0.79"
-tokio = { version = "1.35.1", features = ["time", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
