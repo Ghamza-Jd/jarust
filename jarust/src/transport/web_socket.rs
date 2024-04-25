@@ -102,7 +102,7 @@ impl WebsocketTransport {
             let connector = Connector::Rustls(WebsocketTransport::make_tls_client_config()?);
             let (stream, ..) =
                 connect_async_tls_with_config(request, None, true, Some(connector)).await?;
-            return Ok(stream);
+            Ok(stream)
         }
 
         #[cfg(feature = "use-native-tls")]
