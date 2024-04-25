@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 
-pub type MessageStream = mpsc::Receiver<String>;
+pub type MessageStream = mpsc::UnboundedReceiver<String>;
 
 #[async_trait]
 pub trait Transport: Debug + Send + Sync + 'static {

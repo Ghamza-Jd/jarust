@@ -5,7 +5,6 @@ compile_error!("Feature \"rustls\" and feature \"native-tls\" cannot be enabled 
 compile_error!("Either feature \"rustls\" or \"native-tls\" must be enabled for this crate");
 
 use super::trans::Transport;
-use crate::jaconfig::BUFFER_SIZE;
 use crate::jatask;
 use crate::jatask::AbortHandle;
 use crate::prelude::*;
@@ -56,12 +55,12 @@ impl Transport for WebsocketTransport {
         let stream = Self::connect_async(request).await?;
 
         let (sender, mut receiver) = stream.split();
-        let (tx, rx) = mpsc::channel(BUFFER_SIZE);
+        let (tx, rx) = mpsc::unbounded_channel();
 
         let abort_handle = jatask::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
-                    let _ = tx.send(text).await;
+                    let _ = tx.send(text);
                 }
             }
         });
@@ -109,7 +108,7 @@ impl WebsocketTransport {
         #[cfg(feature = "use-native-tls")]
         {
             let (stream, ..) = connect_async_with_config(request, None, false).await?;
-            return Ok(stream);
+            Ok(stream)
         }
     }
 }

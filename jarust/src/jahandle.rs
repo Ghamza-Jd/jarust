@@ -1,4 +1,3 @@
-use crate::jaconfig::BUFFER_SIZE;
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
@@ -44,7 +43,7 @@ impl JaHandle {
         inbound_stream: JaResponseStream,
         ack_map: Arc<UnboundedNapMap<String, JaResponse>>,
         result_map: Arc<UnboundedNapMap<String, JaResponse>>,
-        event_sender: mpsc::Sender<JaResponse>,
+        event_sender: mpsc::UnboundedSender<JaResponse>,
     ) {
         let mut stream = inbound_stream;
         while let Some(item) = stream.recv().await {
@@ -55,7 +54,7 @@ impl JaHandle {
                     }
                 }
                 JaResponseProtocol::Event { .. } => {
-                    event_sender.send(item).await.expect("Event channel closed");
+                    event_sender.send(item).expect("Event channel closed");
                 }
                 JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
                     if let Some(transaction) = item.transaction.clone() {
@@ -65,7 +64,6 @@ impl JaHandle {
                 JaResponseProtocol::Error { .. } => {
                     event_sender
                         .send(item)
-                        .await
                         .expect("Result channel closed");
                 }
                 _ => {}
@@ -78,7 +76,7 @@ impl JaHandle {
         receiver: JaResponseStream,
         id: u64,
     ) -> (Self, JaResponseStream) {
-        let (event_sender, event_receiver) = mpsc::channel(BUFFER_SIZE);
+        let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let ack_map = Arc::new(napmap::unbounded::<String, JaResponse>());
         let result_map = Arc::new(napmap::unbounded::<String, JaResponse>());

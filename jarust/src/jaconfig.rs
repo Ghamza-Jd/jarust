@@ -1,5 +1,3 @@
-pub const BUFFER_SIZE: usize = 32;
-
 #[derive(Debug)]
 pub struct JaConfig {
     pub(crate) uri: String,
