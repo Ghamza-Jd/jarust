@@ -7,12 +7,12 @@ use std::fmt::Debug;
 use tokio::sync::mpsc;
 
 pub struct MockServer {
-    tx: mpsc::Sender<String>,
+    tx: mpsc::UnboundedSender<String>,
 }
 
 impl MockServer {
     pub async fn mock_send_to_client(&self, msg: &str) {
-        self.tx.send(msg.to_string()).await.unwrap();
+        self.tx.send(msg.to_string()).unwrap();
     }
 }
 
@@ -34,7 +34,7 @@ impl Transport for MockTransport {
     where
         Self: Sized,
     {
-        let (tx, rx) = mpsc::channel(32);
+        let (tx, rx) = mpsc::unbounded_channel();
         Self {
             rx: Some(rx),
             server: Some(MockServer { tx }),
@@ -43,12 +43,12 @@ impl Transport for MockTransport {
     }
 
     async fn connect(&mut self, _: &str) -> JaResult<MessageStream> {
-        let (tx, rx) = mpsc::channel(32);
+        let (tx, rx) = mpsc::unbounded_channel();
 
         if let Some(mut receiver) = self.rx.take() {
             let abort_handle = jatask::spawn(async move {
                 while let Some(msg) = receiver.recv().await {
-                    tx.send(msg).await.unwrap();
+                    tx.send(msg).unwrap();
                 }
             });
             self.abort_handle = Some(abort_handle);

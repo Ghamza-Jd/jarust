@@ -20,7 +20,7 @@ use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
-pub type JaResponseStream = mpsc::Receiver<JaResponse>;
+pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
 #[derive(Debug)]
 struct Shared {
@@ -51,7 +51,7 @@ pub struct JaConnection {
 impl JaConnection {
     pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
         let (router, root_channel) = JaRouter::new(&config.namespace).await;
-        let transaction_manager = TransactionManager::new(BUFFER_SIZE);
+        let transaction_manager = TransactionManager::new(32);
 
         let (transport_protocol, receiver) =
             TransportProtocol::connect(transport, &config.uri).await?;

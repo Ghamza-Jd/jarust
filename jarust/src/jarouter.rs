@@ -1,4 +1,3 @@
-use crate::jaconfig::BUFFER_SIZE;
 use crate::japrotocol::JaResponse;
 use crate::prelude::*;
 use serde_json::Value;
@@ -14,7 +13,7 @@ pub struct Shared {
 
 #[derive(Debug)]
 pub struct Exclusive {
-    routes: HashMap<String, mpsc::Sender<JaResponse>>,
+    routes: HashMap<String, mpsc::UnboundedSender<JaResponse>>,
 }
 
 #[derive(Debug)]
@@ -49,7 +48,7 @@ impl JaRouter {
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     async fn make_route(&mut self, path: &str) -> JaResponseStream {
-        let (tx, rx) = mpsc::channel(BUFFER_SIZE);
+        let (tx, rx) = mpsc::unbounded_channel();
         {
             self.inner
                 .exclusive
@@ -79,7 +78,7 @@ impl JaRouter {
             guard.routes.get(path).cloned()
         };
         if let Some(channel) = channel {
-            if channel.send(message.clone()).await.is_err() {
+            if channel.send(message.clone()).is_err() {
                 return Err(JaError::SendError);
             }
         }
