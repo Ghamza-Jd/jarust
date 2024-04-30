@@ -1,7 +1,7 @@
 pub mod events;
 pub mod handle;
 pub mod messages;
-pub mod results;
+pub mod responses;
 
 use self::events::AudioBridgePluginData;
 use self::events::AudioBridgePluginEvent;
