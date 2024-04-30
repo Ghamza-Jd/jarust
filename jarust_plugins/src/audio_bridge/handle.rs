@@ -25,6 +25,7 @@ use super::responses::AudioBridgePluginEvent;
 use super::responses::Participant;
 use super::responses::Room;
 use super::responses::RoomCreated;
+use super::responses::RoomDestroyed;
 use super::responses::RoomEdited;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::jatask::AbortHandle;
@@ -85,32 +86,20 @@ impl AudioBridgeHandle {
             .await
     }
 
-    /// Eemoves an audio conference bridge and destroys it,
+    /// Removes an audio conference bridge and destroys it,
     /// kicking all the users out as part of the process
     pub async fn destroy_room(
         &self,
         room: u64,
         options: AudioBridgeDestroyOptions,
         timeout: Duration,
-    ) -> JaResult<(u64, bool)> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+    ) -> JaResult<RoomDestroyed> {
+        self.handle
+            .send_waiton_result::<RoomDestroyed>(
                 serde_json::to_value(AudioBridgeDestroyMsg::new(room, options))?,
                 timeout,
             )
-            .await?;
-
-        let result = match response.event {
-            AudioBridgePluginEvent::DestroyRoom {
-                room, permanent, ..
-            } => (room, permanent),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
-        Ok(result)
+            .await
     }
 
     /// Join an audio room with the given room number and options.

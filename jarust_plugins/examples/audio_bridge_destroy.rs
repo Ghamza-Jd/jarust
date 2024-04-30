@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let (room, permanent) = handle
+    let destroyed_room = handle
         .destroy_room(
             4321,
             AudioBridgeDestroyOptions {
@@ -40,7 +40,11 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    tracing::info!("Detroyed Room {}, permanent: {}", room, permanent);
+    tracing::info!(
+        "Detroyed Room {}, permanent: {}",
+        destroyed_room.room,
+        destroyed_room.permanent
+    );
 
     Ok(())
 }
