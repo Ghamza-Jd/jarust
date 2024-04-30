@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let room = handle
+    let edited_room = handle
         .edit_room(
             4321,
             AudioBridgeEditOptions {
@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    tracing::info!("Edited Room {}", room);
+    tracing::info!("Edited Room {}", edited_room.room);
 
     Ok(())
 }

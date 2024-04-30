@@ -17,7 +17,7 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, mut event_receiver) = session.attach_audio_bridge().await?;
 
-    let (room, permanent) = handle
+    let created_room = handle
         .create_room_with_config(
             AudioBridgeCreateOptions {
                 secret: Some("superdupersecret".to_string()),
@@ -26,11 +26,16 @@ async fn main() -> anyhow::Result<()> {
             timeout,
         )
         .await?;
-    tracing::info!("Created Room {}, permanent: {}", room, permanent);
+
+    tracing::info!(
+        "Created Room {}, permanent: {}",
+        created_room.room,
+        created_room.permanent
+    );
 
     let _ = handle
         .join_room(
-            room,
+            created_room.room,
             AudioBridgeJoinOptions {
                 secret: Some("superdupersecret".to_string()),
                 generate_offer: Some(true),
@@ -42,7 +47,12 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     if let Some((event, protocol)) = event_receiver.recv().await {
-        tracing::info!("Joined Room {}, {:#?}, {:#?}", room, event, protocol);
+        tracing::info!(
+            "Joined Room {}, {:#?}, {:#?}",
+            created_room.room,
+            event,
+            protocol
+        );
     }
 
     Ok(())

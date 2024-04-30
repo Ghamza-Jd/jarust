@@ -8,6 +8,18 @@ pub struct AudioBridgePluginData {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct RoomCreated {
+    pub room: u64,
+    pub permanent: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RoomEdited {
+    pub room: u64,
+    pub permanent: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Room {
     pub room: u64,
     pub description: String,
@@ -33,10 +45,6 @@ pub struct Participant {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
 pub enum AudioBridgePluginEvent {
-    #[serde(rename = "created")]
-    CreateRoom { room: u64, permanent: bool },
-    #[serde(rename = "edited")]
-    EditRoom { room: u64 },
     #[serde(rename = "destroyed")]
     DestroyRoom { room: u64, permanent: bool },
     #[serde(rename = "participants")]
