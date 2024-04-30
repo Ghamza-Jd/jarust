@@ -10,19 +10,9 @@ use super::messages::AudioBridgeEditOptions;
 use super::messages::AudioBridgeExistsMsg;
 use super::messages::AudioBridgeJoinMsg;
 use super::messages::AudioBridgeJoinOptions;
-use super::messages::AudioBridgeKickAllMsg;
-use super::messages::AudioBridgeKickAllOptions;
-use super::messages::AudioBridgeKickMsg;
-use super::messages::AudioBridgeKickOptions;
 use super::messages::AudioBridgeListMsg;
 use super::messages::AudioBridgeListParticipantsMsg;
-use super::messages::AudioBridgeResumeMsg;
-use super::messages::AudioBridgeResumeOptions;
-use super::messages::AudioBridgeSuspendMsg;
-use super::messages::AudioBridgeSuspendOptions;
 use super::responses::Allowed;
-use super::responses::AudioBridgePluginData;
-use super::responses::AudioBridgePluginEvent;
 use super::responses::ExistsRoom;
 use super::responses::ListParticipants;
 use super::responses::ListRooms;
@@ -175,85 +165,6 @@ impl AudioBridgeHandle {
             .await?;
 
         Ok(response.exists)
-    }
-
-    /// Allows you to kick a participant out of a specific room
-    pub async fn kick(
-        &self,
-        room: u64,
-        participant: u64,
-        options: AudioBridgeKickOptions,
-        timeout: Duration,
-    ) -> JaResult<()> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
-                serde_json::to_value(AudioBridgeKickMsg::new(room, participant, options))?,
-                timeout,
-            )
-            .await?;
-        match response.event {
-            AudioBridgePluginEvent::Success {} => Ok(()),
-        }
-    }
-
-    /// Allows you to kick all participants out of a specific room
-    pub async fn kick_all(
-        &self,
-        room: u64,
-        options: AudioBridgeKickAllOptions,
-        timeout: Duration,
-    ) -> JaResult<()> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
-                serde_json::to_value(AudioBridgeKickAllMsg::new(room, options))?,
-                timeout,
-            )
-            .await?;
-        match response.event {
-            AudioBridgePluginEvent::Success {} => Ok(()),
-        }
-    }
-
-    /// Allows you to suspend a participant in a specific room
-    pub async fn suspend(
-        &self,
-        room: u64,
-        participant: u64,
-        options: AudioBridgeSuspendOptions,
-        timeout: Duration,
-    ) -> JaResult<()> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
-                serde_json::to_value(AudioBridgeSuspendMsg::new(room, participant, options))?,
-                timeout,
-            )
-            .await?;
-        match response.event {
-            AudioBridgePluginEvent::Success {} => Ok(()),
-        }
-    }
-
-    /// Allows you to resume a suspended participant in a specific room
-    pub async fn resume(
-        &self,
-        room: u64,
-        participant: u64,
-        options: AudioBridgeResumeOptions,
-        timeout: Duration,
-    ) -> JaResult<()> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
-                serde_json::to_value(AudioBridgeResumeMsg::new(room, participant, options))?,
-                timeout,
-            )
-            .await?;
-        match response.event {
-            AudioBridgePluginEvent::Success {} => Ok(()),
-        }
     }
 
     /// Lists all the participants of a specific room and their details

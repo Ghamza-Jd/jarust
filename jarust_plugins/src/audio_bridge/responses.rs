@@ -1,13 +1,6 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct AudioBridgePluginData {
-    pub plugin: String,
-    #[serde(rename = "data")]
-    pub event: AudioBridgePluginEvent,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct RoomCreated {
     pub room: u64,
     pub permanent: bool,
@@ -69,12 +62,4 @@ pub struct Participant {
     pub suspended: bool,
     pub talking: bool,
     pub spatial_position: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(tag = "audiobridge")]
-pub enum AudioBridgePluginEvent {
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    Success {},
 }
