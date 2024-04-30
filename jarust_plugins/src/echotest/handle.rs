@@ -1,10 +1,7 @@
 use super::messages::EchoTestStartMsg;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::JsepType;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use std::ops::Deref;
-use std::time::Duration;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
@@ -12,28 +9,10 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
-    pub async fn start(&self, mut request: EchoTestStartMsg, timeout: Duration) -> JaResult<()> {
-        let Some(jsep) = request.jsep.take() else {
-            return self
-                .handle
-                .fire_and_forget(serde_json::to_value(request)?)
-                .await;
-        };
-        if jsep.jsep_type != JsepType::Offer {
-            let err = JaError::InvalidJanusRequest {
-                reason: "jsep must be an offer".to_owned(),
-            };
-            tracing::error!("{err}");
-            return Err(err);
-        }
+    pub async fn start(&self, request: EchoTestStartMsg) -> JaResult<()> {
         self.handle
-            .send_waiton_ack_with_establishment(
-                serde_json::to_value(request)?,
-                EstablishmentProtocol::JSEP(jsep),
-                timeout,
-            )
-            .await?;
-        Ok(())
+            .fire_and_forget(serde_json::to_value(request)?)
+            .await
     }
 }
 

@@ -21,7 +21,7 @@ impl AudioBridge for JaSession {
     fn parse_audio_bridge_message(message: JaResponse) -> JaResult<Self::Event> {
         let msg = match message.janus {
             JaResponseProtocol::Event(JaEventProtocol::Event { plugin_data }) => (
-                serde_json::from_value::<AudioBridgePluginData>(plugin_data)?.event,
+                serde_json::from_value::<AudioBridgePluginData>(plugin_data.data)?.event,
                 message.establishment_protocol,
             ),
             _ => {
