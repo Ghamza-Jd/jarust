@@ -62,9 +62,7 @@ impl JaHandle {
                     }
                 }
                 JaResponseProtocol::Error { .. } => {
-                    event_sender
-                        .send(item)
-                        .expect("Result channel closed");
+                    event_sender.send(item).expect("Result channel closed");
                 }
                 _ => {}
             }
@@ -177,7 +175,7 @@ impl JaHandle {
 
         let result = match response.janus {
             JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
-                match serde_json::from_value::<R>(plugin_data) {
+                match serde_json::from_value::<R>(plugin_data.data) {
                     Ok(result) => result,
                     Err(error) => {
                         tracing::error!("Failed to parse with error {error:#?}");

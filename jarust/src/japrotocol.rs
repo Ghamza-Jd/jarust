@@ -80,8 +80,14 @@ pub enum JaSuccessProtocol {
     #[serde(untagged)]
     Plugin {
         #[serde(rename = "plugindata")]
-        plugin_data: Value,
+        plugin_data: PluginData,
     },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PluginData {
+    pub plugin: String,
+    pub data: Value,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
