@@ -26,6 +26,11 @@ pub struct RoomDestroyed {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct ListRooms {
+    pub list: Vec<Room>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Room {
     pub room: u64,
     pub description: String,
