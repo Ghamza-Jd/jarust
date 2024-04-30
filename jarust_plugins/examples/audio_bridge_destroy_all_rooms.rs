@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Rooms to destroy {:#?}", list);
 
     for item in list {
-        if let Ok((room, ..)) = handle
+        if let Ok(destroyed_room) = handle
             .destroy_room(
                 item.room,
                 AudioBridgeDestroyOptions {
@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
         {
-            tracing::info!("Destroyed Room {}", room);
+            tracing::info!("Destroyed Room {}", destroyed_room.room);
         };
     }
 

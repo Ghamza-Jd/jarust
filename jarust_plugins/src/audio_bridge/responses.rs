@@ -20,6 +20,12 @@ pub struct RoomEdited {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct RoomDestroyed {
+    pub room: u64,
+    pub permanent: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Room {
     pub room: u64,
     pub description: String,
@@ -45,8 +51,6 @@ pub struct Participant {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
 pub enum AudioBridgePluginEvent {
-    #[serde(rename = "destroyed")]
-    DestroyRoom { room: u64, permanent: bool },
     #[serde(rename = "participants")]
     ListParticipants {
         room: u64,
