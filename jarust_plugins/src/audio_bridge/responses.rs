@@ -43,6 +43,24 @@ pub struct Room {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct Allowed {
+    pub room: u64,
+    pub allowed: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ExistsRoom {
+    pub room: u64,
+    pub exists: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ListParticipants {
+    pub room: u64,
+    pub participants: Vec<Participant>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Participant {
     pub id: String,
     pub display: String,
@@ -56,20 +74,6 @@ pub struct Participant {
 #[derive(Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
 pub enum AudioBridgePluginEvent {
-    #[serde(rename = "participants")]
-    ListParticipants {
-        room: u64,
-        participants: Vec<Participant>,
-    },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    List { list: Vec<Room> },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    Allowed { room: u64, allowed: Vec<String> },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    ExistsRoom { room: u64, exists: bool },
     #[serde(rename = "success")]
     #[serde(untagged)]
     Success {},

@@ -20,10 +20,12 @@ use super::messages::AudioBridgeResumeMsg;
 use super::messages::AudioBridgeResumeOptions;
 use super::messages::AudioBridgeSuspendMsg;
 use super::messages::AudioBridgeSuspendOptions;
+use super::responses::Allowed;
 use super::responses::AudioBridgePluginData;
 use super::responses::AudioBridgePluginEvent;
+use super::responses::ExistsRoom;
+use super::responses::ListParticipants;
 use super::responses::ListRooms;
-use super::responses::Participant;
 use super::responses::Room;
 use super::responses::RoomCreated;
 use super::responses::RoomDestroyed;
@@ -153,41 +155,26 @@ impl AudioBridgeHandle {
         allowed: Vec<String>,
         options: AudioBridgeAllowedOptions,
         timeout: Duration,
-    ) -> JaResult<(u64, Vec<String>)> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+    ) -> JaResult<Allowed> {
+        self.handle
+            .send_waiton_result::<Allowed>(
                 serde_json::to_value(AudioBridgeAllowedMsg::new(room, action, allowed, options))?,
                 timeout,
             )
-            .await?;
-
-        let result = match response.event {
-            AudioBridgePluginEvent::Allowed { room, allowed, .. } => (room, allowed),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-        Ok(result)
+            .await
     }
 
     /// Allows you to check whether a specific audio conference room exists
     pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<bool> {
         let response = self
             .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+            .send_waiton_result::<ExistsRoom>(
                 serde_json::to_value(AudioBridgeExistsMsg::new(room))?,
                 timeout,
             )
             .await?;
 
-        let result = match response.event {
-            AudioBridgePluginEvent::ExistsRoom { exists, .. } => exists,
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-        Ok(result)
+        Ok(response.exists)
     }
 
     /// Allows you to kick a participant out of a specific room
@@ -207,7 +194,6 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -227,7 +213,6 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -248,7 +233,6 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -269,7 +253,6 @@ impl AudioBridgeHandle {
             .await?;
         match response.event {
             AudioBridgePluginEvent::Success {} => Ok(()),
-            _ => Err(JaError::UnexpectedResponse),
         }
     }
 
@@ -278,20 +261,13 @@ impl AudioBridgeHandle {
         &self,
         room: u64,
         timeout: Duration,
-    ) -> JaResult<(u64, Vec<Participant>)> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+    ) -> JaResult<ListParticipants> {
+        self.handle
+            .send_waiton_result::<ListParticipants>(
                 serde_json::to_value(AudioBridgeListParticipantsMsg::new(room))?,
                 timeout,
             )
-            .await?;
-        match response.event {
-            AudioBridgePluginEvent::ListParticipants { room, participants } => {
-                Ok((room, participants))
-            }
-            _ => Err(JaError::UnexpectedResponse),
-        }
+            .await
     }
 }
 
