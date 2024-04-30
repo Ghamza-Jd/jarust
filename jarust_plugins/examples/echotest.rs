@@ -7,26 +7,22 @@ use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
-        .init();
-    let timeout = std::time::Duration::from_secs(10);
+    let env_filter = EnvFilter::from_default_env()
+        .add_directive("jarust=trace".parse()?)
+        .add_directive("echotest=trace".parse()?);
+    tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
     let session = connection.create(10).await?;
     let (handle, mut event_receiver, ..) = session.attach_echo_test().await?;
-    let handle = handle.clone();
 
     handle
-        .start(
-            EchoTestStartMsg {
-                audio: true,
-                video: true,
-                ..Default::default()
-            },
-            timeout,
-        )
+        .start(EchoTestStartMsg {
+            audio: true,
+            video: true,
+            ..Default::default()
+        })
         .await?;
 
     while let Some(event) = event_receiver.recv().await {

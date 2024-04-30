@@ -96,7 +96,7 @@ pub enum JaEventProtocol {
     #[serde(rename = "event")]
     Event {
         #[serde(rename = "plugindata")]
-        plugin_data: Value,
+        plugin_data: PluginData,
     },
     #[serde(rename = "detached")]
     Detached,
