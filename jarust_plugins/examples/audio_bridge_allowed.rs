@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         created_room.permanent
     );
 
-    let (room, allowed_participants) = handle
+    let allowed = handle
         .allowed(
             created_room.room,
             AudioBridgeAction::Add,
@@ -48,8 +48,8 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!(
         "Allowed participants in room {}: {:#?}",
-        room,
-        allowed_participants
+        allowed.room,
+        allowed.allowed
     );
 
     Ok(())

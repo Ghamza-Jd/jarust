@@ -32,8 +32,12 @@ async fn main() -> anyhow::Result<()> {
         created_room.permanent
     );
 
-    let (room, participants) = handle.list_participants(created_room.room, timeout).await?;
-    tracing::info!("Participants in room {}: {:#?}", room, participants);
+    let list_participants_rsp = handle.list_participants(created_room.room, timeout).await?;
+    tracing::info!(
+        "Participants in room {}: {:#?}",
+        list_participants_rsp.room,
+        list_participants_rsp.participants
+    );
 
     Ok(())
 }
