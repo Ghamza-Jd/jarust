@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let list = handle.list(timeout).await?;
+    let list = handle.list_rooms(timeout).await?;
 
     tracing::info!("Rooms to destroy {:#?}", list);
 

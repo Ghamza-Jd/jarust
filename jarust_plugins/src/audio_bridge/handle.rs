@@ -22,6 +22,7 @@ use super::messages::AudioBridgeSuspendMsg;
 use super::messages::AudioBridgeSuspendOptions;
 use super::responses::AudioBridgePluginData;
 use super::responses::AudioBridgePluginEvent;
+use super::responses::ListRooms;
 use super::responses::Participant;
 use super::responses::Room;
 use super::responses::RoomCreated;
@@ -133,22 +134,15 @@ impl AudioBridgeHandle {
     }
 
     /// Lists all the available rooms.
-    pub async fn list(&self, timeout: Duration) -> JaResult<Vec<Room>> {
+    pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<Room>> {
         let response = self
             .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+            .send_waiton_result::<ListRooms>(
                 serde_json::to_value(AudioBridgeListMsg::default())?,
                 timeout,
             )
             .await?;
-
-        let result = match response.event {
-            AudioBridgePluginEvent::List { list, .. } => list,
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-        Ok(result)
+        Ok(response.list)
     }
 
     /// Allows you to edit who's allowed to join a room via ad-hoc tokens
