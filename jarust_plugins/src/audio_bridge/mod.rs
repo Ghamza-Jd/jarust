@@ -1,11 +1,11 @@
 pub mod events;
-pub mod handles;
+pub mod handle;
 pub mod messages;
 pub mod results;
 
 use self::events::AudioBridgePluginData;
 use self::events::AudioBridgePluginEvent;
-use self::handles::*;
+use self::handle::*;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::JaEventProtocol;
 use jarust::japrotocol::JaResponseProtocol;
