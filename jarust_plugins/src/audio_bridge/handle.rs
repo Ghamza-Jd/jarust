@@ -24,6 +24,8 @@ use super::responses::AudioBridgePluginData;
 use super::responses::AudioBridgePluginEvent;
 use super::responses::Participant;
 use super::responses::Room;
+use super::responses::RoomCreated;
+use super::responses::RoomEdited;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
@@ -40,7 +42,7 @@ impl AudioBridgeHandle {
     /// as an alternative to using the configuration file
     ///
     /// Random room number will be used if `room` is `None`
-    pub async fn create_room(&self, room: Option<u64>, timeout: Duration) -> JaResult<(u64, bool)> {
+    pub async fn create_room(&self, room: Option<u64>, timeout: Duration) -> JaResult<RoomCreated> {
         self.create_room_with_config(
             AudioBridgeCreateOptions {
                 room,
@@ -59,25 +61,13 @@ impl AudioBridgeHandle {
         &self,
         options: AudioBridgeCreateOptions,
         timeout: Duration,
-    ) -> JaResult<(u64, bool)> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+    ) -> JaResult<RoomCreated> {
+        self.handle
+            .send_waiton_result::<RoomCreated>(
                 serde_json::to_value(AudioBridgeCreateMsg::new(options))?,
                 timeout,
             )
-            .await?;
-
-        let result = match response.event {
-            AudioBridgePluginEvent::CreateRoom {
-                room, permanent, ..
-            } => (room, permanent),
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
-        Ok(result)
+            .await
     }
 
     /// Allows you to dynamically edit some room properties (e.g., the PIN)
@@ -86,23 +76,13 @@ impl AudioBridgeHandle {
         room: u64,
         options: AudioBridgeEditOptions,
         timeout: Duration,
-    ) -> JaResult<u64> {
-        let response = self
-            .handle
-            .send_waiton_result::<AudioBridgePluginData>(
+    ) -> JaResult<RoomEdited> {
+        self.handle
+            .send_waiton_result::<RoomEdited>(
                 serde_json::to_value(AudioBridgeEditMsg::new(room, options))?,
                 timeout,
             )
-            .await?;
-
-        let result = match response.event {
-            AudioBridgePluginEvent::EditRoom { room, .. } => room,
-            _ => {
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
-        Ok(result)
+            .await
     }
 
     /// Eemoves an audio conference bridge and destroys it,
