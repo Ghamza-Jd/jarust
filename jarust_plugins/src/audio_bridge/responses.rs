@@ -1,25 +1,25 @@
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
-pub struct RoomCreated {
+pub struct RoomCreatedRsp {
     pub room: u64,
     pub permanent: bool,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct RoomEdited {
+pub struct RoomEditedRsp {
     pub room: u64,
     pub permanent: bool,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct RoomDestroyed {
+pub struct RoomDestroyedRsp {
     pub room: u64,
     pub permanent: bool,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ListRooms {
+pub struct ListRoomsRsp {
     pub list: Vec<Room>,
 }
 
@@ -36,19 +36,19 @@ pub struct Room {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Allowed {
+pub struct AllowedRsp {
     pub room: u64,
     pub allowed: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ExistsRoom {
+pub struct ExistsRoomRsp {
     pub room: u64,
     pub exists: bool,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct ListParticipants {
+pub struct ListParticipantsRsp {
     pub room: u64,
     pub participants: Vec<Participant>,
 }
