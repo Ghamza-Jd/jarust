@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let destroyed_room = handle
+    let destroy_room_rsp = handle
         .destroy_room(
             4321,
             DestroyRoomMsg {
@@ -42,8 +42,8 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!(
         "Detroyed Room {}, permanent: {}",
-        destroyed_room.room,
-        destroyed_room.permanent
+        destroy_room_rsp.room,
+        destroy_room_rsp.permanent
     );
 
     Ok(())

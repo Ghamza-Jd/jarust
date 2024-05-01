@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let created_room = handle
+    let create_room_rsp = handle
         .create_room_with_config(
             CreateRoomMsg {
                 secret: Some("superdupersecret".to_string()),
@@ -28,11 +28,13 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!(
         "Created Room {}, permanent: {}",
-        created_room.room,
-        created_room.permanent
+        create_room_rsp.room,
+        create_room_rsp.permanent
     );
 
-    let list_participants_rsp = handle.list_participants(created_room.room, timeout).await?;
+    let list_participants_rsp = handle
+        .list_participants(create_room_rsp.room, timeout)
+        .await?;
     tracing::info!(
         "Participants in room {}: {:#?}",
         list_participants_rsp.room,

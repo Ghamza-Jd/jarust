@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let created_room = handle
+    let create_room_rsp = handle
         .create_room_with_config(
             CreateRoomMsg {
                 secret: Some("superdupersecret".to_string()),
@@ -28,8 +28,8 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!(
         "Created Room {}, permanent: {}",
-        created_room.room,
-        created_room.permanent
+        create_room_rsp.room,
+        create_room_rsp.permanent
     );
 
     Ok(())
