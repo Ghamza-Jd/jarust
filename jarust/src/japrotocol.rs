@@ -155,6 +155,12 @@ pub enum EstablishmentProtocol {
 
 #[cfg(test)]
 mod tests {
+    use crate::japrotocol::EstablishmentProtocol;
+    use crate::japrotocol::JaEventProtocol;
+    use crate::japrotocol::Jsep;
+    use crate::japrotocol::JsepType;
+    use crate::japrotocol::PluginData;
+
     use super::JaData;
     use super::JaResponse;
     use super::JaResponseProtocol;
@@ -181,6 +187,72 @@ mod tests {
             sender: None,
             session_id: None,
             establishment_protocol: None,
+        };
+        assert_eq!(actual_rsp, expected);
+    }
+
+    #[test]
+    fn it_parse_attach_rsp() {
+        let rsp = json!({
+            "janus": "success",
+            "session_id": 1706796313061627u64,
+            "transaction": "151f9362-3d12-45e5-ba02-b91a38be5a06",
+            "data": {
+                "id": 7548423276295183u64
+            }
+        });
+        let actual_rsp = serde_json::from_value::<JaResponse>(rsp).unwrap();
+        let expected = JaResponse {
+            janus: JaResponseProtocol::Success(JaSuccessProtocol::Data {
+                data: JaData {
+                    id: 7548423276295183u64,
+                },
+            }),
+            transaction: Some("151f9362-3d12-45e5-ba02-b91a38be5a06".to_string()),
+            sender: None,
+            session_id: (Some(1706796313061627u64)),
+            establishment_protocol: None,
+        };
+        assert_eq!(actual_rsp, expected);
+    }
+
+    #[test]
+    fn it_parse_echotest_event() {
+        let rsp = json!({
+            "janus": "event",
+            "session_id": 8643988533991908u64,
+            "transaction": "c7bb120f-ed4e-4e00-b8de-bfc3e66f098e",
+            "sender": 3010144072065778u64,
+            "plugindata": {
+                "plugin": "janus.plugin.echotest",
+                "data": {
+                    "echotest": "event",
+                    "result": "ok"
+                }
+            },
+            "jsep": {
+                "type": "answer",
+                "sdp": "random_sdp"
+            }
+        });
+        let actual_rsp = serde_json::from_value::<JaResponse>(rsp).unwrap();
+        let expected = JaResponse {
+            janus: JaResponseProtocol::Event(JaEventProtocol::Event {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.echotest".to_string(),
+                    data: json!({
+                        "echotest": "event",
+                        "result": "ok"
+                    }),
+                },
+            }),
+            transaction: Some("c7bb120f-ed4e-4e00-b8de-bfc3e66f098e".to_string()),
+            sender: Some(3010144072065778u64),
+            session_id: (Some(8643988533991908u64)),
+            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+                sdp: "random_sdp".to_string(),
+                jsep_type: JsepType::Answer,
+            })),
         };
         assert_eq!(actual_rsp, expected);
     }
