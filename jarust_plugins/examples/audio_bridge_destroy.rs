@@ -1,7 +1,7 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::audio_bridge::messages::AudioBridgeDestroyOptions;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
+use jarust_plugins::audio_bridge::messages::DestroyRoomMsg;
 use jarust_plugins::audio_bridge::AudioBridge;
 use tracing_subscriber::EnvFilter;
 
@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let destroyed_room = handle
         .destroy_room(
             4321,
-            AudioBridgeDestroyOptions {
+            DestroyRoomMsg {
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
             },

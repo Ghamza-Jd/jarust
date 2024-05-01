@@ -1,15 +1,11 @@
 use super::messages::AudioBridgeAction;
 use super::messages::AudioBridgeAllowedMsg;
 use super::messages::AudioBridgeAllowedOptions;
-use super::messages::AudioBridgeDestroyMsg;
-use super::messages::AudioBridgeDestroyOptions;
-use super::messages::AudioBridgeEditMsg;
-use super::messages::AudioBridgeEditOptions;
-use super::messages::AudioBridgeExistsMsg;
-use super::messages::AudioBridgeJoinMsg;
-use super::messages::AudioBridgeJoinOptions;
 use super::messages::AudioBridgeListParticipantsMsg;
 use super::messages::CreateRoomMsg;
+use super::messages::DestroyRoomMsg;
+use super::messages::EditRoomMsg;
+use super::messages::JoinRoomMsg;
 use super::responses::AllowedRsp;
 use super::responses::ExistsRoomRsp;
 use super::responses::ListParticipantsRsp;
@@ -70,14 +66,14 @@ impl AudioBridgeHandle {
     pub async fn edit_room(
         &self,
         room: u64,
-        options: AudioBridgeEditOptions,
+        options: EditRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "edit".into();
+        message["room"] = room.into();
         self.handle
-            .send_waiton_result::<RoomEditedRsp>(
-                serde_json::to_value(AudioBridgeEditMsg::new(room, options))?,
-                timeout,
-            )
+            .send_waiton_result::<RoomEditedRsp>(message, timeout)
             .await
     }
 
@@ -86,14 +82,14 @@ impl AudioBridgeHandle {
     pub async fn destroy_room(
         &self,
         room: u64,
-        options: AudioBridgeDestroyOptions,
+        options: DestroyRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "destory".into();
+        message["room"] = room.into();
         self.handle
-            .send_waiton_result::<RoomDestroyedRsp>(
-                serde_json::to_value(AudioBridgeDestroyMsg::new(room, options))?,
-                timeout,
-            )
+            .send_waiton_result::<RoomDestroyedRsp>(message, timeout)
             .await
     }
 
@@ -101,28 +97,20 @@ impl AudioBridgeHandle {
     pub async fn join_room(
         &self,
         room: u64,
-        options: AudioBridgeJoinOptions,
+        options: JoinRoomMsg,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "join".into();
+        message["room"] = room.into();
         match protocol {
             Some(protocol) => {
                 self.handle
-                    .send_waiton_ack_with_establishment(
-                        serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
-                        protocol,
-                        timeout,
-                    )
+                    .send_waiton_ack_with_establishment(message, protocol, timeout)
                     .await?
             }
-            None => {
-                self.handle
-                    .send_waiton_ack(
-                        serde_json::to_value(AudioBridgeJoinMsg::new(room, options))?,
-                        timeout,
-                    )
-                    .await?
-            }
+            None => self.handle.send_waiton_ack(message, timeout).await?,
         };
         Ok(())
     }
@@ -158,12 +146,13 @@ impl AudioBridgeHandle {
 
     /// Allows you to check whether a specific audio conference room exists
     pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<bool> {
+        let message = json!({
+            "request": "exists",
+            "room": room
+        });
         let response = self
             .handle
-            .send_waiton_result::<ExistsRoomRsp>(
-                serde_json::to_value(AudioBridgeExistsMsg::new(room))?,
-                timeout,
-            )
+            .send_waiton_result::<ExistsRoomRsp>(message, timeout)
             .await?;
 
         Ok(response.exists)

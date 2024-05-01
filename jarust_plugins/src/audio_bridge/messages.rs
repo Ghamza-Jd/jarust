@@ -94,20 +94,8 @@ pub struct CreateRoomMsg {
     pub groups: Option<Vec<String>>,
 }
 
-//
-// Edit Message
-//
-
 #[derive(Serialize, Default)]
-pub struct AudioBridgeEditMsg {
-    request: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: AudioBridgeEditOptions,
-}
-
-#[derive(Serialize, Default)]
-pub struct AudioBridgeEditOptions {
+pub struct EditRoomMsg {
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -141,79 +129,16 @@ pub struct AudioBridgeEditOptions {
     pub permanent: Option<bool>,
 }
 
-impl AudioBridgeEditMsg {
-    pub fn new(room: u64, options: AudioBridgeEditOptions) -> Self {
-        Self {
-            request: "edit".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
-//
-// Destroy Message
-//
-
 #[derive(Serialize, Default)]
-pub struct AudioBridgeDestroyMsg {
-    request: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: AudioBridgeDestroyOptions,
-}
-
-#[derive(Serialize, Default)]
-pub struct AudioBridgeDestroyOptions {
+pub struct DestroyRoomMsg {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permanent: Option<bool>,
 }
 
-impl AudioBridgeDestroyMsg {
-    pub fn new(room: u64, options: AudioBridgeDestroyOptions) -> Self {
-        Self {
-            request: "destroy".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
-//
-// Exists Message
-//
-
 #[derive(Serialize, Default)]
-pub struct AudioBridgeExistsMsg {
-    request: String,
-    pub room: u64,
-}
-
-impl AudioBridgeExistsMsg {
-    pub fn new(room: u64) -> Self {
-        Self {
-            request: "exists".to_string(),
-            room,
-        }
-    }
-}
-
-//
-// Join Message
-//
-
-#[derive(Serialize, Default)]
-pub struct AudioBridgeJoinMsg {
-    request: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: AudioBridgeJoinOptions,
-}
-
-#[derive(Serialize, Default)]
-pub struct AudioBridgeJoinOptions {
+pub struct JoinRoomMsg {
     /// Unique ID to assign to the participant, assigned by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
@@ -308,16 +233,6 @@ pub struct AudioBridgeJoinOptions {
     /// had previously been originated by a plugin offer instead. The plugin will treat this as an error.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub generate_offer: Option<bool>,
-}
-
-impl AudioBridgeJoinMsg {
-    pub fn new(room: u64, options: AudioBridgeJoinOptions) -> Self {
-        Self {
-            request: "join".to_string(),
-            room,
-            options,
-        }
-    }
 }
 
 //

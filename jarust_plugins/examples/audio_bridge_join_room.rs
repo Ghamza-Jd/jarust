@@ -1,7 +1,7 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::audio_bridge::messages::AudioBridgeJoinOptions;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
+use jarust_plugins::audio_bridge::messages::JoinRoomMsg;
 use jarust_plugins::audio_bridge::AudioBridge;
 use tracing_subscriber::EnvFilter;
 
@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
     let _ = handle
         .join_room(
             created_room.room,
-            AudioBridgeJoinOptions {
+            JoinRoomMsg {
                 secret: Some("superdupersecret".to_string()),
                 generate_offer: Some(true),
                 ..Default::default()
