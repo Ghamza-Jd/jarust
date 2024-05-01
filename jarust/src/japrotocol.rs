@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn it_parse_echotest_event() {
-        let rsp = json!({
+        let event = json!({
             "janus": "event",
             "session_id": 8643988533991908u64,
             "transaction": "c7bb120f-ed4e-4e00-b8de-bfc3e66f098e",
@@ -235,7 +235,7 @@ mod tests {
                 "sdp": "random_sdp"
             }
         });
-        let actual_rsp = serde_json::from_value::<JaResponse>(rsp).unwrap();
+        let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
         let expected = JaResponse {
             janus: JaResponseProtocol::Event(JaEventProtocol::Event {
                 plugin_data: PluginData {
@@ -254,6 +254,6 @@ mod tests {
                 jsep_type: JsepType::Answer,
             })),
         };
-        assert_eq!(actual_rsp, expected);
+        assert_eq!(actual_event, expected);
     }
 }
