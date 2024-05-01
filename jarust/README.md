@@ -13,8 +13,6 @@ It handles:
 
 ## Plugins
 
-The recommended way to create a plugin is to use `make_plugin` macro from [jarust_make_plugin](https://crates.io/crates/jarust_make_plugin).
-
 Checkout the existing plugins: [jarust_plugins](https://crates.io/crates/jarust_plugins)
 
 ## Example usage
