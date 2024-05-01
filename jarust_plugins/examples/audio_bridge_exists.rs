@@ -1,8 +1,8 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
 use jarust_plugins::audio_bridge::messages::DestroyRoomMsg;
-use jarust_plugins::audio_bridge::AudioBridge;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
