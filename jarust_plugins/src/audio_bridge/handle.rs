@@ -12,14 +12,14 @@ use super::messages::AudioBridgeJoinMsg;
 use super::messages::AudioBridgeJoinOptions;
 use super::messages::AudioBridgeListMsg;
 use super::messages::AudioBridgeListParticipantsMsg;
-use super::responses::Allowed;
-use super::responses::ExistsRoom;
-use super::responses::ListParticipants;
-use super::responses::ListRooms;
+use super::responses::AllowedRsp;
+use super::responses::ExistsRoomRsp;
+use super::responses::ListParticipantsRsp;
+use super::responses::ListRoomsRsp;
 use super::responses::Room;
-use super::responses::RoomCreated;
-use super::responses::RoomDestroyed;
-use super::responses::RoomEdited;
+use super::responses::RoomCreatedRsp;
+use super::responses::RoomDestroyedRsp;
+use super::responses::RoomEditedRsp;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
@@ -36,7 +36,11 @@ impl AudioBridgeHandle {
     /// as an alternative to using the configuration file
     ///
     /// Random room number will be used if `room` is `None`
-    pub async fn create_room(&self, room: Option<u64>, timeout: Duration) -> JaResult<RoomCreated> {
+    pub async fn create_room(
+        &self,
+        room: Option<u64>,
+        timeout: Duration,
+    ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
             AudioBridgeCreateOptions {
                 room,
@@ -55,9 +59,9 @@ impl AudioBridgeHandle {
         &self,
         options: AudioBridgeCreateOptions,
         timeout: Duration,
-    ) -> JaResult<RoomCreated> {
+    ) -> JaResult<RoomCreatedRsp> {
         self.handle
-            .send_waiton_result::<RoomCreated>(
+            .send_waiton_result::<RoomCreatedRsp>(
                 serde_json::to_value(AudioBridgeCreateMsg::new(options))?,
                 timeout,
             )
@@ -70,9 +74,9 @@ impl AudioBridgeHandle {
         room: u64,
         options: AudioBridgeEditOptions,
         timeout: Duration,
-    ) -> JaResult<RoomEdited> {
+    ) -> JaResult<RoomEditedRsp> {
         self.handle
-            .send_waiton_result::<RoomEdited>(
+            .send_waiton_result::<RoomEditedRsp>(
                 serde_json::to_value(AudioBridgeEditMsg::new(room, options))?,
                 timeout,
             )
@@ -86,9 +90,9 @@ impl AudioBridgeHandle {
         room: u64,
         options: AudioBridgeDestroyOptions,
         timeout: Duration,
-    ) -> JaResult<RoomDestroyed> {
+    ) -> JaResult<RoomDestroyedRsp> {
         self.handle
-            .send_waiton_result::<RoomDestroyed>(
+            .send_waiton_result::<RoomDestroyedRsp>(
                 serde_json::to_value(AudioBridgeDestroyMsg::new(room, options))?,
                 timeout,
             )
@@ -129,7 +133,7 @@ impl AudioBridgeHandle {
     pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<Room>> {
         let response = self
             .handle
-            .send_waiton_result::<ListRooms>(
+            .send_waiton_result::<ListRoomsRsp>(
                 serde_json::to_value(AudioBridgeListMsg::default())?,
                 timeout,
             )
@@ -145,9 +149,9 @@ impl AudioBridgeHandle {
         allowed: Vec<String>,
         options: AudioBridgeAllowedOptions,
         timeout: Duration,
-    ) -> JaResult<Allowed> {
+    ) -> JaResult<AllowedRsp> {
         self.handle
-            .send_waiton_result::<Allowed>(
+            .send_waiton_result::<AllowedRsp>(
                 serde_json::to_value(AudioBridgeAllowedMsg::new(room, action, allowed, options))?,
                 timeout,
             )
@@ -158,7 +162,7 @@ impl AudioBridgeHandle {
     pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<bool> {
         let response = self
             .handle
-            .send_waiton_result::<ExistsRoom>(
+            .send_waiton_result::<ExistsRoomRsp>(
                 serde_json::to_value(AudioBridgeExistsMsg::new(room))?,
                 timeout,
             )
@@ -172,9 +176,9 @@ impl AudioBridgeHandle {
         &self,
         room: u64,
         timeout: Duration,
-    ) -> JaResult<ListParticipants> {
+    ) -> JaResult<ListParticipantsRsp> {
         self.handle
-            .send_waiton_result::<ListParticipants>(
+            .send_waiton_result::<ListParticipantsRsp>(
                 serde_json::to_value(AudioBridgeListParticipantsMsg::new(room))?,
                 timeout,
             )
