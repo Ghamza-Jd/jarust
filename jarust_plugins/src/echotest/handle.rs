@@ -1,7 +1,9 @@
-use super::messages::EchoTestStartMsg;
+use super::messages::StartMsg;
+use jarust::japrotocol::EstablishmentProtocol;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
 use std::ops::Deref;
+use std::time::Duration;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
@@ -9,10 +11,25 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
-    pub async fn start(&self, request: EchoTestStartMsg) -> JaResult<()> {
+    pub async fn start(&self, request: StartMsg) -> JaResult<()> {
         self.handle
             .fire_and_forget(serde_json::to_value(request)?)
             .await
+    }
+
+    pub async fn start_with_establishment(
+        &self,
+        request: StartMsg,
+        establishment: EstablishmentProtocol,
+        timeout: Duration,
+    ) -> JaResult<()> {
+        self.send_waiton_ack_with_establishment(
+            serde_json::to_value(request)?,
+            establishment,
+            timeout,
+        )
+        .await?;
+        Ok(())
     }
 }
 
