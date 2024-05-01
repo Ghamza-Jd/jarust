@@ -1,6 +1,4 @@
-use super::messages::AudioBridgeAction;
-use super::messages::AudioBridgeAllowedMsg;
-use super::messages::AudioBridgeAllowedOptions;
+use super::messages::AllowedMsg;
 use super::messages::CreateRoomMsg;
 use super::messages::DestroyRoomMsg;
 use super::messages::EditRoomMsg;
@@ -130,16 +128,14 @@ impl AudioBridgeHandle {
     pub async fn allowed(
         &self,
         room: u64,
-        action: AudioBridgeAction,
-        allowed: Vec<String>,
-        options: AudioBridgeAllowedOptions,
+        options: AllowedMsg,
         timeout: Duration,
     ) -> JaResult<AllowedRsp> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "allowed".into();
+        message["room"] = room.into();
         self.handle
-            .send_waiton_result::<AllowedRsp>(
-                serde_json::to_value(AudioBridgeAllowedMsg::new(room, action, allowed, options))?,
-                timeout,
-            )
+            .send_waiton_result::<AllowedRsp>(message, timeout)
             .await
     }
 
