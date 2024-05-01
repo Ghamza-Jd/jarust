@@ -21,7 +21,7 @@ struct Shared {
     session: JaSession,
     abort_handle: AbortHandle,
     ack_map: Arc<UnboundedNapMap<String, JaResponse>>,
-    result_map: Arc<UnboundedNapMap<String, JaResponse>>,
+    rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
 }
 
 struct InnerHandle {
@@ -42,7 +42,7 @@ impl JaHandle {
     async fn demux_recv_stream(
         inbound_stream: JaResponseStream,
         ack_map: Arc<UnboundedNapMap<String, JaResponse>>,
-        result_map: Arc<UnboundedNapMap<String, JaResponse>>,
+        rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
         event_sender: mpsc::UnboundedSender<JaResponse>,
     ) {
         let mut stream = inbound_stream;
@@ -58,7 +58,7 @@ impl JaHandle {
                 }
                 JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
                     if let Some(transaction) = item.transaction.clone() {
-                        result_map.insert(transaction, item).await;
+                        rsp_map.insert(transaction, item).await;
                     }
                 }
                 JaResponseProtocol::Error { .. } => {
@@ -77,12 +77,12 @@ impl JaHandle {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let ack_map = Arc::new(napmap::unbounded::<String, JaResponse>());
-        let result_map = Arc::new(napmap::unbounded::<String, JaResponse>());
+        let rsp_map = Arc::new(napmap::unbounded::<String, JaResponse>());
 
         let abort_handle = jatask::spawn(JaHandle::demux_recv_stream(
             receiver,
             ack_map.clone(),
-            result_map.clone(),
+            rsp_map.clone(),
             event_sender,
         ));
 
@@ -91,7 +91,7 @@ impl JaHandle {
             session,
             abort_handle,
             ack_map,
-            result_map,
+            rsp_map,
         };
 
         let jahandle = Self {
@@ -112,7 +112,7 @@ impl JaHandle {
         tracing::trace!("Polling response");
         let response = match tokio::time::timeout(
             timeout,
-            self.inner.shared.result_map.get(transaction.to_string()),
+            self.inner.shared.rsp_map.get(transaction.to_string()),
         )
         .await
         {
@@ -162,7 +162,7 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the expected response
-    pub async fn send_waiton_result<R>(&self, body: Value, timeout: Duration) -> JaResult<R>
+    pub async fn send_waiton_rsp<R>(&self, body: Value, timeout: Duration) -> JaResult<R>
     where
         R: DeserializeOwned,
     {

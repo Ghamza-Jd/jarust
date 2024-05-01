@@ -55,7 +55,7 @@ impl AudioBridgeHandle {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "create".into();
         self.handle
-            .send_waiton_result::<RoomCreatedRsp>(message, timeout)
+            .send_waiton_rsp::<RoomCreatedRsp>(message, timeout)
             .await
     }
 
@@ -70,7 +70,7 @@ impl AudioBridgeHandle {
         message["request"] = "edit".into();
         message["room"] = room.into();
         self.handle
-            .send_waiton_result::<RoomEditedRsp>(message, timeout)
+            .send_waiton_rsp::<RoomEditedRsp>(message, timeout)
             .await
     }
 
@@ -86,7 +86,7 @@ impl AudioBridgeHandle {
         message["request"] = "destory".into();
         message["room"] = room.into();
         self.handle
-            .send_waiton_result::<RoomDestroyedRsp>(message, timeout)
+            .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
             .await
     }
 
@@ -119,7 +119,7 @@ impl AudioBridgeHandle {
         });
         let response = self
             .handle
-            .send_waiton_result::<ListRoomsRsp>(message, timeout)
+            .send_waiton_rsp::<ListRoomsRsp>(message, timeout)
             .await?;
         Ok(response.list)
     }
@@ -135,7 +135,7 @@ impl AudioBridgeHandle {
         message["request"] = "allowed".into();
         message["room"] = room.into();
         self.handle
-            .send_waiton_result::<AllowedRsp>(message, timeout)
+            .send_waiton_rsp::<AllowedRsp>(message, timeout)
             .await
     }
 
@@ -147,7 +147,7 @@ impl AudioBridgeHandle {
         });
         let response = self
             .handle
-            .send_waiton_result::<ExistsRoomRsp>(message, timeout)
+            .send_waiton_rsp::<ExistsRoomRsp>(message, timeout)
             .await?;
 
         Ok(response.exists)
@@ -164,7 +164,7 @@ impl AudioBridgeHandle {
             "room": room
         });
         self.handle
-            .send_waiton_result::<ListParticipantsRsp>(message, timeout)
+            .send_waiton_rsp::<ListParticipantsRsp>(message, timeout)
             .await
     }
 }
