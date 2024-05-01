@@ -8,7 +8,6 @@ use super::messages::AudioBridgeEditOptions;
 use super::messages::AudioBridgeExistsMsg;
 use super::messages::AudioBridgeJoinMsg;
 use super::messages::AudioBridgeJoinOptions;
-use super::messages::AudioBridgeListMsg;
 use super::messages::AudioBridgeListParticipantsMsg;
 use super::messages::CreateRoomMsg;
 use super::responses::AllowedRsp;
@@ -22,6 +21,7 @@ use super::responses::RoomEditedRsp;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
+use serde_json::json;
 use std::ops::Deref;
 use std::time::Duration;
 
@@ -129,12 +129,12 @@ impl AudioBridgeHandle {
 
     /// Lists all the available rooms.
     pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<Room>> {
+        let message = json!({
+            "request": "list"
+        });
         let response = self
             .handle
-            .send_waiton_result::<ListRoomsRsp>(
-                serde_json::to_value(AudioBridgeListMsg::default())?,
-                timeout,
-            )
+            .send_waiton_result::<ListRoomsRsp>(message, timeout)
             .await?;
         Ok(response.list)
     }

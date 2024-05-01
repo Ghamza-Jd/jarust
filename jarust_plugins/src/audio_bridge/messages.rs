@@ -95,23 +95,6 @@ pub struct CreateRoomMsg {
 }
 
 //
-// List Message
-//
-
-#[derive(Serialize)]
-pub struct AudioBridgeListMsg {
-    pub request: String,
-}
-
-impl Default for AudioBridgeListMsg {
-    fn default() -> Self {
-        Self {
-            request: "list".to_string(),
-        }
-    }
-}
-
-//
 // Edit Message
 //
 
