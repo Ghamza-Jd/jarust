@@ -1,8 +1,6 @@
 use super::messages::AudioBridgeAction;
 use super::messages::AudioBridgeAllowedMsg;
 use super::messages::AudioBridgeAllowedOptions;
-use super::messages::AudioBridgeCreateMsg;
-use super::messages::AudioBridgeCreateOptions;
 use super::messages::AudioBridgeDestroyMsg;
 use super::messages::AudioBridgeDestroyOptions;
 use super::messages::AudioBridgeEditMsg;
@@ -12,6 +10,7 @@ use super::messages::AudioBridgeJoinMsg;
 use super::messages::AudioBridgeJoinOptions;
 use super::messages::AudioBridgeListMsg;
 use super::messages::AudioBridgeListParticipantsMsg;
+use super::messages::CreateRoomMsg;
 use super::responses::AllowedRsp;
 use super::responses::ExistsRoomRsp;
 use super::responses::ListParticipantsRsp;
@@ -42,7 +41,7 @@ impl AudioBridgeHandle {
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
-            AudioBridgeCreateOptions {
+            CreateRoomMsg {
                 room,
                 ..Default::default()
             },
@@ -57,14 +56,13 @@ impl AudioBridgeHandle {
     /// Random room number will be used if `room` is `None`
     pub async fn create_room_with_config(
         &self,
-        options: AudioBridgeCreateOptions,
+        options: CreateRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "create".into();
         self.handle
-            .send_waiton_result::<RoomCreatedRsp>(
-                serde_json::to_value(AudioBridgeCreateMsg::new(options))?,
-                timeout,
-            )
+            .send_waiton_result::<RoomCreatedRsp>(message, timeout)
             .await
     }
 

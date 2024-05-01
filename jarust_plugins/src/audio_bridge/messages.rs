@@ -1,18 +1,7 @@
 use serde::Serialize;
 
-//
-// Create Message
-//
-
 #[derive(Serialize, Default)]
-pub struct AudioBridgeCreateMsg {
-    request: String,
-    #[serde(flatten)]
-    options: AudioBridgeCreateOptions,
-}
-
-#[derive(Serialize, Default)]
-pub struct AudioBridgeCreateOptions {
+pub struct CreateRoomMsg {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room: Option<u64>,
@@ -103,15 +92,6 @@ pub struct AudioBridgeCreateOptions {
     /// for external forwarding purposes only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub groups: Option<Vec<String>>,
-}
-
-impl AudioBridgeCreateMsg {
-    pub fn new(options: AudioBridgeCreateOptions) -> Self {
-        Self {
-            request: "create".to_string(),
-            options,
-        }
-    }
 }
 
 //
