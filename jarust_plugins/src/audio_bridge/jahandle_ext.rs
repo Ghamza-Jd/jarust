@@ -5,12 +5,13 @@ use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::JaEventProtocol;
 use jarust::japrotocol::JaResponseProtocol;
 use jarust::prelude::*;
+use std::ops::Deref;
 use tokio::sync::mpsc;
 
 #[async_trait::async_trait]
 pub trait AudioBridge: Attach {
     type Event: Send + Sync + 'static;
-    type Handle: From<JaHandle> + std::ops::Deref<Target = JaHandle> + PluginTask;
+    type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
 
     fn parse_audio_bridge_message(message: JaResponse) -> JaResult<Self::Event>;
 
