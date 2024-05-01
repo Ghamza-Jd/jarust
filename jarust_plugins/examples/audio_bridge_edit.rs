@@ -1,7 +1,7 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::audio_bridge::messages::AudioBridgeEditOptions;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
+use jarust_plugins::audio_bridge::messages::EditRoomMsg;
 use jarust_plugins::audio_bridge::AudioBridge;
 use tracing_subscriber::EnvFilter;
 
@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let edited_room = handle
         .edit_room(
             4321,
-            AudioBridgeEditOptions {
+            EditRoomMsg {
                 new_description: Some("A nicer description".to_string()),
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
