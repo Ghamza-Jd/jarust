@@ -35,7 +35,7 @@ pub enum JaHandleRequestProtocol {
 }
 
 /// The top-level response
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct JaResponse {
     #[serde(flatten)]
     pub janus: JaResponseProtocol,
@@ -46,7 +46,7 @@ pub struct JaResponse {
     pub establishment_protocol: Option<EstablishmentProtocol>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "janus")]
 pub enum JaResponseProtocol {
     #[serde(rename = "error")]
@@ -61,18 +61,18 @@ pub enum JaResponseProtocol {
     Event(JaEventProtocol),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct JaData {
     pub id: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct JaResponseError {
     pub code: u16,
     pub reason: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "janus")]
 pub enum JaSuccessProtocol {
     #[serde(untagged)]
@@ -84,13 +84,13 @@ pub enum JaSuccessProtocol {
     },
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct PluginData {
     pub plugin: String,
     pub data: Value,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "janus")]
 pub enum JaEventProtocol {
     #[serde(rename = "event")]
@@ -126,14 +126,14 @@ pub enum JsepType {
     Answer,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Jsep {
     #[serde(rename = "type")]
     pub jsep_type: JsepType,
     pub sdp: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RTP {
     pub ip: String,
     pub port: u64,
@@ -145,10 +145,43 @@ pub struct RTP {
     pub fec: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum EstablishmentProtocol {
     #[serde(rename = "jsep")]
     JSEP(Jsep),
     #[serde(rename = "rtp")]
     RTP(RTP),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::JaData;
+    use super::JaResponse;
+    use super::JaResponseProtocol;
+    use super::JaSuccessProtocol;
+    use serde_json::json;
+
+    #[test]
+    fn it_parse_create_connection_rsp() {
+        let rsp = json!({
+            "janus": "success",
+            "transaction": "7be89359-8c3f-44fc-93a6-72e35bb56058",
+            "data": {
+                "id": 5486640424129986u64
+            }
+        });
+        let actual_rsp = serde_json::from_value::<JaResponse>(rsp).unwrap();
+        let expected = JaResponse {
+            janus: JaResponseProtocol::Success(JaSuccessProtocol::Data {
+                data: JaData {
+                    id: 5486640424129986u64,
+                },
+            }),
+            transaction: Some("7be89359-8c3f-44fc-93a6-72e35bb56058".to_string()),
+            sender: None,
+            session_id: None,
+            establishment_protocol: None,
+        };
+        assert_eq!(actual_rsp, expected);
+    }
 }
