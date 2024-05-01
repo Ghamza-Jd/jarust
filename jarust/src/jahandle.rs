@@ -62,7 +62,10 @@ impl JaHandle {
                     }
                 }
                 JaResponseProtocol::Error { .. } => {
-                    event_sender.send(item).expect("Result channel closed");
+                    if let Some(transaction) = item.transaction.clone() {
+                        rsp_map.insert(transaction.clone(), item.clone()).await;
+                        ack_map.insert(transaction, item).await;
+                    }
                 }
                 _ => {}
             }
@@ -110,45 +113,55 @@ impl JaHandle {
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
     async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling response");
-        let response = match tokio::time::timeout(
+        match tokio::time::timeout(
             timeout,
             self.inner.shared.rsp_map.get(transaction.to_string()),
         )
         .await
         {
-            Ok(Some(response)) => response,
+            Ok(Some(response)) => match response.janus {
+                JaResponseProtocol::Error { error } => Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                }),
+                _ => Ok(response),
+            },
             Ok(None) => {
                 tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
+                Err(JaError::IncompletePacket)
             }
             Err(_) => {
                 tracing::error!("Request timeout");
-                return Err(JaError::RequestTimeout);
+                Err(JaError::RequestTimeout)
             }
-        };
-        Ok(response)
+        }
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
     async fn poll_ack(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling ack");
-        let response = match tokio::time::timeout(
+        match tokio::time::timeout(
             timeout,
             self.inner.shared.ack_map.get(transaction.to_string()),
         )
         .await
         {
-            Ok(Some(response)) => response,
+            Ok(Some(response)) => match response.janus {
+                JaResponseProtocol::Error { error } => Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                }),
+                _ => Ok(response),
+            },
             Ok(None) => {
                 tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
+                Err(JaError::IncompletePacket)
             }
-            Err(why) => {
-                tracing::error!("Request timeout {why}");
-                return Err(JaError::RequestTimeout);
+            Err(_) => {
+                tracing::error!("Request timeout");
+                Err(JaError::RequestTimeout)
             }
-        };
-        Ok(response)
+        }
     }
 
     /// Send a one-shot message
@@ -224,7 +237,6 @@ impl JaHandle {
         };
         let transaction = self.send_request(request).await?;
         let response = self.poll_ack(&transaction, timeout).await?;
-
         Ok(response)
     }
 

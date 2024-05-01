@@ -16,7 +16,6 @@ impl EchoTest for JaSession {
     type Handle = EchoTestHandle;
 
     fn parse_echo_test_message(message: JaResponse) -> JaResult<Self::Event> {
-        tracing::warn!("{message:#?}");
         let msg = match message.janus {
             JaResponseProtocol::Event(JaEventProtocol::Event { plugin_data, .. }) => {
                 serde_json::from_value::<EchoTestPluginEvent>(plugin_data.data)?
