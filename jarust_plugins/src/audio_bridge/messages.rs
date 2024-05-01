@@ -280,22 +280,3 @@ impl AudioBridgeAllowedMsg {
         }
     }
 }
-
-//
-// List Participants Message
-//
-
-#[derive(Serialize)]
-pub struct AudioBridgeListParticipantsMsg {
-    request: String,
-    pub room: u64,
-}
-
-impl AudioBridgeListParticipantsMsg {
-    pub fn new(room: u64) -> Self {
-        Self {
-            request: "listparticipants".to_string(),
-            room,
-        }
-    }
-}

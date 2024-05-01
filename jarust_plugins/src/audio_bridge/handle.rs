@@ -1,7 +1,6 @@
 use super::messages::AudioBridgeAction;
 use super::messages::AudioBridgeAllowedMsg;
 use super::messages::AudioBridgeAllowedOptions;
-use super::messages::AudioBridgeListParticipantsMsg;
 use super::messages::CreateRoomMsg;
 use super::messages::DestroyRoomMsg;
 use super::messages::EditRoomMsg;
@@ -164,11 +163,12 @@ impl AudioBridgeHandle {
         room: u64,
         timeout: Duration,
     ) -> JaResult<ListParticipantsRsp> {
+        let message = json!({
+            "request": "listparticipants",
+            "room": room
+        });
         self.handle
-            .send_waiton_result::<ListParticipantsRsp>(
-                serde_json::to_value(AudioBridgeListParticipantsMsg::new(room))?,
-                timeout,
-            )
+            .send_waiton_result::<ListParticipantsRsp>(message, timeout)
             .await
     }
 }
