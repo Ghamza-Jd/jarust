@@ -1,7 +1,7 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::audio_bridge::messages::AudioBridgeAction;
-use jarust_plugins::audio_bridge::messages::AudioBridgeAllowedOptions;
+use jarust_plugins::audio_bridge::messages::AllowAction;
+use jarust_plugins::audio_bridge::messages::AllowedMsg;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
 use jarust_plugins::audio_bridge::AudioBridge;
 use tracing_subscriber::EnvFilter;
@@ -37,9 +37,9 @@ async fn main() -> anyhow::Result<()> {
     let allowed = handle
         .allowed(
             created_room.room,
-            AudioBridgeAction::Add,
-            vec![],
-            AudioBridgeAllowedOptions {
+            AllowedMsg {
+                action: AllowAction::Add,
+                allowed: vec![],
                 secret: Some("superdupersecret".to_string()),
             },
             timeout,
