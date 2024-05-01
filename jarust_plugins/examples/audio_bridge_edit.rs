@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let edited_room = handle
+    let edit_room_rsp = handle
         .edit_room(
             4321,
             EditRoomMsg {
@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    tracing::info!("Edited Room {}", edited_room.room);
+    tracing::info!("Edited Room {}", edit_room_rsp.room);
 
     Ok(())
 }

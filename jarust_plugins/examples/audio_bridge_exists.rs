@@ -17,10 +17,10 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let exist = handle.exists(4321, timeout).await?;
-    tracing::info!("Room exists?: {}", exist);
+    let exist_rsp = handle.exists(4321, timeout).await?;
+    tracing::info!("Room exists?: {}", exist_rsp);
 
-    if !exist {
+    if !exist_rsp {
         let _ = handle
             .create_room_with_config(
                 CreateRoomMsg {
@@ -32,10 +32,10 @@ async fn main() -> anyhow::Result<()> {
             )
             .await?;
 
-        let exist = handle.exists(4321, timeout).await?;
-        tracing::info!("Room exists?: {}", exist);
+        let exist_rsp = handle.exists(4321, timeout).await?;
+        tracing::info!("Room exists?: {}", exist_rsp);
 
-        if exist {
+        if exist_rsp {
             let _ = handle
                 .destroy_room(
                     4321,
