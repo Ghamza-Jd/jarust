@@ -1,8 +1,8 @@
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
-use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSuccessProtocol;
+use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
 use crate::jatask;
 use crate::jatask::AbortHandle;
@@ -48,20 +48,20 @@ impl JaHandle {
         let mut stream = inbound_stream;
         while let Some(item) = stream.recv().await {
             match item.janus {
-                JaResponseProtocol::Ack => {
+                ResponseType::Ack => {
                     if let Some(transaction) = item.transaction.clone() {
                         ack_map.insert(transaction, item).await;
                     }
                 }
-                JaResponseProtocol::Event { .. } => {
+                ResponseType::Event { .. } => {
                     event_sender.send(item).expect("Event channel closed");
                 }
-                JaResponseProtocol::Success(JaSuccessProtocol::Plugin { .. }) => {
+                ResponseType::Success(JaSuccessProtocol::Plugin { .. }) => {
                     if let Some(transaction) = item.transaction.clone() {
                         rsp_map.insert(transaction, item).await;
                     }
                 }
-                JaResponseProtocol::Error { .. } => {
+                ResponseType::Error { .. } => {
                     if let Some(transaction) = item.transaction.clone() {
                         rsp_map.insert(transaction.clone(), item.clone()).await;
                         ack_map.insert(transaction, item).await;
@@ -120,7 +120,7 @@ impl JaHandle {
         .await
         {
             Ok(Some(response)) => match response.janus {
-                JaResponseProtocol::Error { error } => Err(JaError::JanusError {
+                ResponseType::Error { error } => Err(JaError::JanusError {
                     code: error.code,
                     reason: error.reason,
                 }),
@@ -147,7 +147,7 @@ impl JaHandle {
         .await
         {
             Ok(Some(response)) => match response.janus {
-                JaResponseProtocol::Error { error } => Err(JaError::JanusError {
+                ResponseType::Error { error } => Err(JaError::JanusError {
                     code: error.code,
                     reason: error.reason,
                 }),
@@ -187,7 +187,7 @@ impl JaHandle {
         let response = self.poll_response(&transaction, timeout).await?;
 
         let result = match response.janus {
-            JaResponseProtocol::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
+            ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
                 match serde_json::from_value::<R>(plugin_data.data) {
                     Ok(result) => result,
                     Err(error) => {

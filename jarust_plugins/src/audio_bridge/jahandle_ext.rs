@@ -2,8 +2,8 @@ use super::events::AudioBridgePluginData;
 use super::events::AudioBridgePluginEvent;
 use super::handle::AudioBridgeHandle;
 use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::JaEventProtocol;
-use jarust::japrotocol::JaResponseProtocol;
+use jarust::japrotocol::JaHandleEvent;
+use jarust::japrotocol::ResponseType;
 use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::sync::mpsc;
@@ -39,7 +39,7 @@ impl AudioBridge for JaSession {
 
     fn parse_audio_bridge_message(message: JaResponse) -> JaResult<Self::Event> {
         let msg = match message.janus {
-            JaResponseProtocol::Event(JaEventProtocol::Event { plugin_data }) => (
+            ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => (
                 serde_json::from_value::<AudioBridgePluginData>(plugin_data.data)?.event,
                 message.establishment_protocol,
             ),

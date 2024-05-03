@@ -2,8 +2,8 @@ use crate::demuxer::Demuxer;
 use crate::jaconfig::JaConfig;
 use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::japrotocol::JaResponse;
-use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSuccessProtocol;
+use crate::japrotocol::ResponseType;
 use crate::jarouter::JaRouter;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
@@ -99,8 +99,8 @@ impl JaConnection {
         };
 
         let session_id = match response.janus {
-            JaResponseProtocol::Success(JaSuccessProtocol::Data { data }) => data.id,
-            JaResponseProtocol::Error { error } => {
+            ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
+            ResponseType::Error { error } => {
                 let what = JaError::JanusError {
                     code: error.code,
                     reason: error.reason,

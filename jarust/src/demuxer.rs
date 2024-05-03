@@ -1,4 +1,4 @@
-use crate::japrotocol::JaResponseProtocol;
+use crate::japrotocol::ResponseType;
 use crate::jarouter::JaRouter;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
@@ -20,7 +20,7 @@ impl Demuxer {
             // Parse the incoming message
             let message = match serde_json::from_str::<JaResponse>(&next) {
                 Ok(response) => match &response.janus {
-                    JaResponseProtocol::Error { error } => {
+                    ResponseType::Error { error } => {
                         tracing::error!("{error:#?}");
                         response
                     }
