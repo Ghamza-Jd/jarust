@@ -98,6 +98,13 @@ pub enum JaEventProtocol {
         #[serde(rename = "plugindata")]
         plugin_data: PluginData,
     },
+    #[serde(untagged)]
+    AnyHandleEvent(JaAnyHandleEvent),
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(tag = "janus")]
+pub enum JaAnyHandleEvent {
     #[serde(rename = "detached")]
     Detached,
     /// The PeerConnection was closed, either by Janus or by the user/application, and as such cannot be used anymore.
@@ -160,6 +167,7 @@ mod tests {
     use super::JaResponseProtocol;
     use super::JaSuccessProtocol;
     use crate::japrotocol::EstablishmentProtocol;
+    use crate::japrotocol::JaAnyHandleEvent;
     use crate::japrotocol::JaEventProtocol;
     use crate::japrotocol::Jsep;
     use crate::japrotocol::JsepType;
@@ -265,7 +273,9 @@ mod tests {
         });
         let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Event(JaEventProtocol::Detached),
+            janus: JaResponseProtocol::Event(JaEventProtocol::AnyHandleEvent(
+                JaAnyHandleEvent::Detached,
+            )),
             transaction: None,
             sender: Some(5373520011480655u64),
             session_id: Some(3889473834879521u64),
@@ -283,7 +293,9 @@ mod tests {
         });
         let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Event(JaEventProtocol::WebrtcUp),
+            janus: JaResponseProtocol::Event(JaEventProtocol::AnyHandleEvent(
+                JaAnyHandleEvent::WebrtcUp,
+            )),
             transaction: None,
             sender: Some(2676358135723942u64),
             session_id: Some(1942958911060866u64),
