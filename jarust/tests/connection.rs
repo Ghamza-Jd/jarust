@@ -3,11 +3,11 @@ mod mocks;
 use crate::mocks::mock_transport::MockTransport;
 use jarust::error::JaError;
 use jarust::jaconfig::JaConfig;
+use jarust::japrotocol::ErrorResponse;
 use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaResponse;
-use jarust::japrotocol::JaResponseError;
-use jarust::japrotocol::JaResponseProtocol;
 use jarust::japrotocol::JaSuccessProtocol;
+use jarust::japrotocol::ResponseType;
 use jarust::transport::trans::Transport;
 
 #[tokio::test]
@@ -31,7 +31,7 @@ async fn test_session_creation_success() {
     let server = transport.get_mock_server().unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
-        janus: JaResponseProtocol::Success(JaSuccessProtocol::Data {
+        janus: ResponseType::Success(JaSuccessProtocol::Data {
             data: JaData { id: 0 },
         }),
         transaction: None,
@@ -61,8 +61,8 @@ async fn test_session_creation_failure() {
     let server = transport.get_mock_server().unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
-        janus: JaResponseProtocol::Error {
-            error: JaResponseError {
+        janus: ResponseType::Error {
+            error: ErrorResponse {
                 code: 0,
                 reason: "".to_string(),
             },

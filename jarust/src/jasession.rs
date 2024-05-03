@@ -1,9 +1,9 @@
 use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
-use crate::japrotocol::JaResponseProtocol;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::japrotocol::JaSuccessProtocol;
+use crate::japrotocol::ResponseType;
 use crate::jatask;
 use crate::jatask::AbortHandle;
 use crate::prelude::*;
@@ -153,8 +153,8 @@ impl Attach for JaSession {
         };
 
         let handle_id = match response.janus {
-            JaResponseProtocol::Success(JaSuccessProtocol::Data { data }) => data.id,
-            JaResponseProtocol::Error { error } => {
+            ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
+            ResponseType::Error { error } => {
                 let what = JaError::JanusError {
                     code: error.code,
                     reason: error.reason,

@@ -1,7 +1,7 @@
 use super::events::EchoTestPluginEvent;
 use super::handle::EchoTestHandle;
-use jarust::japrotocol::JaEventProtocol;
-use jarust::japrotocol::JaResponseProtocol;
+use jarust::japrotocol::JaHandleEvent;
+use jarust::japrotocol::ResponseType;
 use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::sync::mpsc;
@@ -37,7 +37,7 @@ impl EchoTest for JaSession {
 
     fn parse_echotest_message(message: JaResponse) -> JaResult<Self::Event> {
         let msg = match message.janus {
-            JaResponseProtocol::Event(JaEventProtocol::Event { plugin_data, .. }) => {
+            ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data, .. }) => {
                 serde_json::from_value::<EchoTestPluginEvent>(plugin_data.data)?
             }
             _ => {

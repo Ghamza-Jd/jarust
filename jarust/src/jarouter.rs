@@ -128,7 +128,7 @@ impl JaRouter {
 mod tests {
     use super::JaRouter;
     use crate::japrotocol::JaResponse;
-    use crate::japrotocol::JaResponseProtocol;
+    use crate::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn test_basic_usage() {
@@ -137,7 +137,7 @@ mod tests {
 
         router
             .pub_root(JaResponse {
-                janus: JaResponseProtocol::Ack,
+                janus: ResponseType::Ack,
                 transaction: None,
                 session_id: None,
                 sender: None,
@@ -147,7 +147,7 @@ mod tests {
             .unwrap();
         router
             .pub_root(JaResponse {
-                janus: JaResponseProtocol::Ack,
+                janus: ResponseType::Ack,
                 transaction: None,
                 session_id: None,
                 sender: None,
@@ -160,7 +160,7 @@ mod tests {
             .pub_subroute(
                 "123",
                 JaResponse {
-                    janus: JaResponseProtocol::Ack,
+                    janus: ResponseType::Ack,
                     transaction: None,
                     session_id: None,
                     sender: None,

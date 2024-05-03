@@ -38,7 +38,7 @@ pub enum JaHandleRequestProtocol {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct JaResponse {
     #[serde(flatten)]
-    pub janus: JaResponseProtocol,
+    pub janus: ResponseType,
     pub transaction: Option<String>,
     pub session_id: Option<u64>,
     pub sender: Option<u64>,
@@ -48,9 +48,9 @@ pub struct JaResponse {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "janus")]
-pub enum JaResponseProtocol {
+pub enum ResponseType {
     #[serde(rename = "error")]
-    Error { error: JaResponseError },
+    Error { error: ErrorResponse },
     #[serde(rename = "server_info")]
     ServerInfo,
     #[serde(rename = "ack")]
@@ -58,7 +58,7 @@ pub enum JaResponseProtocol {
     #[serde(rename = "success")]
     Success(JaSuccessProtocol),
     #[serde(untagged)]
-    Event(JaEventProtocol),
+    Event(JaHandleEvent),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -67,7 +67,7 @@ pub struct JaData {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct JaResponseError {
+pub struct ErrorResponse {
     pub code: u16,
     pub reason: String,
 }
@@ -92,19 +92,19 @@ pub struct PluginData {
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "janus")]
-pub enum JaEventProtocol {
+pub enum JaHandleEvent {
     #[serde(rename = "event")]
-    Event {
+    PluginEvent {
         #[serde(rename = "plugindata")]
         plugin_data: PluginData,
     },
     #[serde(untagged)]
-    AnyHandleEvent(JaAnyHandleEvent),
+    GenericEvent(GenericEvent),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(tag = "janus")]
-pub enum JaAnyHandleEvent {
+pub enum GenericEvent {
     #[serde(rename = "detached")]
     Detached,
     /// The PeerConnection was closed, either by Janus or by the user/application, and as such cannot be used anymore.
@@ -164,11 +164,11 @@ pub enum EstablishmentProtocol {
 mod tests {
     use super::JaData;
     use super::JaResponse;
-    use super::JaResponseProtocol;
     use super::JaSuccessProtocol;
+    use super::ResponseType;
     use crate::japrotocol::EstablishmentProtocol;
-    use crate::japrotocol::JaAnyHandleEvent;
-    use crate::japrotocol::JaEventProtocol;
+    use crate::japrotocol::GenericEvent;
+    use crate::japrotocol::JaHandleEvent;
     use crate::japrotocol::Jsep;
     use crate::japrotocol::JsepType;
     use crate::japrotocol::PluginData;
@@ -185,7 +185,7 @@ mod tests {
         });
         let actual_rsp = serde_json::from_value::<JaResponse>(rsp).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Success(JaSuccessProtocol::Data {
+            janus: ResponseType::Success(JaSuccessProtocol::Data {
                 data: JaData {
                     id: 5486640424129986u64,
                 },
@@ -210,7 +210,7 @@ mod tests {
         });
         let actual_rsp = serde_json::from_value::<JaResponse>(rsp).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Success(JaSuccessProtocol::Data {
+            janus: ResponseType::Success(JaSuccessProtocol::Data {
                 data: JaData {
                     id: 7548423276295183u64,
                 },
@@ -244,7 +244,7 @@ mod tests {
         });
         let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Event(JaEventProtocol::Event {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.echotest".to_string(),
                     data: json!({
@@ -273,9 +273,7 @@ mod tests {
         });
         let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Event(JaEventProtocol::AnyHandleEvent(
-                JaAnyHandleEvent::Detached,
-            )),
+            janus: ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),
             transaction: None,
             sender: Some(5373520011480655u64),
             session_id: Some(3889473834879521u64),
@@ -293,9 +291,7 @@ mod tests {
         });
         let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
         let expected = JaResponse {
-            janus: JaResponseProtocol::Event(JaEventProtocol::AnyHandleEvent(
-                JaAnyHandleEvent::WebrtcUp,
-            )),
+            janus: ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::WebrtcUp)),
             transaction: None,
             sender: Some(2676358135723942u64),
             session_id: Some(1942958911060866u64),
