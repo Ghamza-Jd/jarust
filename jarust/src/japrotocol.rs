@@ -256,4 +256,22 @@ mod tests {
         };
         assert_eq!(actual_event, expected);
     }
+
+    #[test]
+    fn it_parse_detached_event() {
+        let event = json!({
+            "janus": "detached",
+            "session_id": 3889473834879521u64,
+            "sender": 5373520011480655u64
+        });
+        let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
+        let expected = JaResponse {
+            janus: JaResponseProtocol::Event(JaEventProtocol::Detached),
+            transaction: None,
+            sender: Some(5373520011480655u64),
+            session_id: (Some(3889473834879521u64)),
+            establishment_protocol: None,
+        };
+        assert_eq!(actual_event, expected);
+    }
 }
