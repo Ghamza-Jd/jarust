@@ -1,6 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_plugins::echotest::events::EchoTestPluginEvent;
+use jarust_plugins::echotest::events::PluginEvent;
 use jarust_plugins::echotest::jahandle_ext::EchoTest;
 use jarust_plugins::echotest::messages::StartMsg;
 use tracing_subscriber::EnvFilter;
@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
     let session = connection.create(10).await?;
-    let (handle, mut event_receiver, ..) = session.attach_echotest().await?;
+    let (handle, mut event_receiver) = session.attach_echotest().await?;
 
     handle
         .start(StartMsg {
@@ -27,8 +27,14 @@ async fn main() -> anyhow::Result<()> {
 
     while let Some(event) = event_receiver.recv().await {
         match event {
-            EchoTestPluginEvent::Result { result, .. } => {
+            jarust_plugins::echotest::events::Events::PluginEvent(PluginEvent::Result {
+                result,
+                ..
+            }) => {
                 tracing::info!("result: {result}");
+            }
+            jarust_plugins::echotest::events::Events::GenericEvent(event) => {
+                tracing::debug!("generic event: {event:#?}");
             }
         }
     }

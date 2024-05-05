@@ -1,6 +1,5 @@
-use super::events::EchoTestPluginEvent;
+use super::events::Events;
 use super::handle::EchoTestHandle;
-use jarust::japrotocol::JaHandleEvent;
 use jarust::japrotocol::ResponseType;
 use jarust::prelude::*;
 use std::ops::Deref;
@@ -11,7 +10,7 @@ pub trait EchoTest: Attach {
     type Event: Send + Sync + 'static;
     type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
 
-    fn parse_echotest_message(message: JaResponse) -> JaResult<Self::Event>;
+    fn parse_echotest_event(message: JaResponse) -> JaResult<Self::Event>;
 
     async fn attach_echotest(
         &self,
@@ -19,11 +18,11 @@ pub trait EchoTest: Attach {
         let (handle, mut receiver) = self.attach("janus.plugin.echotest").await?;
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
         let abort_handle = jatask::spawn(async move {
-            while let Some(msg) = receiver.recv().await {
-                let msg = Self::parse_echotest_message(msg)?;
-                let _ = tx.send(msg);
+            while let Some(rsp) = receiver.recv().await {
+                if let Ok(event) = Self::parse_echotest_event(rsp) {
+                    let _ = tx.send(event);
+                };
             }
-            Ok::<(), JaError>(())
         });
         let mut handle: Self::Handle = handle.into();
         handle.assign_aborts(vec![abort_handle]);
@@ -32,14 +31,12 @@ pub trait EchoTest: Attach {
 }
 
 impl EchoTest for JaSession {
-    type Event = EchoTestPluginEvent;
+    type Event = Events;
     type Handle = EchoTestHandle;
 
-    fn parse_echotest_message(message: JaResponse) -> JaResult<Self::Event> {
+    fn parse_echotest_event(message: JaResponse) -> JaResult<Self::Event> {
         let msg = match message.janus {
-            ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data, .. }) => {
-                serde_json::from_value::<EchoTestPluginEvent>(plugin_data.data)?
-            }
+            ResponseType::Event(event) => event.try_into()?,
             _ => {
                 tracing::error!("unexpected response {message:#?}");
                 return Err(JaError::UnexpectedResponse);
