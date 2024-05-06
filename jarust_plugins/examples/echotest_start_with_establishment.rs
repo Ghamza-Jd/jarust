@@ -3,6 +3,8 @@ use jarust::jaconfig::TransportType;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
+use jarust_plugins::echotest::events::EchoTestEvent;
+use jarust_plugins::echotest::events::PluginEvent;
 use jarust_plugins::echotest::jahandle_ext::EchoTest;
 use jarust_plugins::echotest::messages::StartMsg;
 use tracing_subscriber::EnvFilter;
@@ -17,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
     let session = connection.create(10).await?;
-    let (handle, ..) = session.attach_echotest().await?;
+    let (handle, mut event_receiver) = session.attach_echotest().await?;
 
     let rsp = handle
         .start_with_establishment(
@@ -35,6 +37,23 @@ async fn main() -> anyhow::Result<()> {
         .await;
 
     tracing::debug!("{rsp:#?}");
+
+    while let Some(event) = event_receiver.recv().await {
+        match event {
+            PluginEvent::EchoTestEvent(EchoTestEvent::Result { result, .. }) => {
+                tracing::info!("result: {result}");
+            }
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEstablishment {
+                establishment_protocol,
+                ..
+            }) => {
+                tracing::info!("establishment_protocol: {establishment_protocol:#?}");
+            }
+            PluginEvent::GenericEvent(event) => {
+                tracing::debug!("generic event: {event:#?}");
+            }
+        }
+    }
 
     Ok(())
 }

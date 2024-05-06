@@ -1,5 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust_plugins::echotest::events::EchoTestEvent;
 use jarust_plugins::echotest::events::PluginEvent;
 use jarust_plugins::echotest::jahandle_ext::EchoTest;
 use jarust_plugins::echotest::messages::StartMsg;
@@ -27,13 +28,16 @@ async fn main() -> anyhow::Result<()> {
 
     while let Some(event) = event_receiver.recv().await {
         match event {
-            jarust_plugins::echotest::events::Events::PluginEvent(PluginEvent::Result {
-                result,
-                ..
-            }) => {
+            PluginEvent::EchoTestEvent(EchoTestEvent::Result { result, .. }) => {
                 tracing::info!("result: {result}");
             }
-            jarust_plugins::echotest::events::Events::GenericEvent(event) => {
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEstablishment {
+                establishment_protocol,
+                ..
+            }) => {
+                tracing::info!("establishment_protocol: {establishment_protocol:#?}");
+            }
+            PluginEvent::GenericEvent(event) => {
                 tracing::debug!("generic event: {event:#?}");
             }
         }
