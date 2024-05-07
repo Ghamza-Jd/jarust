@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 use jarust::jatask;
 use jarust::jatask::AbortHandle;
-use jarust::prelude::*;
-use jarust::transport::trans::TransportProtocol;
+use jarust_transport::prelude::JaTransportResult;
+use jarust_transport::trans::MessageStream;
+use jarust_transport::trans::TransportProtocol;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 
@@ -42,7 +43,7 @@ impl TransportProtocol for MockTransport {
         }
     }
 
-    async fn connect(&mut self, _: &str) -> JaResult<MessageStream> {
+    async fn connect(&mut self, _: &str) -> JaTransportResult<MessageStream> {
         let (tx, rx) = mpsc::unbounded_channel();
 
         if let Some(mut receiver) = self.rx.take() {
@@ -57,7 +58,7 @@ impl TransportProtocol for MockTransport {
         Ok(rx)
     }
 
-    async fn send(&mut self, _: &[u8]) -> JaResult<()> {
+    async fn send(&mut self, _: &[u8]) -> JaTransportResult<()> {
         Ok(())
     }
 }
