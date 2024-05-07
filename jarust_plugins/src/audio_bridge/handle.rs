@@ -83,7 +83,7 @@ impl AudioBridgeHandle {
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
         let mut message = serde_json::to_value(options)?;
-        message["request"] = "destory".into();
+        message["request"] = "destroy".into();
         message["room"] = room.into();
         self.handle
             .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
