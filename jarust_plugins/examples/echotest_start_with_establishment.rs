@@ -7,13 +7,15 @@ use jarust_plugins::echotest::events::EchoTestEvent;
 use jarust_plugins::echotest::events::PluginEvent;
 use jarust_plugins::echotest::jahandle_ext::EchoTest;
 use jarust_plugins::echotest::messages::StartMsg;
+use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
+    let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
     let env_filter = EnvFilter::from_default_env()
         .add_directive("jarust=trace".parse()?)
-        .add_directive("echotest=trace".parse()?);
+        .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
@@ -36,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await;
 
-    tracing::debug!("{rsp:#?}");
+    tracing::debug!("rsp: {rsp:#?}");
 
     while let Some(event) = event_receiver.recv().await {
         match event {
