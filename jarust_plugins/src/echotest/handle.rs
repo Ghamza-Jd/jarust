@@ -1,7 +1,7 @@
 use super::messages::StartMsg;
 use jarust::japrotocol::EstablishmentProtocol;
-use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
+use jarust_rt::AbortHandle;
 use std::ops::Deref;
 use std::time::Duration;
 

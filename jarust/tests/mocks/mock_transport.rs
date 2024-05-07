@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use jarust::jatask;
-use jarust::jatask::AbortHandle;
+use jarust_rt::AbortHandle;
 use jarust_transport::prelude::JaTransportResult;
 use jarust_transport::trans::MessageStream;
 use jarust_transport::trans::TransportProtocol;
@@ -47,7 +46,7 @@ impl TransportProtocol for MockTransport {
         let (tx, rx) = mpsc::unbounded_channel();
 
         if let Some(mut receiver) = self.rx.take() {
-            let abort_handle = jatask::spawn(async move {
+            let abort_handle = jarust_rt::spawn(async move {
                 while let Some(msg) = receiver.recv().await {
                     tx.send(msg).unwrap();
                 }

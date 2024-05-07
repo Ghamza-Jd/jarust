@@ -4,10 +4,9 @@ use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaSessionRequestProtocol;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::jatask;
-use crate::jatask::AbortHandle;
 use crate::prelude::*;
 use async_trait::async_trait;
+use jarust_rt::AbortHandle;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -69,7 +68,7 @@ impl JaSession {
 
         let this = session.clone();
 
-        let abort_handle = jatask::spawn(async move {
+        let abort_handle = jarust_rt::spawn(async move {
             let _ = this.keep_alive(ka_interval).await;
         });
 

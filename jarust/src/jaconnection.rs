@@ -7,12 +7,11 @@ use crate::japrotocol::ResponseType;
 use crate::jarouter::JaRouter;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
-use crate::jatask;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
+use jarust_rt::AbortHandle;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
-use jatask::AbortHandle;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -59,7 +58,7 @@ impl JaConnection {
         let (transport_session, receiver) =
             TransportSession::connect(transport, &config.uri).await?;
 
-        let demux_abort_handle = jatask::spawn({
+        let demux_abort_handle = jarust_rt::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
             async move { Demuxer::demux_task(receiver, router, transaction_manager).await }

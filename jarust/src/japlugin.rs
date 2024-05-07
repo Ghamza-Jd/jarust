@@ -1,6 +1,6 @@
-use crate::jatask::AbortHandle;
 use crate::prelude::*;
 use async_trait::async_trait;
+use jarust_rt::AbortHandle;
 
 pub trait PluginTask {
     fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>);
