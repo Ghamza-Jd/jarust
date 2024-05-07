@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 pub type MessageStream = mpsc::UnboundedReceiver<String>;
 
 #[async_trait]
-pub trait Transport: Debug + Send + Sync + 'static {
+pub trait TransportProtocol: Debug + Send + Sync + 'static {
     /// Creates a new transport
     fn create_transport() -> Self
     where
@@ -19,11 +19,11 @@ pub trait Transport: Debug + Send + Sync + 'static {
     async fn send(&mut self, data: &[u8]) -> JaResult<()>;
 }
 
-pub struct TransportProtocol(Box<dyn Transport + Send + Sync>);
+pub struct TransportSession(Box<dyn TransportProtocol + Send + Sync>);
 
-impl TransportProtocol {
+impl TransportSession {
     pub async fn connect(
-        mut transport: impl Transport,
+        mut transport: impl TransportProtocol,
         uri: &str,
     ) -> JaResult<(Self, MessageStream)> {
         let rx = transport.connect(uri).await?;
@@ -36,7 +36,7 @@ impl TransportProtocol {
     }
 }
 
-impl Debug for TransportProtocol {
+impl Debug for TransportSession {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_tuple("TransportProtocol").finish()
     }
