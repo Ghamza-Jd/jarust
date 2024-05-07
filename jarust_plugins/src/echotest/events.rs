@@ -13,11 +13,13 @@ enum EchoTestEventDto {
     Result { echotest: String, result: String },
 }
 
+#[derive(Debug, PartialEq)]
 pub enum PluginEvent {
     EchoTestEvent(EchoTestEvent),
     GenericEvent(GenericEvent),
 }
 
+#[derive(Debug, PartialEq)]
 pub enum EchoTestEvent {
     Result {
         echotest: String,
@@ -57,5 +59,80 @@ impl TryFrom<JaResponse> for PluginEvent {
             }
             _ => Err(JaError::IncompletePacket),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::PluginEvent;
+    use crate::echotest::events::EchoTestEvent;
+    use jarust::japrotocol::EstablishmentProtocol;
+    use jarust::japrotocol::JaHandleEvent;
+    use jarust::japrotocol::JaResponse;
+    use jarust::japrotocol::Jsep;
+    use jarust::japrotocol::JsepType;
+    use jarust::japrotocol::PluginData;
+    use jarust::japrotocol::ResponseType;
+    use serde_json::json;
+
+    #[test]
+    fn it_parse_result_event() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.echotest".to_string(),
+                    data: json!({
+                        "echotest": "event",
+                        "result": "ok"
+                    }),
+                },
+            }),
+            establishment_protocol: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::EchoTestEvent(EchoTestEvent::Result {
+                echotest: "event".to_string(),
+                result: "ok".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_result_with_establishment_event() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.echotest".to_string(),
+                    data: json!({
+                        "echotest": "event",
+                        "result": "ok"
+                    }),
+                },
+            }),
+            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+                jsep_type: JsepType::Answer,
+                sdp: "test_sdp".to_string(),
+            })),
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEstablishment {
+                echotest: "event".to_string(),
+                result: "ok".to_string(),
+                establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
+                    jsep_type: JsepType::Answer,
+                    sdp: "test_sdp".to_string()
+                })
+            })
+        );
     }
 }
