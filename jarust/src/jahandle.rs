@@ -4,9 +4,8 @@ use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
-use crate::jatask;
-use crate::jatask::AbortHandle;
 use crate::prelude::*;
+use jarust_rt::AbortHandle;
 use napmap::UnboundedNapMap;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -82,7 +81,7 @@ impl JaHandle {
         let ack_map = Arc::new(napmap::unbounded::<String, JaResponse>());
         let rsp_map = Arc::new(napmap::unbounded::<String, JaResponse>());
 
-        let abort_handle = jatask::spawn(JaHandle::demux_recv_stream(
+        let abort_handle = jarust_rt::spawn(JaHandle::demux_recv_stream(
             receiver,
             ack_map.clone(),
             rsp_map.clone(),

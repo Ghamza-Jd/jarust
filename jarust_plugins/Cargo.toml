@@ -16,6 +16,7 @@ doctest = false
 [dependencies]
 async-trait.workspace = true
 jarust = { version = "0.2.8", path = "../jarust" }
+jarust_rt = { version = "0.2.8", path = "../jarust_rt" }
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["sync"] }

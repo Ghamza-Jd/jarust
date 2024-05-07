@@ -10,6 +10,9 @@ categories.workspace = true
 edition.workspace = true
 repository.workspace = true
 
+[lib]
+doctest = false
+
 [dependencies]
 futures-util = "0.3.29"
 tokio.workspace = true
