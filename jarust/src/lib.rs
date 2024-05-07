@@ -13,7 +13,7 @@ mod demuxer;
 mod jarouter;
 mod tmanager;
 
-use crate::transport::trans::Transport;
+use crate::transport::trans::TransportProtocol;
 use jaconfig::JaConfig;
 use jaconfig::TransportType;
 use jaconnection::JaConnection;
@@ -56,7 +56,7 @@ pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaRes
 #[tracing::instrument(level = Level::TRACE)]
 pub async fn connect_with_transport(
     jaconfig: JaConfig,
-    transport: impl Transport,
+    transport: impl TransportProtocol,
 ) -> JaResult<JaConnection> {
     tracing::info!("Creating new connection");
     JaConnection::open(jaconfig, transport).await

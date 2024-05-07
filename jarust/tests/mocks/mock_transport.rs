@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use jarust::jatask;
 use jarust::jatask::AbortHandle;
 use jarust::prelude::*;
-use jarust::transport::trans::Transport;
+use jarust::transport::trans::TransportProtocol;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 
@@ -29,7 +29,7 @@ impl MockTransport {
 }
 
 #[async_trait]
-impl Transport for MockTransport {
+impl TransportProtocol for MockTransport {
     fn create_transport() -> Self
     where
         Self: Sized,

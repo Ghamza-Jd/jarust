@@ -8,7 +8,7 @@ use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::JaSuccessProtocol;
 use jarust::japrotocol::ResponseType;
-use jarust::transport::trans::Transport;
+use jarust::transport::trans::TransportProtocol;
 
 #[tokio::test]
 async fn test_connection() {

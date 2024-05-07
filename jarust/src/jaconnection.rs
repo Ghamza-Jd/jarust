@@ -10,8 +10,8 @@ use crate::jasession::WeakJaSession;
 use crate::jatask;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
-use crate::transport::trans::Transport;
 use crate::transport::trans::TransportProtocol;
+use crate::transport::trans::TransportSession;
 use jatask::AbortHandle;
 use serde_json::json;
 use serde_json::Value;
@@ -31,7 +31,7 @@ struct Shared {
 #[derive(Debug)]
 struct Exclusive {
     router: JaRouter,
-    transport_protocol: TransportProtocol,
+    transport_session: TransportSession,
     receiver: JaResponseStream,
     sessions: HashMap<u64, WeakJaSession>,
     transaction_manager: TransactionManager,
@@ -49,12 +49,15 @@ pub struct JaConnection {
 }
 
 impl JaConnection {
-    pub(crate) async fn open(config: JaConfig, transport: impl Transport) -> JaResult<Self> {
+    pub(crate) async fn open(
+        config: JaConfig,
+        transport: impl TransportProtocol,
+    ) -> JaResult<Self> {
         let (router, root_channel) = JaRouter::new(&config.namespace).await;
         let transaction_manager = TransactionManager::new(32);
 
-        let (transport_protocol, receiver) =
-            TransportProtocol::connect(transport, &config.uri).await?;
+        let (transport_session, receiver) =
+            TransportSession::connect(transport, &config.uri).await?;
 
         let demux_abort_handle = jatask::spawn({
             let router = router.clone();
@@ -68,7 +71,7 @@ impl JaConnection {
         };
         let safe = Exclusive {
             router,
-            transport_protocol,
+            transport_session,
             receiver: root_channel,
             sessions: HashMap::new(),
             transaction_manager,
@@ -151,7 +154,7 @@ impl JaConnection {
             .create_transaction(transaction, &path)
             .await;
         tracing::debug!("Sending {message}");
-        guard.transport_protocol.send(message.as_bytes()).await?;
+        guard.transport_session.send(message.as_bytes()).await?;
         Ok(transaction.into())
     }
 

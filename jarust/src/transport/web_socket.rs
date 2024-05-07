@@ -4,7 +4,7 @@ compile_error!("Feature \"rustls\" and feature \"native-tls\" cannot be enabled 
 #[cfg(not(any(feature = "use-rustls", feature = "use-native-tls")))]
 compile_error!("Either feature \"rustls\" or \"native-tls\" must be enabled for this crate");
 
-use super::trans::Transport;
+use super::trans::TransportProtocol;
 use crate::jatask;
 use crate::jatask::AbortHandle;
 use crate::prelude::*;
@@ -40,7 +40,7 @@ pub struct WebsocketTransport {
 }
 
 #[async_trait]
-impl Transport for WebsocketTransport {
+impl TransportProtocol for WebsocketTransport {
     fn create_transport() -> Self {
         Self {
             sender: None,
