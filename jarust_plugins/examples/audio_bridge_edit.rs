@@ -3,13 +3,16 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
 use jarust_plugins::audio_bridge::messages::EditRoomMsg;
+use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
-        .init();
+    let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
+    let env_filter = EnvFilter::from_default_env()
+        .add_directive("jarust=trace".parse()?)
+        .add_directive(format!("{filename}=trace").parse()?);
+    tracing_subscriber::fmt().with_env_filter(env_filter).init();
     let timeout = std::time::Duration::from_secs(10);
 
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
