@@ -37,11 +37,16 @@ pub enum PluginEvent {
 
 #[derive(Debug, PartialEq)]
 pub enum AudioBridgeEvent {
-    JoinRoom {
+    RoomJoinedWithEstabilshment {
         id: u64,
         room: u64,
         participants: Vec<Participant>,
         establishment_protocol: EstablishmentProtocol,
+    },
+    RoomJoined {
+        id: u64,
+        room: u64,
+        participants: Vec<Participant>,
     },
 }
 
@@ -51,22 +56,29 @@ impl TryFrom<JaResponse> for PluginEvent {
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
             ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => {
-                match value.establishment_protocol {
-                    Some(establishment_protocol) => {
-                        match from_value::<AudioBridgeEventDto>(plugin_data.data)? {
-                            AudioBridgeEventDto::JoinRoom {
-                                id,
-                                room,
-                                participants,
-                            } => Ok(PluginEvent::AudioBridgeEvent(AudioBridgeEvent::JoinRoom {
+                let audiobridge_event = from_value::<AudioBridgeEventDto>(plugin_data.data)?;
+                match audiobridge_event {
+                    AudioBridgeEventDto::JoinRoom {
+                        id,
+                        room,
+                        participants,
+                    } => match value.establishment_protocol {
+                        Some(establishment_protocol) => Ok(PluginEvent::AudioBridgeEvent(
+                            AudioBridgeEvent::RoomJoinedWithEstabilshment {
                                 id,
                                 room,
                                 participants,
                                 establishment_protocol,
-                            })),
-                        }
-                    }
-                    None => Err(JaError::IncompletePacket),
+                            },
+                        )),
+                        None => Ok(PluginEvent::AudioBridgeEvent(
+                            AudioBridgeEvent::RoomJoined {
+                                id,
+                                room,
+                                participants,
+                            },
+                        )),
+                    },
                 }
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
@@ -89,6 +101,36 @@ mod tests {
     use jarust::japrotocol::PluginData;
     use jarust::japrotocol::ResponseType;
     use serde_json::json;
+
+    #[test]
+    fn it_parse_room_joined() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: json!({
+                        "audiobridge": "joined",
+                        "room": 6846571539994870u64,
+                        "id": 7513785212278430u64,
+                        "participants": []
+                    }),
+                },
+            }),
+            establishment_protocol: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined {
+                id: 7513785212278430,
+                room: 6846571539994870,
+                participants: vec![],
+            })
+        );
+    }
 
     #[test]
     fn it_parse_room_joined_with_establishment_event() {
@@ -115,7 +157,7 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::JoinRoom {
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithEstabilshment {
                 id: 7513785212278430,
                 room: 6846571539994870,
                 participants: vec![],
