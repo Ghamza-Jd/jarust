@@ -46,13 +46,8 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    if let Some((event, protocol)) = event_receiver.recv().await {
-        tracing::info!(
-            "Joined Room {}, {:#?}, {:#?}",
-            create_room_rsp.room,
-            event,
-            protocol
-        );
+    if let Some(event) = event_receiver.recv().await {
+        tracing::info!("Joined Room {}, {:#?}", create_room_rsp.room, event);
     }
 
     Ok(())
