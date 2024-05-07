@@ -1,0 +1,19 @@
+[package]
+name = "jarust_rt"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+futures-util = "0.3.29"
+tokio.workspace = true
+
+[features]
+default = ["tokio-rt"]
+tokio-rt = []
