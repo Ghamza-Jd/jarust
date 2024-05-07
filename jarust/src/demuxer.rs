@@ -2,6 +2,7 @@ use crate::japrotocol::ResponseType;
 use crate::jarouter::JaRouter;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
+use jarust_transport::trans::MessageStream;
 
 pub(crate) struct Demuxer;
 

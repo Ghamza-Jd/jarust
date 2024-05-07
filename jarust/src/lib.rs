@@ -7,16 +7,15 @@ pub mod japrotocol;
 pub mod jasession;
 pub mod jatask;
 pub mod prelude;
-pub mod transport;
 
 mod demuxer;
 mod jarouter;
 mod tmanager;
 
-use crate::transport::trans::TransportProtocol;
 use jaconfig::JaConfig;
 use jaconfig::TransportType;
 use jaconnection::JaConnection;
+use jarust_transport::trans::TransportProtocol;
 use prelude::JaResult;
 use tracing::Level;
 
@@ -36,7 +35,7 @@ use tracing::Level;
 pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
     let transport = match transport_type {
         jaconfig::TransportType::Ws => {
-            transport::web_socket::WebsocketTransport::create_transport()
+            jarust_transport::web_socket::WebsocketTransport::create_transport()
         }
     };
     connect_with_transport(jaconfig, transport).await
