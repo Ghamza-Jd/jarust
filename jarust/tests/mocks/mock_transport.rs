@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use jarust_transport::prelude::JaTransportResult;
 use jarust_transport::trans::MessageStream;
 use jarust_transport::trans::TransportProtocol;
@@ -19,7 +19,7 @@ impl MockServer {
 pub struct MockTransport {
     rx: Option<MessageStream>,
     server: Option<MockServer>,
-    abort_handle: Option<AbortHandle>,
+    task: Option<JaTask>,
 }
 
 impl MockTransport {
@@ -38,7 +38,7 @@ impl TransportProtocol for MockTransport {
         Self {
             rx: Some(rx),
             server: Some(MockServer { tx }),
-            abort_handle: None,
+            task: None,
         }
     }
 
@@ -46,12 +46,12 @@ impl TransportProtocol for MockTransport {
         let (tx, rx) = mpsc::unbounded_channel();
 
         if let Some(mut receiver) = self.rx.take() {
-            let abort_handle = jarust_rt::spawn(async move {
+            let taks = jarust_rt::spawn(async move {
                 while let Some(msg) = receiver.recv().await {
                     tx.send(msg).unwrap();
                 }
             });
-            self.abort_handle = Some(abort_handle);
+            self.task = Some(taks);
         };
 
         Ok(rx)
@@ -64,8 +64,8 @@ impl TransportProtocol for MockTransport {
 
 impl Drop for MockTransport {
     fn drop(&mut self) {
-        if let Some(abort_handle) = self.abort_handle.take() {
-            abort_handle.abort();
+        if let Some(task) = self.task.take() {
+            task.cancel();
         }
     }
 }

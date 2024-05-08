@@ -14,7 +14,7 @@ pub trait AudioBridge: Attach {
     ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
         let (handle, mut receiver) = self.attach("janus.plugin.audiobridge").await?;
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-        let abort_handle = jarust_rt::spawn(async move {
+        let task = jarust_rt::spawn(async move {
             while let Some(rsp) = receiver.recv().await {
                 if let Ok(event) = rsp.try_into() {
                     let _ = tx.send(event);
@@ -22,7 +22,7 @@ pub trait AudioBridge: Attach {
             }
         });
         let mut handle: Self::Handle = handle.into();
-        handle.assign_cancellation(abort_handle);
+        handle.assign_task(task);
         Ok((handle, rx))
     }
 }
