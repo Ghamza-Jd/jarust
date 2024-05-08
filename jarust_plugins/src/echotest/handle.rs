@@ -1,13 +1,13 @@
 use super::messages::StartMsg;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::prelude::*;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use std::ops::Deref;
 use std::time::Duration;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
-    cancellable: Option<AbortHandle>,
+    task: Option<JaTask>,
 }
 
 impl EchoTestHandle {
@@ -34,23 +34,20 @@ impl EchoTestHandle {
 }
 
 impl PluginTask for EchoTestHandle {
-    fn assign_cancellation(&mut self, cancellable: AbortHandle) {
-        self.cancellable = Some(cancellable);
+    fn assign_task(&mut self, task: JaTask) {
+        self.task = Some(task);
     }
 
-    fn invoke_cancellation(&mut self) {
-        if let Some(cancellation) = self.cancellable.take() {
-            cancellation.abort();
+    fn cancel_task(&mut self) {
+        if let Some(task) = self.task.take() {
+            task.cancel();
         };
     }
 }
 
 impl From<JaHandle> for EchoTestHandle {
     fn from(handle: JaHandle) -> Self {
-        Self {
-            handle,
-            cancellable: None,
-        }
+        Self { handle, task: None }
     }
 }
 
@@ -64,7 +61,7 @@ impl Deref for EchoTestHandle {
 
 impl Drop for EchoTestHandle {
     fn drop(&mut self) {
-        self.invoke_cancellation();
+        self.cancel_task();
     }
 }
 
@@ -72,7 +69,7 @@ impl Clone for EchoTestHandle {
     fn clone(&self) -> Self {
         Self {
             handle: self.handle.clone(),
-            cancellable: None,
+            task: None,
         }
     }
 }

@@ -1,30 +1,30 @@
 use futures_util::Future;
-use tokio::task::AbortHandle as AbortHandleInner;
+use tokio::task::AbortHandle;
 
-pub fn spawn<F>(future: F) -> AbortHandle
+pub fn spawn<F>(future: F) -> JaTask
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
 {
     let jh = tokio::spawn(future);
-    AbortHandle {
+    JaTask {
         inner: jh.abort_handle(),
     }
 }
 
 #[derive(Debug)]
-pub struct AbortHandle {
-    inner: AbortHandleInner,
+pub struct JaTask {
+    inner: AbortHandle,
 }
 
-impl AbortHandle {
-    pub fn abort(&self) {
+impl JaTask {
+    pub fn cancel(&self) {
         self.inner.abort();
     }
 }
 
-impl Drop for AbortHandle {
+impl Drop for JaTask {
     fn drop(&mut self) {
-        self.abort();
+        self.cancel();
     }
 }

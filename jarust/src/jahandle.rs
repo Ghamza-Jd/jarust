@@ -5,7 +5,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
 use crate::prelude::*;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use napmap::UnboundedNapMap;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -18,7 +18,7 @@ use tokio::sync::mpsc;
 struct Shared {
     id: u64,
     session: JaSession,
-    abort_handle: AbortHandle,
+    task: JaTask,
     ack_map: Arc<UnboundedNapMap<String, JaResponse>>,
     rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
 }
@@ -81,7 +81,7 @@ impl JaHandle {
         let ack_map = Arc::new(napmap::unbounded::<String, JaResponse>());
         let rsp_map = Arc::new(napmap::unbounded::<String, JaResponse>());
 
-        let abort_handle = jarust_rt::spawn(JaHandle::demux_recv_stream(
+        let task = jarust_rt::spawn(JaHandle::demux_recv_stream(
             receiver,
             ack_map.clone(),
             rsp_map.clone(),
@@ -91,7 +91,7 @@ impl JaHandle {
         let shared = Shared {
             id,
             session,
-            abort_handle,
+            task,
             ack_map,
             rsp_map,
         };
@@ -282,6 +282,6 @@ impl Drop for InnerHandle {
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
     fn drop(&mut self) {
         tracing::debug!("Handle Dropped");
-        self.shared.abort_handle.abort();
+        self.shared.task.cancel();
     }
 }

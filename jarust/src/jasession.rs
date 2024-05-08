@@ -6,7 +6,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::prelude::*;
 use async_trait::async_trait;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ pub struct Shared {
 pub struct Exclusive {
     receiver: JaResponseStream,
     handles: HashMap<u64, WeakJaHandle>,
-    abort_handle: Option<AbortHandle>,
+    task: Option<JaTask>,
 }
 
 #[derive(Debug)]
@@ -56,7 +56,7 @@ impl JaSession {
         let safe = Exclusive {
             receiver,
             handles: HashMap::new(),
-            abort_handle: None,
+            task: None,
         };
 
         let session = Self {
@@ -68,11 +68,11 @@ impl JaSession {
 
         let this = session.clone();
 
-        let abort_handle = jarust_rt::spawn(async move {
+        let keepalive_task = jarust_rt::spawn(async move {
             let _ = this.keep_alive(ka_interval).await;
         });
 
-        session.inner.exclusive.lock().await.abort_handle = Some(abort_handle);
+        session.inner.exclusive.lock().await.task = Some(keepalive_task);
 
         session
     }
@@ -122,9 +122,9 @@ impl Drop for InnerSession {
 impl Drop for Exclusive {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
-        if let Some(join_handle) = self.abort_handle.take() {
+        if let Some(join_handle) = self.task.take() {
             tracing::debug!("Keepalive task aborted");
-            join_handle.abort();
+            join_handle.cancel();
         }
     }
 }

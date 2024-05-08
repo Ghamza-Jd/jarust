@@ -9,7 +9,7 @@ use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
 use serde_json::json;
@@ -23,7 +23,7 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
 #[derive(Debug)]
 struct Shared {
-    demux_abort_handle: AbortHandle,
+    demux_task: JaTask,
     config: JaConfig,
 }
 
@@ -58,16 +58,13 @@ impl JaConnection {
         let (transport_session, receiver) =
             TransportSession::connect(transport, &config.uri).await?;
 
-        let demux_abort_handle = jarust_rt::spawn({
+        let demux_task = jarust_rt::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
             async move { Demuxer::demux_task(receiver, router, transaction_manager).await }
         });
 
-        let shared = Shared {
-            demux_abort_handle,
-            config,
-        };
+        let shared = Shared { demux_task, config };
         let safe = Exclusive {
             router,
             transport_session,
@@ -200,6 +197,6 @@ impl Drop for InnerConnection {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip_all)]
     fn drop(&mut self) {
         tracing::debug!("Connection dropped");
-        self.shared.demux_abort_handle.abort();
+        self.shared.demux_task.cancel();
     }
 }

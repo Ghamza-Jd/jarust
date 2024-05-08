@@ -12,7 +12,7 @@ use async_trait::async_trait;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use std::fmt::Debug;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
@@ -37,7 +37,7 @@ type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Mes
 
 pub struct WebsocketTransport {
     sender: Option<WebSocketSender>,
-    abort_handle: Option<AbortHandle>,
+    task: Option<JaTask>,
 }
 
 #[async_trait]
@@ -45,7 +45,7 @@ impl TransportProtocol for WebsocketTransport {
     fn create_transport() -> Self {
         Self {
             sender: None,
-            abort_handle: None,
+            task: None,
         }
     }
 
@@ -58,7 +58,7 @@ impl TransportProtocol for WebsocketTransport {
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let abort_handle = jarust_rt::spawn(async move {
+        let task = jarust_rt::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
                     let _ = tx.send(text);
@@ -67,7 +67,7 @@ impl TransportProtocol for WebsocketTransport {
         });
 
         self.sender = Some(sender);
-        self.abort_handle = Some(abort_handle);
+        self.task = Some(task);
         Ok(rx)
     }
 
@@ -117,9 +117,9 @@ impl WebsocketTransport {
 impl Drop for WebsocketTransport {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
-        if let Some(join_handle) = self.abort_handle.take() {
+        if let Some(join_handle) = self.task.take() {
             tracing::debug!("Dropping wss transport");
-            join_handle.abort();
+            join_handle.cancel();
         }
     }
 }

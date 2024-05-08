@@ -1,10 +1,10 @@
 use crate::prelude::*;
 use async_trait::async_trait;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 
 pub trait PluginTask {
-    fn assign_cancellation(&mut self, cancellable: AbortHandle);
-    fn invoke_cancellation(&mut self);
+    fn assign_task(&mut self, task: JaTask);
+    fn cancel_task(&mut self);
 }
 
 #[async_trait]

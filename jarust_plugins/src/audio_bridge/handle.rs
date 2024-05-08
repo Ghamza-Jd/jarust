@@ -13,14 +13,14 @@ use super::responses::RoomDestroyedRsp;
 use super::responses::RoomEditedRsp;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::prelude::*;
-use jarust_rt::AbortHandle;
+use jarust_rt::JaTask;
 use serde_json::json;
 use std::ops::Deref;
 use std::time::Duration;
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,
-    cancellable: Option<AbortHandle>,
+    task: Option<JaTask>,
 }
 
 impl AudioBridgeHandle {
@@ -170,22 +170,20 @@ impl AudioBridgeHandle {
 }
 
 impl PluginTask for AudioBridgeHandle {
-    fn assign_cancellation(&mut self, cancellable: AbortHandle) {
-        self.cancellable = Some(cancellable);
+    fn assign_task(&mut self, task: JaTask) {
+        self.task = Some(task);
     }
-    fn invoke_cancellation(&mut self) {
-        if let Some(cancellable) = self.cancellable.take() {
-            cancellable.abort()
+
+    fn cancel_task(&mut self) {
+        if let Some(task) = self.task.take() {
+            task.cancel()
         };
     }
 }
 
 impl From<JaHandle> for AudioBridgeHandle {
     fn from(handle: JaHandle) -> Self {
-        Self {
-            handle,
-            cancellable: None,
-        }
+        Self { handle, task: None }
     }
 }
 
@@ -199,6 +197,6 @@ impl Deref for AudioBridgeHandle {
 
 impl Drop for AudioBridgeHandle {
     fn drop(&mut self) {
-        self.invoke_cancellation();
+        self.cancel_task();
     }
 }
