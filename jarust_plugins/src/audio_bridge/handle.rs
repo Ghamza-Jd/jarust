@@ -20,7 +20,7 @@ use std::time::Duration;
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,
-    abort_handles: Option<Vec<AbortHandle>>,
+    cancellable: Option<AbortHandle>,
 }
 
 impl AudioBridgeHandle {
@@ -170,15 +170,12 @@ impl AudioBridgeHandle {
 }
 
 impl PluginTask for AudioBridgeHandle {
-    fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>) {
-        self.abort_handles = Some(abort_handles);
+    fn assign_cancellation(&mut self, cancellable: AbortHandle) {
+        self.cancellable = Some(cancellable);
     }
-
-    fn abort_plugin(&mut self) {
-        if let Some(abort_handles) = self.abort_handles.take() {
-            for abort_handle in abort_handles {
-                abort_handle.abort();
-            }
+    fn invoke_cancellation(&mut self) {
+        if let Some(cancellable) = self.cancellable.take() {
+            cancellable.abort()
         };
     }
 }
@@ -187,7 +184,7 @@ impl From<JaHandle> for AudioBridgeHandle {
     fn from(handle: JaHandle) -> Self {
         Self {
             handle,
-            abort_handles: None,
+            cancellable: None,
         }
     }
 }
@@ -202,6 +199,6 @@ impl Deref for AudioBridgeHandle {
 
 impl Drop for AudioBridgeHandle {
     fn drop(&mut self) {
-        self.abort_plugin();
+        self.invoke_cancellation();
     }
 }

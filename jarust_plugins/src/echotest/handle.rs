@@ -7,7 +7,7 @@ use std::time::Duration;
 
 pub struct EchoTestHandle {
     handle: JaHandle,
-    abort_handles: Option<Vec<AbortHandle>>,
+    cancellable: Option<AbortHandle>,
 }
 
 impl EchoTestHandle {
@@ -34,15 +34,13 @@ impl EchoTestHandle {
 }
 
 impl PluginTask for EchoTestHandle {
-    fn assign_aborts(&mut self, abort_handles: Vec<AbortHandle>) {
-        self.abort_handles = Some(abort_handles);
+    fn assign_cancellation(&mut self, cancellable: AbortHandle) {
+        self.cancellable = Some(cancellable);
     }
 
-    fn abort_plugin(&mut self) {
-        if let Some(abort_handles) = self.abort_handles.take() {
-            for abort_handle in abort_handles {
-                abort_handle.abort();
-            }
+    fn invoke_cancellation(&mut self) {
+        if let Some(cancellation) = self.cancellable.take() {
+            cancellation.abort();
         };
     }
 }
@@ -51,7 +49,7 @@ impl From<JaHandle> for EchoTestHandle {
     fn from(handle: JaHandle) -> Self {
         Self {
             handle,
-            abort_handles: None,
+            cancellable: None,
         }
     }
 }
@@ -66,7 +64,7 @@ impl Deref for EchoTestHandle {
 
 impl Drop for EchoTestHandle {
     fn drop(&mut self) {
-        self.abort_plugin();
+        self.invoke_cancellation();
     }
 }
 
@@ -74,7 +72,7 @@ impl Clone for EchoTestHandle {
     fn clone(&self) -> Self {
         Self {
             handle: self.handle.clone(),
-            abort_handles: None,
+            cancellable: None,
         }
     }
 }

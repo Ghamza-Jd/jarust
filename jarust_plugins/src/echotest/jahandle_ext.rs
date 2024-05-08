@@ -22,7 +22,7 @@ pub trait EchoTest: Attach {
             }
         });
         let mut handle: Self::Handle = handle.into();
-        handle.assign_aborts(vec![abort_handle]);
+        handle.assign_cancellation(abort_handle);
         Ok((handle, rx))
     }
 }
