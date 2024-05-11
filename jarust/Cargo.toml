@@ -17,8 +17,8 @@ doctest = false
 async-trait.workspace = true
 futures-util = "0.3.29"
 indexmap = "2.2.6"
-jarust_rt = { version = "0.2.8", path = "../jarust_rt" }
-jarust_transport = { version = "0.2.8", path = "../jarust_transport" }
+jarust_rt = { version = "0.2.9", path = "../jarust_rt" }
+jarust_transport = { version = "0.2.9", path = "../jarust_transport" }
 napmap = "0.1.1"
 rand = "0.8.5"
 serde_json.workspace = true
