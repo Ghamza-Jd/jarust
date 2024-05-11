@@ -61,9 +61,9 @@ jobs:
             override: true
 
       - run: |
-          cargo publish -p jarust --token ${CRATES_TOKEN}
-          cargo publish -p jarust_plugins --token ${CRATES_TOKEN}
           cargo publish -p jarust_rt --token ${CRATES_TOKEN}
           cargo publish -p jarust_transport --token ${CRATES_TOKEN}
+          cargo publish -p jarust --token ${CRATES_TOKEN}
+          cargo publish -p jarust_plugins --token ${CRATES_TOKEN}
         env:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
