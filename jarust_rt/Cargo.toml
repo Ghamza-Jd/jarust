@@ -15,7 +15,7 @@ doctest = false
 
 [dependencies]
 futures-util = "0.3.29"
-tokio.workspace = true
+tokio = { workspace = true, features = ["rt"] }
 
 [features]
 default = ["tokio-rt"]
