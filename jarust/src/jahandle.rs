@@ -53,7 +53,7 @@ impl JaHandle {
                     }
                 }
                 ResponseType::Event { .. } => {
-                    event_sender.send(item).expect("Event channel closed");
+                    _ = event_sender.send(item);
                 }
                 ResponseType::Success(JaSuccessProtocol::Plugin { .. }) => {
                     if let Some(transaction) = item.transaction.clone() {
