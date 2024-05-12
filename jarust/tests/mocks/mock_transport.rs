@@ -26,6 +26,14 @@ impl MockTransport {
     pub fn get_mock_server(&mut self) -> Option<MockServer> {
         self.server.take()
     }
+
+    pub fn transport_server_pair() -> (Self, MockServer) {
+        let mut transport = Self::create_transport();
+        let server = transport
+            .get_mock_server()
+            .expect("Couldn't found mock server");
+        (transport, server)
+    }
 }
 
 #[async_trait]
