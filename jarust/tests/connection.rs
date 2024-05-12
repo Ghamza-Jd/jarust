@@ -31,7 +31,7 @@ async fn it_successfully_creates_session() {
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
-            data: JaData { id: 0 },
+            data: JaData { id: 2 },
         }),
         transaction: None,
         session_id: None,
