@@ -11,7 +11,7 @@ use jarust::japrotocol::ResponseType;
 use jarust_transport::trans::TransportProtocol;
 
 #[tokio::test]
-async fn test_connection() {
+async fn it_successfully_connects() {
     let config = JaConfig::builder()
         .url("mock://some.janus.com")
         .namespace("mock")
@@ -22,13 +22,12 @@ async fn test_connection() {
 }
 
 #[tokio::test]
-async fn test_session_creation_success() {
+async fn it_successfully_creates_session() {
     let config = JaConfig::builder()
         .url("mock://some.janus.com")
         .namespace("mock")
         .build();
-    let mut transport = MockTransport::create_transport();
-    let server = transport.get_mock_server().unwrap();
+    let (transport, server) = MockTransport::transport_server_pair();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -52,13 +51,12 @@ async fn test_session_creation_success() {
 }
 
 #[tokio::test]
-async fn test_session_creation_failure() {
+async fn it_fails_to_create_session_with_janus_error() {
     let config = JaConfig::builder()
         .url("mock://some.janus.com")
         .namespace("mock")
         .build();
-    let mut transport = MockTransport::create_transport();
-    let server = transport.get_mock_server().unwrap();
+    let (transport, server) = MockTransport::transport_server_pair();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Error {
