@@ -7,8 +7,8 @@ compile_error!("Either feature \"rustls\" or \"native-tls\" must be enabled for 
 use super::trans::TransportProtocol;
 use crate::error::JaTransportError;
 use crate::prelude::*;
-use crate::trans::MessageStream;
 use async_trait::async_trait;
+use bytes::Bytes;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
@@ -49,7 +49,7 @@ impl TransportProtocol for WebsocketTransport {
         }
     }
 
-    async fn connect(&mut self, uri: &str) -> JaTransportResult<MessageStream> {
+    async fn connect(&mut self, uri: &str) -> JaTransportResult<mpsc::UnboundedReceiver<Bytes>> {
         let mut request = uri.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
@@ -61,7 +61,7 @@ impl TransportProtocol for WebsocketTransport {
         let task = jarust_rt::spawn(async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
-                    let _ = tx.send(text);
+                    let _ = tx.send(text.into());
                 }
             }
         });

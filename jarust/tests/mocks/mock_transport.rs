@@ -1,25 +1,29 @@
 use async_trait::async_trait;
+use bytes::BufMut;
+use bytes::Bytes;
+use bytes::BytesMut;
 use jarust::error::JaError;
 use jarust::prelude::JaResult;
 use jarust_rt::JaTask;
 use jarust_transport::prelude::JaTransportResult;
-use jarust_transport::trans::MessageStream;
 use jarust_transport::trans::TransportProtocol;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 
 pub struct MockServer {
-    tx: mpsc::UnboundedSender<String>,
+    tx: mpsc::UnboundedSender<Bytes>,
 }
 
 impl MockServer {
     pub async fn mock_send_to_client(&self, msg: &str) {
-        self.tx.send(msg.to_string()).unwrap();
+        let mut bytes = BytesMut::new();
+        bytes.put_slice(msg.as_bytes());
+        self.tx.send(bytes.into()).unwrap();
     }
 }
 
 pub struct MockTransport {
-    rx: Option<MessageStream>,
+    rx: Option<mpsc::UnboundedReceiver<Bytes>>,
     server: Option<MockServer>,
     task: Option<JaTask>,
 }
@@ -52,7 +56,7 @@ impl TransportProtocol for MockTransport {
         }
     }
 
-    async fn connect(&mut self, _: &str) -> JaTransportResult<MessageStream> {
+    async fn connect(&mut self, _: &str) -> JaTransportResult<mpsc::UnboundedReceiver<Bytes>> {
         let (tx, rx) = mpsc::unbounded_channel();
 
         if let Some(mut receiver) = self.rx.take() {
