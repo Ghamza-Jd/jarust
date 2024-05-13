@@ -13,7 +13,7 @@ impl Transport for WasmWsTransport {
         Self
     }
 
-    async fn connect(&mut self, _uri: &str) -> JaResult<mpsc::UnboundedReceiver<Bytes>> {
+    async fn connect(&mut self, _url: &str) -> JaResult<mpsc::UnboundedReceiver<Bytes>> {
         tracing::error!("WASM support is WIP!");
         todo!("WASM support is WIP!")
     }
@@ -21,5 +21,9 @@ impl Transport for WasmWsTransport {
     async fn send(&mut self, _data: &[u8]) -> JaResult<()> {
         tracing::error!("WASM support is WIP!");
         todo!("WASM support is WIP!")
+    }
+
+    fn name(&self) -> Box<str> {
+        "WASM WebSocket".to_string().into_boxed_str()
     }
 }

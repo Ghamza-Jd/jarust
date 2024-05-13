@@ -56,7 +56,7 @@ impl JaConnection {
         let transaction_manager = TransactionManager::new(32);
 
         let (transport_session, receiver) =
-            TransportSession::connect(transport, &config.uri).await?;
+            TransportSession::connect(transport, &config.url).await?;
 
         let demux_task = jarust_rt::spawn({
             let router = router.clone();

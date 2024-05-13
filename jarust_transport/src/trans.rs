@@ -4,8 +4,6 @@ use bytes::Bytes;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 
-// pub type MessageStream = mpsc::UnboundedReceiver<Bytes>;
-
 #[async_trait]
 pub trait TransportProtocol: Debug + Send + Sync + 'static {
     /// Creates a new transport
@@ -18,6 +16,10 @@ pub trait TransportProtocol: Debug + Send + Sync + 'static {
 
     /// Send a message over the transport.
     async fn send(&mut self, data: &[u8]) -> JaTransportResult<()>;
+
+    fn name(&self) -> Box<str> {
+        "TransportProtocol".to_string().into_boxed_str()
+    }
 }
 
 pub struct TransportSession {
@@ -43,6 +45,8 @@ impl TransportSession {
 
 impl Debug for TransportSession {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("TransportProtocol").finish()
+        f.debug_tuple("Transport")
+            .field(&self.inner.name())
+            .finish()
     }
 }
