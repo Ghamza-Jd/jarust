@@ -1,4 +1,3 @@
-use super::mock_transport::MockServer;
 use super::mock_transport::MockTransport;
 use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::JaConnection;
