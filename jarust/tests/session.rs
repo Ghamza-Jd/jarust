@@ -1,7 +1,6 @@
 mod mocks;
 
-use crate::mocks::mock_transport::MockTransport;
-use jarust::jaconfig::JaConfig;
+use crate::mocks::mock_session::mock_session;
 use jarust::japlugin::Attach;
 use jarust::japrotocol::ErrorResponse;
 use jarust::japrotocol::JaData;
@@ -11,29 +10,7 @@ use jarust::japrotocol::ResponseType;
 
 #[tokio::test]
 async fn it_successfully_attach_to_handle() {
-    let config = JaConfig::builder()
-        .url("mock://some.janus.com")
-        .namespace("mock")
-        .build();
-    let (transport, server) = MockTransport::transport_server_pair();
-
-    let creation_msg = serde_json::to_string(&JaResponse {
-        janus: ResponseType::Success(JaSuccessProtocol::Data {
-            data: JaData { id: 2 },
-        }),
-        transaction: None,
-        session_id: None,
-        sender: None,
-        establishment_protocol: None,
-    })
-    .unwrap();
-
-    let mut connection = jarust::connect_with_transport(config, transport)
-        .await
-        .unwrap();
-
-    server.mock_send_to_client(&creation_msg).await;
-    let session = connection.create(10).await.unwrap();
+    let (session, server) = mock_session().await.unwrap();
 
     let attachment_msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -52,29 +29,7 @@ async fn it_successfully_attach_to_handle() {
 
 #[tokio::test]
 async fn it_fails_to_attach_session() {
-    let config = JaConfig::builder()
-        .url("mock://some.janus.com")
-        .namespace("mock")
-        .build();
-    let (transport, server) = MockTransport::transport_server_pair();
-
-    let creation_msg = serde_json::to_string(&JaResponse {
-        janus: ResponseType::Success(JaSuccessProtocol::Data {
-            data: JaData { id: 2 },
-        }),
-        transaction: None,
-        session_id: None,
-        sender: None,
-        establishment_protocol: None,
-    })
-    .unwrap();
-
-    let mut connection = jarust::connect_with_transport(config, transport)
-        .await
-        .unwrap();
-
-    server.mock_send_to_client(&creation_msg).await;
-    let session = connection.create(10).await.unwrap();
+    let (session, server) = mock_session().await.unwrap();
 
     let error = serde_json::to_string(&JaResponse {
         janus: ResponseType::Error {

@@ -1,5 +1,6 @@
 mod mocks;
 
+use crate::mocks::mock_connection::mock_connection;
 use crate::mocks::mock_transport::MockTransport;
 use jarust::error::JaError;
 use jarust::jaconfig::JaConfig;
@@ -23,11 +24,7 @@ async fn it_successfully_connects() {
 
 #[tokio::test]
 async fn it_successfully_creates_session() {
-    let config = JaConfig::builder()
-        .url("mock://some.janus.com")
-        .namespace("mock")
-        .build();
-    let (transport, server) = MockTransport::transport_server_pair();
+    let (mut connection, server) = mock_connection().await.unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -40,10 +37,6 @@ async fn it_successfully_creates_session() {
     })
     .unwrap();
 
-    let mut connection = jarust::connect_with_transport(config, transport)
-        .await
-        .unwrap();
-
     server.mock_send_to_client(&msg).await;
     let session = connection.create(10).await;
 
@@ -52,11 +45,7 @@ async fn it_successfully_creates_session() {
 
 #[tokio::test]
 async fn it_fails_to_create_session_with_janus_error() {
-    let config = JaConfig::builder()
-        .url("mock://some.janus.com")
-        .namespace("mock")
-        .build();
-    let (transport, server) = MockTransport::transport_server_pair();
+    let (mut connection, server) = mock_connection().await.unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Error {
@@ -71,10 +60,6 @@ async fn it_fails_to_create_session_with_janus_error() {
         establishment_protocol: None,
     })
     .unwrap();
-
-    let mut connection = jarust::connect_with_transport(config, transport)
-        .await
-        .unwrap();
 
     server.mock_send_to_client(&msg).await;
     let session = connection.create(10).await;
