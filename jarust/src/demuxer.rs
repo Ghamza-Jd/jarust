@@ -2,7 +2,8 @@ use crate::japrotocol::ResponseType;
 use crate::jarouter::JaRouter;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
-use jarust_transport::trans::MessageStream;
+use bytes::Bytes;
+use tokio::sync::mpsc;
 
 pub(crate) struct Demuxer;
 
@@ -10,16 +11,21 @@ impl Demuxer {
     /// Async task to handle demultiplexing of the inbound stream
     #[tracing::instrument(name = "incoming_event", level = tracing::Level::TRACE, skip_all)]
     pub(crate) async fn demux_task(
-        inbound_stream: MessageStream,
+        inbound_stream: mpsc::UnboundedReceiver<Bytes>,
         router: JaRouter,
         transaction_manager: TransactionManager,
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
         while let Some(next) = stream.recv().await {
-            tracing::debug!("Received {next}");
+            let Ok(incoming_event) = std::str::from_utf8(&next) else {
+                tracing::error!("Incomplete packet received");
+                continue;
+            };
+
+            tracing::debug!("Received {incoming_event}");
 
             // Parse the incoming message
-            let message = match serde_json::from_str::<JaResponse>(&next) {
+            let message = match serde_json::from_str::<JaResponse>(incoming_event) {
                 Ok(response) => match &response.janus {
                     ResponseType::Error { error } => {
                         tracing::error!("{error:#?}");

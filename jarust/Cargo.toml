@@ -15,6 +15,7 @@ doctest = false
 
 [dependencies]
 async-trait.workspace = true
+bytes.workspace = true
 futures-util = "0.3.29"
 indexmap = "2.2.6"
 jarust_rt = { version = "0.2.9", path = "../jarust_rt" }
