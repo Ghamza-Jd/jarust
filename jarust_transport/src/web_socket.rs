@@ -13,7 +13,6 @@ use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
 use futures_util::StreamExt;
 use jarust_rt::JaTask;
-use std::fmt::Debug;
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
@@ -35,6 +34,7 @@ use tokio_tungstenite::Connector;
 
 type WebSocketSender = SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
 
+#[derive(Debug)]
 pub struct WebsocketTransport {
     sender: Option<WebSocketSender>,
     task: Option<JaTask>,
@@ -49,8 +49,8 @@ impl TransportProtocol for WebsocketTransport {
         }
     }
 
-    async fn connect(&mut self, uri: &str) -> JaTransportResult<mpsc::UnboundedReceiver<Bytes>> {
-        let mut request = uri.into_client_request()?;
+    async fn connect(&mut self, url: &str) -> JaTransportResult<mpsc::UnboundedReceiver<Bytes>> {
+        let mut request = url.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
         let stream = Self::connect_async(request).await?;
@@ -80,6 +80,10 @@ impl TransportProtocol for WebsocketTransport {
             return Err(JaTransportError::TransportNotOpened);
         }
         Ok(())
+    }
+
+    fn name(&self) -> Box<str> {
+        "WebSocket".to_string().into_boxed_str()
     }
 }
 
@@ -121,11 +125,5 @@ impl Drop for WebsocketTransport {
             tracing::debug!("Dropping wss transport");
             join_handle.cancel();
         }
-    }
-}
-
-impl Debug for WebsocketTransport {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Websocket").finish()
     }
 }

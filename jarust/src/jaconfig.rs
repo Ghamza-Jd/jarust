@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct JaConfig {
-    pub(crate) uri: String,
+    pub(crate) url: String,
     pub(crate) apisecret: Option<String>,
     pub(crate) namespace: String,
 }
@@ -75,7 +75,7 @@ impl JaConfigBuilder<WithUrlTypeState> {
         JaConfig {
             namespace,
             apisecret,
-            uri: url.0,
+            url: url.0,
         }
     }
 }
