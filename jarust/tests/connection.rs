@@ -1,6 +1,10 @@
+mod fixtures;
 mod mocks;
 
+use crate::fixtures::FIXTURE_NAMESPACE;
+use crate::fixtures::FIXTURE_URL;
 use crate::mocks::mock_connection::mock_connection;
+use crate::mocks::mock_connection::MockConnectionConfig;
 use crate::mocks::mock_transport::MockTransport;
 use jarust::error::JaError;
 use jarust::jaconfig::JaConfig;
@@ -24,7 +28,12 @@ async fn it_successfully_connects() {
 
 #[tokio::test]
 async fn it_successfully_creates_session() {
-    let (mut connection, server) = mock_connection().await.unwrap();
+    let (mut connection, server) = mock_connection(MockConnectionConfig {
+        url: FIXTURE_URL.to_string(),
+        namespace: FIXTURE_NAMESPACE.to_string(),
+    })
+    .await
+    .unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -45,7 +54,12 @@ async fn it_successfully_creates_session() {
 
 #[tokio::test]
 async fn it_fails_to_create_session_with_janus_error() {
-    let (mut connection, server) = mock_connection().await.unwrap();
+    let (mut connection, server) = mock_connection(MockConnectionConfig {
+        url: FIXTURE_URL.to_string(),
+        namespace: FIXTURE_NAMESPACE.to_string(),
+    })
+    .await
+    .unwrap();
 
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Error {
