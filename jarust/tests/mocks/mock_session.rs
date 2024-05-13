@@ -1,17 +1,26 @@
 use super::mock_transport::MockServer;
-use crate::mocks::mock_connection::mock_connection;
+use jarust::jaconnection::JaConnection;
 use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaSuccessProtocol;
 use jarust::japrotocol::ResponseType;
 use jarust::prelude::*;
 
-#[allow(dead_code)]
-pub async fn mock_session() -> JaResult<(JaSession, MockServer)> {
-    let (mut connection, server) = mock_connection().await?;
+pub struct MockSessionConfig {
+    pub session_id: u64,
+    pub ka_interval: u32,
+}
 
+#[allow(dead_code)]
+pub async fn mock_session(
+    mut connection: JaConnection,
+    server: &MockServer,
+    config: MockSessionConfig,
+) -> JaResult<JaSession> {
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
-            data: JaData { id: 2 },
+            data: JaData {
+                id: config.session_id,
+            },
         }),
         transaction: None,
         session_id: None,
@@ -21,6 +30,6 @@ pub async fn mock_session() -> JaResult<(JaSession, MockServer)> {
     .unwrap();
 
     server.mock_send_to_client(&msg).await;
-    let session = connection.create(10).await?;
-    Ok((session, server))
+    let session = connection.create(config.ka_interval).await?;
+    Ok(session)
 }

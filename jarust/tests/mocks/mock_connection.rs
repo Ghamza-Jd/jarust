@@ -4,11 +4,16 @@ use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::JaConnection;
 use jarust::prelude::JaResult;
 
+pub struct MockConnectionConfig {
+    pub url: String,
+    pub namespace: String,
+}
+
 #[allow(dead_code)]
-pub async fn mock_connection() -> JaResult<(JaConnection, MockServer)> {
+pub async fn mock_connection(config: MockConnectionConfig) -> JaResult<(JaConnection, MockServer)> {
     let config = JaConfig::builder()
-        .url("mock://some.janus.com")
-        .namespace("mock")
+        .url(&config.url)
+        .namespace(&config.namespace)
         .build();
     let (transport, server) = MockTransport::transport_server_pair();
 
