@@ -9,6 +9,7 @@ use crate::mocks::mock_connection::mock_connection;
 use crate::mocks::mock_connection::MockConnectionConfig;
 use crate::mocks::mock_session::mock_session;
 use crate::mocks::mock_session::MockSessionConfig;
+use crate::mocks::mock_transport::MockTransport;
 use jarust::japlugin::Attach;
 use jarust::japrotocol::ErrorResponse;
 use jarust::japrotocol::JaData;
@@ -18,10 +19,14 @@ use jarust::japrotocol::ResponseType;
 
 #[tokio::test]
 async fn it_successfully_attach_to_handle() {
-    let (connection, server) = mock_connection(MockConnectionConfig {
-        url: FIXTURE_URL.to_string(),
-        namespace: FIXTURE_NAMESPACE.to_string(),
-    })
+    let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let connection = mock_connection(
+        transport,
+        MockConnectionConfig {
+            url: FIXTURE_URL.to_string(),
+            namespace: FIXTURE_NAMESPACE.to_string(),
+        },
+    )
     .await
     .unwrap();
     let session = mock_session(
@@ -52,10 +57,14 @@ async fn it_successfully_attach_to_handle() {
 
 #[tokio::test]
 async fn it_fails_to_attach_session() {
-    let (connection, server) = mock_connection(MockConnectionConfig {
-        url: FIXTURE_URL.to_string(),
-        namespace: FIXTURE_NAMESPACE.to_string(),
-    })
+    let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let connection = mock_connection(
+        transport,
+        MockConnectionConfig {
+            url: FIXTURE_URL.to_string(),
+            namespace: FIXTURE_NAMESPACE.to_string(),
+        },
+    )
     .await
     .unwrap();
     let session = mock_session(

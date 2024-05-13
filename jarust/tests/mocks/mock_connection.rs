@@ -10,14 +10,16 @@ pub struct MockConnectionConfig {
 }
 
 #[allow(dead_code)]
-pub async fn mock_connection(config: MockConnectionConfig) -> JaResult<(JaConnection, MockServer)> {
+pub async fn mock_connection(
+    transport: MockTransport,
+    config: MockConnectionConfig,
+) -> JaResult<JaConnection> {
     let config = JaConfig::builder()
         .url(&config.url)
         .namespace(&config.namespace)
         .build();
-    let (transport, server) = MockTransport::transport_server_pair();
 
     let connection = jarust::connect_with_transport(config, transport).await?;
 
-    Ok((connection, server))
+    Ok(connection)
 }
