@@ -1,4 +1,6 @@
 use async_trait::async_trait;
+use jarust::error::JaError;
+use jarust::prelude::JaResult;
 use jarust_rt::JaTask;
 use jarust_transport::prelude::JaTransportResult;
 use jarust_transport::trans::MessageStream;
@@ -27,12 +29,12 @@ impl MockTransport {
         self.server.take()
     }
 
-    pub fn transport_server_pair() -> (Self, MockServer) {
+    pub fn transport_server_pair() -> JaResult<(Self, MockServer)> {
         let mut transport = Self::create_transport();
-        let server = transport
-            .get_mock_server()
-            .expect("Couldn't found mock server");
-        (transport, server)
+        match transport.get_mock_server() {
+            Some(server) => Ok((transport, server)),
+            None => return Err(JaError::TransportNotOpened),
+        }
     }
 }
 
