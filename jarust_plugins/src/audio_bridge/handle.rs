@@ -1,4 +1,5 @@
 use super::messages::AllowedMsg;
+use super::messages::ConfigureMsg;
 use super::messages::CreateRoomMsg;
 use super::messages::DestroyRoomMsg;
 use super::messages::EditRoomMsg;
@@ -166,6 +167,14 @@ impl AudioBridgeHandle {
         self.handle
             .send_waiton_rsp::<ListParticipantsRsp>(message, timeout)
             .await
+    }
+
+    /// Configure the media related settings of a participant
+    pub async fn configure(&self, options: ConfigureMsg, timeout: Duration) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "configure".into();
+        self.handle.send_waiton_ack(message, timeout).await?;
+        Ok(())
     }
 }
 

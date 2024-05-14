@@ -255,3 +255,51 @@ pub enum AllowAction {
     Add,
     Remove,
 }
+
+#[derive(Serialize)]
+pub struct ConfigureMsg {
+    /// whether to unmute or mute
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub muted: Option<bool>,
+
+    /// new display name to have in the room (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display: Option<String>,
+
+    /// new bitrate to use for the Opus stream
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bitrate: Option<u64>,
+
+    /// new Opus-related complexity to use (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<u64>,
+
+    /// new value for the expected loss (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expected_loss: Option<u64>,
+
+    /// new volume percent value (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub volume: Option<u64>,
+
+    /// in case spatial audio is enabled for the room, new panning of this participant (0=left, 50=center, 100=right)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spatial_position: Option<u64>,
+
+    /// whether denoising via RNNoise should be performed for this participant (default=room value)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub denoise: Option<bool>,
+
+    /// whether to record this user's contribution to a .mjr file (mixer not involved)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub record: Option<bool>,
+
+    /// basename of the file to record to, -audio.mjr will be added by the plugin; will be relative to mjrs_dir
+    /// if configured in the room
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub filename: Option<String>,
+
+    /// new group to assign to this participant, if enabled in the room (for forwarding purposes)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub group: Option<String>,
+}
