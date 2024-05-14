@@ -238,7 +238,11 @@ pub struct JoinRoomMsg {
 #[derive(Serialize)]
 pub struct AllowedMsg {
     pub action: AllowAction,
+
+    /// Array of strings (tokens users might pass in "join", only for add|remove)
     pub allowed: Vec<String>,
+
+    /// Room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
 }
