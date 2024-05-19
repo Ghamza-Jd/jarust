@@ -4,6 +4,7 @@ use super::messages::CreateRoomMsg;
 use super::messages::DestroyRoomMsg;
 use super::messages::EditRoomMsg;
 use super::messages::JoinRoomMsg;
+use super::messages::MuteOptions;
 use super::responses::AllowedRsp;
 use super::responses::ExistsRoomRsp;
 use super::responses::ListParticipantsRsp;
@@ -174,6 +175,22 @@ impl AudioBridgeHandle {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
+        Ok(())
+    }
+
+    /// Mute a participant
+    pub async fn mute(&self, options: MuteOptions) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "mute".into();
+        self.handle.fire_and_forget(message).await?;
+        Ok(())
+    }
+
+    /// Unmute a participant
+    pub async fn unmute(&self, options: MuteOptions) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "unmute".into();
+        self.handle.fire_and_forget(message).await?;
         Ok(())
     }
 }
