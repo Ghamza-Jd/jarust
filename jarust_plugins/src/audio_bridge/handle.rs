@@ -169,7 +169,7 @@ impl AudioBridgeHandle {
             .await
     }
 
-    /// Configure the media related settings of a participant
+    /// Configure the media related settings of the participant
     pub async fn configure(&self, options: ConfigureMsg, timeout: Duration) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "configure".into();
