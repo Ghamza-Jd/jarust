@@ -149,7 +149,7 @@ impl JaConnection {
             .transaction_manager
             .create_transaction(transaction, &path)
             .await;
-        tracing::debug!("Sending {message}");
+        tracing::debug!("Sending {request:#}");
         guard.transport_session.send(message.as_bytes()).await?;
         Ok(transaction.into())
     }
