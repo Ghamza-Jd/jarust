@@ -303,3 +303,16 @@ pub struct ConfigureMsg {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub group: Option<String>,
 }
+
+#[derive(Serialize)]
+pub struct MuteOptions {
+    /// unique numeric ID
+    pub id: u64,
+
+    /// unique numeric ID
+    pub room: u64,
+
+    /// Room secret, mandatory if configured
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+}
