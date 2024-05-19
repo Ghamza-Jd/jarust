@@ -256,7 +256,7 @@ pub enum AllowAction {
     Remove,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Default)]
 pub struct ConfigureMsg {
     /// whether to unmute or mute
     #[serde(skip_serializing_if = "Option::is_none")]
