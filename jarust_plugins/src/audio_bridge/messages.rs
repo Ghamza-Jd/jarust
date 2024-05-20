@@ -326,3 +326,26 @@ pub struct MuteRoomOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
 }
+
+#[derive(Serialize)]
+pub struct KickOptions {
+    /// unique numeric ID
+    pub id: u64,
+
+    /// unique numeric ID
+    pub room: u64,
+
+    /// Room secret, mandatory if configured
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct KickAllOptions {
+    /// unique numeric ID
+    pub room: u64,
+
+    /// Room secret, mandatory if configured
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
+}
