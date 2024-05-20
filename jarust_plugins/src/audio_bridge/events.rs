@@ -11,11 +11,13 @@ use serde_json::from_value;
 #[serde(tag = "audiobridge")]
 enum AudioBridgeEventDto {
     #[serde(rename = "joined")]
-    JoinRoom {
+    RoomJoined {
         id: u64,
         room: u64,
         participants: Vec<Participant>,
     },
+    #[serde(rename = "left")]
+    RoomLeft { id: u64, room: u64 },
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -48,6 +50,10 @@ pub enum AudioBridgeEvent {
         room: u64,
         participants: Vec<Participant>,
     },
+    RoomLeft {
+        id: u64,
+        room: u64,
+    },
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -58,7 +64,7 @@ impl TryFrom<JaResponse> for PluginEvent {
             ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => {
                 let audiobridge_event = from_value::<AudioBridgeEventDto>(plugin_data.data)?;
                 match audiobridge_event {
-                    AudioBridgeEventDto::JoinRoom {
+                    AudioBridgeEventDto::RoomJoined {
                         id,
                         room,
                         participants,
@@ -79,6 +85,12 @@ impl TryFrom<JaResponse> for PluginEvent {
                             },
                         )),
                     },
+                    AudioBridgeEventDto::RoomLeft { id, room } => {
+                        Ok(PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
+                            id,
+                            room,
+                        }))
+                    }
                 }
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
@@ -165,6 +177,34 @@ mod tests {
                     jsep_type: JsepType::Answer,
                     sdp: "test_sdp".to_string()
                 })
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_room_left() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: json!({
+                        "audiobridge": "left",
+                        "room": 6846571539994870u64,
+                        "id": 7513785212278430u64
+                    }),
+                },
+            }),
+            establishment_protocol: None,
+            transaction: Some("3RiphEuWIYBj".to_string()),
+            session_id: Some(8277036114238269u64),
+            sender: Some(4099830775533676u64),
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
+                id: 7513785212278430,
+                room: 6846571539994870
             })
         );
     }
