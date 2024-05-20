@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         create_room_rsp.permanent
     );
 
-    let _ = handle
+    handle
         .join_room(
             create_room_rsp.room,
             JoinRoomMsg {
@@ -51,6 +51,12 @@ async fn main() -> anyhow::Result<()> {
 
     if let Some(event) = event_receiver.recv().await {
         tracing::info!("Joined Room {}, {:#?}", create_room_rsp.room, event);
+    }
+
+    handle.leave(timeout).await?;
+
+    if let Some(event) = event_receiver.recv().await {
+        tracing::info!("Event {:#?}", event);
     }
 
     Ok(())

@@ -222,6 +222,15 @@ impl AudioBridgeHandle {
         message["request"] = "kick_all".into();
         self.handle.fire_and_forget(message).await
     }
+
+    /// Leave an audio room
+    pub async fn leave(&self, timeout: Duration) -> JaResult<()> {
+        let message = json!({
+            "request" : "leave"
+        });
+        self.handle.send_waiton_ack(message, timeout).await?;
+        Ok(())
+    }
 }
 
 impl PluginTask for AudioBridgeHandle {
