@@ -5,6 +5,7 @@ use super::messages::DestroyRoomMsg;
 use super::messages::EditRoomMsg;
 use super::messages::JoinRoomMsg;
 use super::messages::MuteOptions;
+use super::messages::MuteRoomOptions;
 use super::responses::AllowedRsp;
 use super::responses::ExistsRoomRsp;
 use super::responses::ListParticipantsRsp;
@@ -182,16 +183,28 @@ impl AudioBridgeHandle {
     pub async fn mute(&self, options: MuteOptions) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "mute".into();
-        self.handle.fire_and_forget(message).await?;
-        Ok(())
+        self.handle.fire_and_forget(message).await
     }
 
     /// Unmute a participant
     pub async fn unmute(&self, options: MuteOptions) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "unmute".into();
-        self.handle.fire_and_forget(message).await?;
-        Ok(())
+        self.handle.fire_and_forget(message).await
+    }
+
+    /// Mute a room
+    pub async fn mute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "mute_room".into();
+        self.handle.fire_and_forget(message).await
+    }
+
+    /// Unmute a room
+    pub async fn unmute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "unmute_room".into();
+        self.handle.fire_and_forget(message).await
     }
 }
 
