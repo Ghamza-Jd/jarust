@@ -4,6 +4,8 @@ use super::messages::CreateRoomMsg;
 use super::messages::DestroyRoomMsg;
 use super::messages::EditRoomMsg;
 use super::messages::JoinRoomMsg;
+use super::messages::KickAllOptions;
+use super::messages::KickOptions;
 use super::messages::MuteOptions;
 use super::messages::MuteRoomOptions;
 use super::responses::AllowedRsp;
@@ -204,6 +206,20 @@ impl AudioBridgeHandle {
     pub async fn unmute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "unmute_room".into();
+        self.handle.fire_and_forget(message).await
+    }
+
+    /// Kicks a participants out of a room
+    pub async fn kick(&self, options: KickOptions) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "kick".into();
+        self.handle.fire_and_forget(message).await
+    }
+
+    /// Kicks all pariticpants out of a room
+    pub async fn kick_all(&self, options: KickAllOptions) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "kick_all".into();
         self.handle.fire_and_forget(message).await
     }
 }
