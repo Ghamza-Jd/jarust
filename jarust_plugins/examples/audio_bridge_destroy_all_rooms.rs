@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
             )
             .await
         {
-            tracing::info!("Destroyed Room {}", destroyed_room.room);
+            tracing::info!("Destroyed Room {:#?}", destroyed_room.room);
         };
     }
 

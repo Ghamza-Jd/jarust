@@ -1,20 +1,21 @@
+use super::common::Identifier;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct RoomCreatedRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub permanent: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct RoomEditedRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub permanent: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct RoomDestroyedRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub permanent: bool,
 }
 
@@ -25,7 +26,7 @@ pub struct ListRoomsRsp {
 
 #[derive(Debug, Deserialize)]
 pub struct Room {
-    pub room: u64,
+    pub room: Identifier,
     pub description: String,
     pub pin_required: bool,
     pub sampling_rate: u64,
@@ -37,25 +38,25 @@ pub struct Room {
 
 #[derive(Debug, Deserialize)]
 pub struct AllowedRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub allowed: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ExistsRoomRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub exists: bool,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct ListParticipantsRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub participants: Vec<Participant>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Participant {
-    pub id: u64,
+    pub id: Identifier,
     pub display: Option<String>,
     pub setup: bool,
     pub muted: bool,

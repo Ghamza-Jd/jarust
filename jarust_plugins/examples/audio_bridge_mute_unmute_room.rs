@@ -29,7 +29,10 @@ async fn main() -> anyhow::Result<()> {
     match events.recv().await {
         Some(PE::AudioBridgeEvent(ABE::RoomJoined { room, .. })) => {
             handle
-                .mute_room(MuteRoomOptions { room, secret: None })
+                .mute_room(MuteRoomOptions {
+                    room: room.clone(),
+                    secret: None,
+                })
                 .await?;
 
             handle

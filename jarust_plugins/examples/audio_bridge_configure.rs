@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
     let create_room_rsp = handle.create_room(None, timeout).await.unwrap();
 
     tracing::info!(
-        "Created Room {}, permanent: {}",
+        "Created Room {:#?}, permanent: {}",
         create_room_rsp.room,
         create_room_rsp.permanent
     );

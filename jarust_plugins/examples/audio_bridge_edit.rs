@@ -1,5 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust_plugins::audio_bridge::common::Identifier;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
 use jarust_plugins::audio_bridge::messages::EditRoomMsg;
@@ -23,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
     let _ = handle
         .create_room_with_config(
             CreateRoomMsg {
-                room: Some(4321),
+                room: Some(Identifier::Uint(4321)),
                 description: Some("A nice description".to_string()),
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
@@ -34,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
 
     let edit_room_rsp = handle
         .edit_room(
-            4321,
+            Identifier::Uint(4321),
             EditRoomMsg {
                 new_description: Some("A nicer description".to_string()),
                 secret: Some("superdupersecret".to_string()),
@@ -44,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    tracing::info!("Edited Room {}", edit_room_rsp.room);
+    tracing::info!("Edited Room {:#?}", edit_room_rsp.room);
 
     Ok(())
 }

@@ -1,3 +1,4 @@
+use super::common::Identifier;
 use jarust::error::JaError;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::GenericEvent;
@@ -12,18 +13,18 @@ use serde_json::from_value;
 enum AudioBridgeEventDto {
     #[serde(rename = "joined")]
     RoomJoined {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
         participants: Vec<Participant>,
     },
 
     #[serde(rename = "left")]
-    RoomLeft { id: u64, room: u64 },
+    RoomLeft { id: Identifier, room: Identifier },
 
     #[serde(rename = "roomchanged")]
     RoomChanged {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
         participants: Vec<Participant>,
     },
 
@@ -54,23 +55,23 @@ pub enum PluginEvent {
 #[derive(Debug, PartialEq)]
 pub enum AudioBridgeEvent {
     RoomJoinedWithEstabilshment {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
         participants: Vec<Participant>,
         establishment_protocol: EstablishmentProtocol,
     },
     RoomJoined {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
         participants: Vec<Participant>,
     },
     RoomLeft {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
     },
     RoomChanged {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
         participants: Vec<Participant>,
     },
     ParticipantsUpdated {
@@ -146,6 +147,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
+    use crate::audio_bridge::common::Identifier;
     use crate::audio_bridge::events::AudioBridgeEvent;
     use jarust::japrotocol::EstablishmentProtocol;
     use jarust::japrotocol::JaHandleEvent;
@@ -179,8 +181,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined {
-                id: 7513785212278430,
-                room: 6846571539994870,
+                id: Identifier::Uint(7513785212278430),
+                room: Identifier::Uint(6846571539994870),
                 participants: vec![],
             })
         );
@@ -212,8 +214,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                id: 7513785212278430,
-                room: 6846571539994870,
+                id: Identifier::Uint(7513785212278430),
+                room: Identifier::Uint(6846571539994870),
                 participants: vec![],
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
@@ -237,16 +239,16 @@ mod tests {
                 },
             }),
             establishment_protocol: None,
-            transaction: Some("3RiphEuWIYBj".to_string()),
-            session_id: Some(8277036114238269u64),
-            sender: Some(4099830775533676u64),
+            transaction: None,
+            session_id: None,
+            sender: None,
         };
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
-                id: 7513785212278430,
-                room: 6846571539994870
+                id: Identifier::Uint(7513785212278430),
+                room: Identifier::Uint(6846571539994870)
             })
         );
     }
@@ -266,16 +268,16 @@ mod tests {
                 },
             }),
             establishment_protocol: None,
-            transaction: Some("3RiphEuWIYBj".to_string()),
-            session_id: Some(8277036114238269u64),
-            sender: Some(4099830775533676u64),
+            transaction: None,
+            session_id: None,
+            sender: None,
         };
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomChanged {
-                id: 3862697705388820,
-                room: 6168266702836626,
+                id: Identifier::Uint(3862697705388820),
+                room: Identifier::Uint(6168266702836626),
                 participants: vec![]
             })
         );

@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
     tracing::info!(
-        "Created Room {}, permanent: {}",
+        "Created Room {:#?}, permanent: {}",
         create_room_rsp.room,
         create_room_rsp.permanent
     );
@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     tracing::info!(
-        "Allowed participants in room {}: {:#?}",
+        "Allowed participants in room {:#?}: {:#?}",
         allowed_rsp.room,
         allowed_rsp.allowed
     );
