@@ -1,4 +1,5 @@
 use super::messages::AllowedMsg;
+use super::messages::ChangeRoomOptions;
 use super::messages::ConfigureMsg;
 use super::messages::CreateRoomMsg;
 use super::messages::DestroyRoomMsg;
@@ -228,6 +229,19 @@ impl AudioBridgeHandle {
         let message = json!({
             "request" : "leave"
         });
+        self.handle.send_waiton_ack(message, timeout).await?;
+        Ok(())
+    }
+
+    pub async fn change_room(
+        &self,
+        room: u64,
+        options: ChangeRoomOptions,
+        timeout: Duration,
+    ) -> JaResult<()> {
+        let mut message = serde_json::to_value(options)?;
+        message["request"] = "changeroom".into();
+        message["room"] = room.into();
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
     }

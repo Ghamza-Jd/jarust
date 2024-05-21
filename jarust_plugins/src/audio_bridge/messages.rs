@@ -349,3 +349,42 @@ pub struct KickAllOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
 }
+
+#[derive(Serialize, Default)]
+pub struct ChangeRoomOptions {
+    /// numeric ID of the room to move to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<u64>,
+
+    /// whether to unmute or mute
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub muted: Option<bool>,
+
+    /// new display name to have in the room (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display: Option<String>,
+
+    /// new bitrate to use for the Opus stream
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bitrate: Option<u64>,
+
+    /// new Opus-related complexity to use (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<u64>,
+
+    /// new value for the expected loss (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expected_loss: Option<u64>,
+
+    /// new volume percent value (see "join" for more info)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub volume: Option<u64>,
+
+    /// in case spatial audio is enabled for the room, new panning of this participant (0=left, 50=center, 100=right)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub spatial_position: Option<u64>,
+
+    /// whether denoising via RNNoise should be performed for this participant (default=room value)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub denoise: Option<bool>,
+}
