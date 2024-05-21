@@ -1,3 +1,4 @@
+use super::common::Identifier;
 use super::messages::AllowedMsg;
 use super::messages::ChangeRoomOptions;
 use super::messages::ConfigureMsg;
@@ -36,7 +37,7 @@ impl AudioBridgeHandle {
     /// Random room number will be used if `room` is `None`
     pub async fn create_room(
         &self,
-        room: Option<u64>,
+        room: Option<Identifier>,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
@@ -68,13 +69,13 @@ impl AudioBridgeHandle {
     /// Allows you to dynamically edit some room properties (e.g., the PIN)
     pub async fn edit_room(
         &self,
-        room: u64,
+        room: Identifier,
         options: EditRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "edit".into();
-        message["room"] = room.into();
+        message["room"] = serde_json::to_value(&room)?;
         self.handle
             .send_waiton_rsp::<RoomEditedRsp>(message, timeout)
             .await
@@ -84,13 +85,13 @@ impl AudioBridgeHandle {
     /// kicking all the users out as part of the process
     pub async fn destroy_room(
         &self,
-        room: u64,
+        room: Identifier,
         options: DestroyRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "destroy".into();
-        message["room"] = room.into();
+        message["room"] = serde_json::to_value(&room)?;
         self.handle
             .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
             .await
@@ -99,14 +100,14 @@ impl AudioBridgeHandle {
     /// Join an audio room with the given room number and options.
     pub async fn join_room(
         &self,
-        room: u64,
+        room: Identifier,
         options: JoinRoomMsg,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "join".into();
-        message["room"] = room.into();
+        message["room"] = serde_json::to_value(&room)?;
         match protocol {
             Some(protocol) => {
                 self.handle
@@ -133,20 +134,20 @@ impl AudioBridgeHandle {
     /// Allows you to edit who's allowed to join a room via ad-hoc tokens
     pub async fn allowed(
         &self,
-        room: u64,
+        room: Identifier,
         options: AllowedMsg,
         timeout: Duration,
     ) -> JaResult<AllowedRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "allowed".into();
-        message["room"] = room.into();
+        message["room"] = serde_json::to_value(&room)?;
         self.handle
             .send_waiton_rsp::<AllowedRsp>(message, timeout)
             .await
     }
 
     /// Allows you to check whether a specific audio conference room exists
-    pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<bool> {
+    pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<bool> {
         let message = json!({
             "request": "exists",
             "room": room
@@ -162,7 +163,7 @@ impl AudioBridgeHandle {
     /// Lists all the participants of a specific room and their details
     pub async fn list_participants(
         &self,
-        room: u64,
+        room: Identifier,
         timeout: Duration,
     ) -> JaResult<ListParticipantsRsp> {
         let message = json!({
@@ -235,13 +236,13 @@ impl AudioBridgeHandle {
 
     pub async fn change_room(
         &self,
-        room: u64,
+        room: Identifier,
         options: ChangeRoomOptions,
         timeout: Duration,
     ) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "changeroom".into();
-        message["room"] = room.into();
+        message["room"] = serde_json::to_value(&room)?;
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
     }

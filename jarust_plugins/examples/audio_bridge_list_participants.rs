@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     tracing::info!(
-        "Created Room {}, permanent: {}",
+        "Created Room {:#?}, permanent: {}",
         create_room_rsp.room,
         create_room_rsp.permanent
     );
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
         .list_participants(create_room_rsp.room, timeout)
         .await?;
     tracing::info!(
-        "Participants in room {}: {:#?}",
+        "Participants in room {:#?}: {:#?}",
         list_participants_rsp.room,
         list_participants_rsp.participants
     );

@@ -1,5 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust_plugins::audio_bridge::common::Identifier;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
 use jarust_plugins::audio_bridge::messages::DestroyRoomMsg;
@@ -20,14 +21,14 @@ async fn main() -> anyhow::Result<()> {
     let session = connection.create(10).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
-    let exist_rsp = handle.exists(4321, timeout).await?;
+    let exist_rsp = handle.exists(Identifier::Uint(4321), timeout).await?;
     tracing::info!("Room exists?: {}", exist_rsp);
 
     if !exist_rsp {
         let _ = handle
             .create_room_with_config(
                 CreateRoomMsg {
-                    room: Some(4321),
+                    room: Some(Identifier::Uint(4321)),
                     secret: Some("superdupersecret".to_string()),
                     ..Default::default()
                 },
@@ -35,13 +36,13 @@ async fn main() -> anyhow::Result<()> {
             )
             .await?;
 
-        let exist_rsp = handle.exists(4321, timeout).await?;
+        let exist_rsp = handle.exists(Identifier::Uint(4321), timeout).await?;
         tracing::info!("Room exists?: {}", exist_rsp);
 
         if exist_rsp {
             let _ = handle
                 .destroy_room(
-                    4321,
+                    Identifier::Uint(4321),
                     DestroyRoomMsg {
                         secret: Some("superdupersecret".to_string()),
                         ..Default::default()
@@ -50,7 +51,7 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .await;
 
-            let exist = handle.exists(4321, timeout).await?;
+            let exist = handle.exists(Identifier::Uint(4321), timeout).await?;
             tracing::info!("Room exists?: {}", exist);
         }
     }

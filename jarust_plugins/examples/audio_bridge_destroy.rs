@@ -1,5 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust_plugins::audio_bridge::common::Identifier;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
 use jarust_plugins::audio_bridge::messages::DestroyRoomMsg;
@@ -23,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
     let _ = handle
         .create_room_with_config(
             CreateRoomMsg {
-                room: Some(4321),
+                room: Some(Identifier::Uint(4321)),
                 description: Some("A nice description".to_string()),
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
@@ -34,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
 
     let destroy_room_rsp = handle
         .destroy_room(
-            4321,
+            Identifier::Uint(4321),
             DestroyRoomMsg {
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
@@ -44,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     tracing::info!(
-        "Detroyed Room {}, permanent: {}",
+        "Detroyed Room {:#?}, permanent: {}",
         destroy_room_rsp.room,
         destroy_room_rsp.permanent
     );
