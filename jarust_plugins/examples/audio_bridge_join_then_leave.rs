@@ -53,6 +53,15 @@ async fn main() -> anyhow::Result<()> {
         tracing::info!("Joined Room {}, {:#?}", create_room_rsp.room, event);
     }
 
+    let list_participants_rsp = handle
+        .list_participants(create_room_rsp.room, timeout)
+        .await?;
+    tracing::info!(
+        "Participants in room {}: {:#?}",
+        list_participants_rsp.room,
+        list_participants_rsp.participants
+    );
+
     handle.leave(timeout).await?;
 
     if let Some(event) = event_receiver.recv().await {
