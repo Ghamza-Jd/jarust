@@ -3,7 +3,6 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::messages::MuteRoomOptions;
 use std::path::Path;
-use tokio::time;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
@@ -23,30 +22,26 @@ async fn main() -> anyhow::Result<()> {
     let create_room_rsp = handle.create_room(None, timeout).await.unwrap();
     handle
         .join_room(create_room_rsp.room, Default::default(), None, timeout)
-        .await
-        .unwrap();
-
-    let join_room = events.recv().await.unwrap();
+        .await?;
 
     use jarust_plugins::audio_bridge::events::AudioBridgeEvent as ABE;
     use jarust_plugins::audio_bridge::events::PluginEvent as PE;
-    match join_room {
-        PE::AudioBridgeEvent(ABE::RoomJoined { room, .. }) => {
+    match events.recv().await {
+        Some(PE::AudioBridgeEvent(ABE::RoomJoined { room, .. })) => {
             handle
                 .mute_room(MuteRoomOptions { room, secret: None })
-                .await
-                .unwrap();
+                .await?;
 
             handle
                 .unmute_room(MuteRoomOptions { room, secret: None })
-                .await
-                .unwrap();
+                .await?;
         }
         _ => {}
     };
 
-    let mut interval = time::interval(time::Duration::from_secs(2));
-    loop {
-        interval.tick().await;
+    while let Some(e) = events.recv().await {
+        tracing::info!("{e:#?}");
     }
+
+    Ok(())
 }

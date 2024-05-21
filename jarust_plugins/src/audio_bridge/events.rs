@@ -16,11 +16,19 @@ enum AudioBridgeEventDto {
         room: u64,
         participants: Vec<Participant>,
     },
+
     #[serde(rename = "left")]
     RoomLeft { id: u64, room: u64 },
+
     #[serde(rename = "roomchanged")]
     RoomChanged {
         id: u64,
+        room: u64,
+        participants: Vec<Participant>,
+    },
+
+    #[serde(rename = "event")]
+    Event {
         room: u64,
         participants: Vec<Participant>,
     },
@@ -32,8 +40,8 @@ pub struct Participant {
     pub display: Option<String>,
     pub setup: bool,
     pub muted: bool,
-    pub suspended: bool,
-    pub talking: bool,
+    pub suspended: Option<bool>,
+    pub talking: Option<bool>,
     pub spatial_position: Option<String>,
 }
 
@@ -62,6 +70,10 @@ pub enum AudioBridgeEvent {
     },
     RoomChanged {
         id: u64,
+        room: u64,
+        participants: Vec<Participant>,
+    },
+    ParticipantsUpdated {
         room: u64,
         participants: Vec<Participant>,
     },
@@ -96,12 +108,14 @@ impl TryFrom<JaResponse> for PluginEvent {
                             },
                         )),
                     },
+
                     AudioBridgeEventDto::RoomLeft { id, room } => {
                         Ok(PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
                             id,
                             room,
                         }))
                     }
+
                     AudioBridgeEventDto::RoomChanged {
                         id,
                         room,
@@ -113,6 +127,12 @@ impl TryFrom<JaResponse> for PluginEvent {
                             participants,
                         },
                     )),
+
+                    AudioBridgeEventDto::Event { room, participants } => {
+                        Ok(PluginEvent::AudioBridgeEvent(
+                            AudioBridgeEvent::ParticipantsUpdated { room, participants },
+                        ))
+                    }
                 }
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {

@@ -55,11 +55,11 @@ pub struct ListParticipantsRsp {
 
 #[derive(Debug, Deserialize)]
 pub struct Participant {
-    pub id: String,
-    pub display: String,
+    pub id: u64,
+    pub display: Option<String>,
     pub setup: bool,
     pub muted: bool,
-    pub suspended: bool,
-    pub talking: bool,
-    pub spatial_position: String,
+    pub suspended: Option<bool>,
+    pub talking: Option<bool>,
+    pub spatial_position: Option<u64>,
 }
