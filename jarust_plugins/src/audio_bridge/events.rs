@@ -18,6 +18,12 @@ enum AudioBridgeEventDto {
     },
     #[serde(rename = "left")]
     RoomLeft { id: u64, room: u64 },
+    #[serde(rename = "roomchanged")]
+    RoomChanged {
+        id: u64,
+        room: u64,
+        participants: Vec<Participant>,
+    },
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -53,6 +59,11 @@ pub enum AudioBridgeEvent {
     RoomLeft {
         id: u64,
         room: u64,
+    },
+    RoomChanged {
+        id: u64,
+        room: u64,
+        participants: Vec<Participant>,
     },
 }
 
@@ -91,6 +102,17 @@ impl TryFrom<JaResponse> for PluginEvent {
                             room,
                         }))
                     }
+                    AudioBridgeEventDto::RoomChanged {
+                        id,
+                        room,
+                        participants,
+                    } => Ok(PluginEvent::AudioBridgeEvent(
+                        AudioBridgeEvent::RoomChanged {
+                            id,
+                            room,
+                            participants,
+                        },
+                    )),
                 }
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
@@ -205,6 +227,36 @@ mod tests {
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
                 id: 7513785212278430,
                 room: 6846571539994870
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_room_changed() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: json!({
+                        "audiobridge": "roomchanged",
+                        "room": 6168266702836626u64,
+                        "id": 3862697705388820u64,
+                        "participants": []
+                    }),
+                },
+            }),
+            establishment_protocol: None,
+            transaction: Some("3RiphEuWIYBj".to_string()),
+            session_id: Some(8277036114238269u64),
+            sender: Some(4099830775533676u64),
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomChanged {
+                id: 3862697705388820,
+                room: 6168266702836626,
+                participants: vec![]
             })
         );
     }
