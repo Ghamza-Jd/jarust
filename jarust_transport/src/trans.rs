@@ -17,13 +17,14 @@ pub trait TransportProtocol: Debug + Send + Sync + 'static {
     /// Send a message over the transport.
     async fn send(&mut self, data: &[u8]) -> JaTransportResult<()>;
 
+    /// Read-only str for the debug trait
     fn name(&self) -> Box<str> {
         "TransportProtocol".to_string().into_boxed_str()
     }
 }
 
 pub struct TransportSession {
-    inner: Box<dyn TransportProtocol + Send + Sync>,
+    inner: Box<dyn TransportProtocol>,
 }
 
 impl TransportSession {
