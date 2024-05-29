@@ -234,6 +234,7 @@ impl AudioBridgeHandle {
         Ok(())
     }
 
+    /// Change the room you are in, instead of leaving and joining a new room
     pub async fn change_room(
         &self,
         room: Identifier,

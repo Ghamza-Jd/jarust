@@ -26,25 +26,22 @@ async fn main() -> anyhow::Result<()> {
 
     use jarust_plugins::audio_bridge::events::AudioBridgeEvent as ABE;
     use jarust_plugins::audio_bridge::events::PluginEvent as PE;
-    match events.recv().await {
-        Some(PE::AudioBridgeEvent(ABE::RoomJoined { id, room, .. })) => {
-            handle
-                .mute(MuteOptions {
-                    id: id.clone(),
-                    room: room.clone(),
-                    secret: None,
-                })
-                .await?;
+    if let Some(PE::AudioBridgeEvent(ABE::RoomJoined { id, room, .. })) = events.recv().await {
+        handle
+            .mute(MuteOptions {
+                id: id.clone(),
+                room: room.clone(),
+                secret: None,
+            })
+            .await?;
 
-            handle
-                .unmute(MuteOptions {
-                    id,
-                    room,
-                    secret: None,
-                })
-                .await?;
-        }
-        _ => {}
+        handle
+            .unmute(MuteOptions {
+                id,
+                room,
+                secret: None,
+            })
+            .await?;
     };
 
     while let Some(e) = events.recv().await {
