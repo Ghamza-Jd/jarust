@@ -37,7 +37,7 @@ impl MockTransport {
         let mut transport = Self::create_transport();
         match transport.get_mock_server() {
             Some(server) => Ok((transport, server)),
-            None => return Err(JaError::TransportNotOpened),
+            None => Err(JaError::TransportNotOpened),
         }
     }
 }
