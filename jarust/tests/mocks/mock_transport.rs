@@ -71,7 +71,7 @@ impl TransportProtocol for MockTransport {
         Ok(rx)
     }
 
-    async fn send(&mut self, _: &[u8]) -> JaTransportResult<()> {
+    async fn send(&mut self, _: &[u8], _: &str) -> JaTransportResult<()> {
         Ok(())
     }
 }
