@@ -15,7 +15,7 @@ pub trait TransportProtocol: Debug + Send + Sync + 'static {
     async fn connect(&mut self, url: &str) -> JaTransportResult<mpsc::UnboundedReceiver<Bytes>>;
 
     /// Send a message over the transport.
-    async fn send(&mut self, data: &[u8]) -> JaTransportResult<()>;
+    async fn send(&mut self, data: &[u8], path: &str) -> JaTransportResult<()>;
 
     /// Read-only str for the debug trait
     fn name(&self) -> Box<str> {
@@ -39,8 +39,8 @@ impl TransportSession {
         Ok((transport, rx))
     }
 
-    pub async fn send(&mut self, data: &[u8]) -> JaTransportResult<()> {
-        self.inner.send(data).await
+    pub async fn send(&mut self, data: &[u8], path: &str) -> JaTransportResult<()> {
+        self.inner.send(data, path).await
     }
 }
 
