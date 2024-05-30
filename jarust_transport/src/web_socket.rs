@@ -71,7 +71,7 @@ impl TransportProtocol for WebsocketTransport {
         Ok(rx)
     }
 
-    async fn send(&mut self, data: &[u8]) -> JaTransportResult<()> {
+    async fn send(&mut self, data: &[u8], _: &str) -> JaTransportResult<()> {
         let item = Message::Binary(data.to_vec());
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;

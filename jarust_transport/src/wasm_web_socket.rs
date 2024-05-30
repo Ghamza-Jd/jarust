@@ -18,7 +18,7 @@ impl Transport for WasmWsTransport {
         todo!("WASM support is WIP!")
     }
 
-    async fn send(&mut self, _data: &[u8]) -> JaResult<()> {
+    async fn send(&mut self, _data: &[u8], _path: &str) -> JaResult<()> {
         tracing::error!("WASM support is WIP!");
         todo!("WASM support is WIP!")
     }
