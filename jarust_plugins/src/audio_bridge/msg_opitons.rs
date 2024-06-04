@@ -2,7 +2,7 @@ use super::common::Identifier;
 use serde::Serialize;
 
 #[derive(Serialize, Default)]
-pub struct CreateRoomMsg {
+pub struct CreateRoomOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room: Option<Identifier>,
@@ -96,7 +96,7 @@ pub struct CreateRoomMsg {
 }
 
 #[derive(Serialize, Default)]
-pub struct EditRoomMsg {
+pub struct EditRoomOptions {
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -139,7 +139,7 @@ pub struct DestroyRoomMsg {
 }
 
 #[derive(Serialize, Default)]
-pub struct JoinRoomMsg {
+pub struct JoinRoomOptions {
     /// Unique ID to assign to the participant, assigned by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<Identifier>,
@@ -237,7 +237,7 @@ pub struct JoinRoomMsg {
 }
 
 #[derive(Serialize)]
-pub struct AllowedMsg {
+pub struct AllowedOptions {
     pub action: AllowAction,
 
     /// Array of strings (tokens users might pass in "join", only for add|remove)
@@ -258,7 +258,7 @@ pub enum AllowAction {
 }
 
 #[derive(Serialize, Default)]
-pub struct ConfigureMsg {
+pub struct ConfigureOptions {
     /// whether to unmute or mute
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,

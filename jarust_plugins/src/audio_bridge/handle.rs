@@ -1,15 +1,15 @@
 use super::common::Identifier;
-use super::messages::AllowedMsg;
-use super::messages::ChangeRoomOptions;
-use super::messages::ConfigureMsg;
-use super::messages::CreateRoomMsg;
-use super::messages::DestroyRoomMsg;
-use super::messages::EditRoomMsg;
-use super::messages::JoinRoomMsg;
-use super::messages::KickAllOptions;
-use super::messages::KickOptions;
-use super::messages::MuteOptions;
-use super::messages::MuteRoomOptions;
+use super::msg_opitons::AllowedOptions;
+use super::msg_opitons::ChangeRoomOptions;
+use super::msg_opitons::ConfigureOptions;
+use super::msg_opitons::CreateRoomOptions;
+use super::msg_opitons::DestroyRoomMsg;
+use super::msg_opitons::EditRoomOptions;
+use super::msg_opitons::JoinRoomOptions;
+use super::msg_opitons::KickAllOptions;
+use super::msg_opitons::KickOptions;
+use super::msg_opitons::MuteOptions;
+use super::msg_opitons::MuteRoomOptions;
 use super::responses::AllowedRsp;
 use super::responses::ExistsRoomRsp;
 use super::responses::ListParticipantsRsp;
@@ -41,7 +41,7 @@ impl AudioBridgeHandle {
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
-            CreateRoomMsg {
+            CreateRoomOptions {
                 room,
                 ..Default::default()
             },
@@ -56,7 +56,7 @@ impl AudioBridgeHandle {
     /// Random room number will be used if `room` is `None`
     pub async fn create_room_with_config(
         &self,
-        options: CreateRoomMsg,
+        options: CreateRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         let mut message = serde_json::to_value(options)?;
@@ -70,7 +70,7 @@ impl AudioBridgeHandle {
     pub async fn edit_room(
         &self,
         room: Identifier,
-        options: EditRoomMsg,
+        options: EditRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
         let mut message = serde_json::to_value(options)?;
@@ -101,7 +101,7 @@ impl AudioBridgeHandle {
     pub async fn join_room(
         &self,
         room: Identifier,
-        options: JoinRoomMsg,
+        options: JoinRoomOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
@@ -135,7 +135,7 @@ impl AudioBridgeHandle {
     pub async fn allowed(
         &self,
         room: Identifier,
-        options: AllowedMsg,
+        options: AllowedOptions,
         timeout: Duration,
     ) -> JaResult<AllowedRsp> {
         let mut message = serde_json::to_value(options)?;
@@ -176,7 +176,7 @@ impl AudioBridgeHandle {
     }
 
     /// Configure the media related settings of the participant
-    pub async fn configure(&self, options: ConfigureMsg, timeout: Duration) -> JaResult<()> {
+    pub async fn configure(&self, options: ConfigureOptions, timeout: Duration) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;

@@ -1,8 +1,8 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust_plugins::audio_bridge::messages::CreateRoomMsg;
-use jarust_plugins::audio_bridge::messages::JoinRoomMsg;
+use jarust_plugins::audio_bridge::msg_opitons::CreateRoomOptions;
+use jarust_plugins::audio_bridge::msg_opitons::JoinRoomOptions;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
 
     let create_room_rsp = handle
         .create_room_with_config(
-            CreateRoomMsg {
+            CreateRoomOptions {
                 secret: Some("superdupersecret".to_string()),
                 ..Default::default()
             },
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
     handle
         .join_room(
             create_room_rsp.room.clone(),
-            JoinRoomMsg {
+            JoinRoomOptions {
                 secret: Some("superdupersecret".to_string()),
                 generate_offer: Some(true),
                 ..Default::default()
