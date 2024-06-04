@@ -1,4 +1,4 @@
-use super::messages::StartOptions;
+use super::msg_options::StartOptions;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::prelude::*;
 use jarust_rt::JaTask;

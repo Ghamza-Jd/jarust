@@ -6,7 +6,7 @@ use jarust::japrotocol::JsepType;
 use jarust_plugins::echotest::events::EchoTestEvent;
 use jarust_plugins::echotest::events::PluginEvent;
 use jarust_plugins::echotest::jahandle_ext::EchoTest;
-use jarust_plugins::echotest::messages::StartOptions;
+use jarust_plugins::echotest::msg_options::StartOptions;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
