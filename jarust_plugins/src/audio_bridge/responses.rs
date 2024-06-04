@@ -1,4 +1,4 @@
-use super::common::Identifier;
+use super::common::{Identifier, Participant};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -52,15 +52,4 @@ pub struct ExistsRoomRsp {
 pub struct ListParticipantsRsp {
     pub room: Identifier,
     pub participants: Vec<Participant>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct Participant {
-    pub id: Identifier,
-    pub display: Option<String>,
-    pub setup: bool,
-    pub muted: bool,
-    pub suspended: Option<bool>,
-    pub talking: Option<bool>,
-    pub spatial_position: Option<u64>,
 }
