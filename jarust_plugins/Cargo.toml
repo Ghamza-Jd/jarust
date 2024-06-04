@@ -23,8 +23,8 @@ tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 [features]
-default = ["echotest", "audio_bridge", "video_room"]
-echotest = []
+default = ["echo_test", "audio_bridge", "video_room"]
+echo_test = []
 audio_bridge = []
 video_room = []
 

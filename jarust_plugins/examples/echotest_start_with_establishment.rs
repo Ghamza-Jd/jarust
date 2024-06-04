@@ -3,10 +3,10 @@ use jarust::jaconfig::TransportType;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
-use jarust_plugins::echotest::events::EchoTestEvent;
-use jarust_plugins::echotest::events::PluginEvent;
-use jarust_plugins::echotest::jahandle_ext::EchoTest;
-use jarust_plugins::echotest::msg_options::StartOptions;
+use jarust_plugins::echo_test::events::EchoTestEvent;
+use jarust_plugins::echo_test::events::PluginEvent;
+use jarust_plugins::echo_test::jahandle_ext::EchoTest;
+use jarust_plugins::echo_test::msg_options::StartOptions;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
     let session = connection.create(10).await?;
-    let (handle, mut event_receiver) = session.attach_echotest().await?;
+    let (handle, mut event_receiver) = session.attach_echo_test().await?;
 
     let rsp = handle
         .start_with_establishment(
