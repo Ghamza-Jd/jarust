@@ -1,4 +1,4 @@
-use super::messages::StartMsg;
+use super::messages::StartOptions;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
@@ -11,20 +11,20 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
-    pub async fn start(&self, request: StartMsg) -> JaResult<()> {
+    pub async fn start(&self, options: StartOptions) -> JaResult<()> {
         self.handle
-            .fire_and_forget(serde_json::to_value(request)?)
+            .fire_and_forget(serde_json::to_value(options)?)
             .await
     }
 
     pub async fn start_with_establishment(
         &self,
-        request: StartMsg,
+        options: StartOptions,
         establishment: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<()> {
         self.send_waiton_ack_with_establishment(
-            serde_json::to_value(request)?,
+            serde_json::to_value(options)?,
             establishment,
             timeout,
         )
