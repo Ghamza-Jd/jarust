@@ -3,7 +3,7 @@ use jarust::jaconfig::TransportType;
 use jarust_plugins::echotest::events::EchoTestEvent;
 use jarust_plugins::echotest::events::PluginEvent;
 use jarust_plugins::echotest::jahandle_ext::EchoTest;
-use jarust_plugins::echotest::messages::StartMsg;
+use jarust_plugins::echotest::messages::StartOptions;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach_echotest().await?;
 
     handle
-        .start(StartMsg {
+        .start(StartOptions {
             audio: true,
             video: true,
             ..Default::default()
