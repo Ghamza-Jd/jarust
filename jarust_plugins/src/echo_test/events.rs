@@ -65,7 +65,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
-    use crate::echotest::events::EchoTestEvent;
+    use crate::echo_test::events::EchoTestEvent;
     use jarust::japrotocol::EstablishmentProtocol;
     use jarust::japrotocol::JaHandleEvent;
     use jarust::japrotocol::JaResponse;

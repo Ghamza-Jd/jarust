@@ -9,7 +9,7 @@ pub trait EchoTest: Attach {
     type Event: TryFrom<JaResponse, Error = JaError> + Send + Sync + 'static;
     type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
 
-    async fn attach_echotest(
+    async fn attach_echo_test(
         &self,
     ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
         let (handle, mut receiver) = self.attach("janus.plugin.echotest").await?;

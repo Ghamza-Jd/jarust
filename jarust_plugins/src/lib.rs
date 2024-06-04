@@ -1,5 +1,5 @@
-#[cfg(feature = "echotest")]
-pub mod echotest;
+#[cfg(feature = "echo_test")]
+pub mod echo_test;
 
 #[cfg(feature = "audio_bridge")]
 pub mod audio_bridge;

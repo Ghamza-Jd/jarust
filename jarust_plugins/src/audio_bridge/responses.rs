@@ -1,4 +1,5 @@
-use super::common::{Identifier, Participant};
+use super::common::Identifier;
+use super::common::Participant;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
