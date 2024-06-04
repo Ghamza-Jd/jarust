@@ -1,4 +1,5 @@
 use super::common::Identifier;
+use super::common::Participant;
 use jarust::error::JaError;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::GenericEvent;
@@ -33,17 +34,6 @@ enum AudioBridgeEventDto {
         room: u64,
         participants: Vec<Participant>,
     },
-}
-
-#[derive(Debug, PartialEq, Deserialize)]
-pub struct Participant {
-    pub id: u64,
-    pub display: Option<String>,
-    pub setup: bool,
-    pub muted: bool,
-    pub suspended: Option<bool>,
-    pub talking: Option<bool>,
-    pub spatial_position: Option<String>,
 }
 
 #[derive(Debug, PartialEq)]
