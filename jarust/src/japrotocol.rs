@@ -2,38 +2,6 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
 
-#[derive(Serialize)]
-pub enum JaConnectionRequestProtocol {
-    #[serde(rename = "info")]
-    ServerInfo,
-    #[serde(rename = "create")]
-    CreateSession,
-}
-
-#[derive(Serialize)]
-pub enum JaSessionRequestProtocol {
-    #[serde(rename = "keepalive")]
-    KeepAlive,
-    #[serde(rename = "destory")]
-    DestorySession,
-    #[serde(rename = "claim")]
-    Claim,
-    #[serde(rename = "attach")]
-    AttachPlugin,
-}
-
-#[derive(Serialize)]
-pub enum JaHandleRequestProtocol {
-    #[serde(rename = "message")]
-    Message,
-    #[serde(rename = "trickle")]
-    Trickle,
-    #[serde(rename = "hangup")]
-    Hangup,
-    #[serde(rename = "detach")]
-    DetachPlugin,
-}
-
 /// The top-level response
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct JaResponse {

@@ -1,7 +1,6 @@
 use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
-use crate::japrotocol::JaSessionRequestProtocol;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::prelude::*;
@@ -91,7 +90,7 @@ impl JaSession {
             interval.tick().await;
             tracing::debug!("Sending {{ id: {id} }}");
             self.send_request(json!({
-                "janus": JaSessionRequestProtocol::KeepAlive,
+                "janus": "keepalive"
             }))
             .await?;
             let _ = match self.inner.exclusive.lock().await.receiver.recv().await {
@@ -137,7 +136,7 @@ impl Attach for JaSession {
         tracing::info!("Attaching new handle");
 
         let request = json!({
-            "janus": JaSessionRequestProtocol::AttachPlugin,
+            "janus": "attach",
             "plugin": plugin_id,
         });
 
