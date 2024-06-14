@@ -1,6 +1,5 @@
 use crate::demuxer::Demuxer;
 use crate::jaconfig::JaConfig;
-use crate::japrotocol::JaConnectionRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
@@ -85,7 +84,7 @@ impl JaConnection {
         tracing::info!("Creating new session");
 
         let request = json!({
-            "janus": JaConnectionRequestProtocol::CreateSession,
+            "janus": "create"
         });
 
         self.send_request(request).await?;
@@ -181,7 +180,7 @@ impl JaConnection {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn server_info(&mut self) -> JaResult<JaResponse> {
         let request = json!({
-            "janus": JaConnectionRequestProtocol::ServerInfo,
+            "janus": "info"
         });
 
         self.send_request(request).await?;

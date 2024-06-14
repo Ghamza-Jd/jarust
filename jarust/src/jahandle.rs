@@ -1,5 +1,4 @@
 use crate::japrotocol::EstablishmentProtocol;
-use crate::japrotocol::JaHandleRequestProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
@@ -166,7 +165,7 @@ impl JaHandle {
     /// Send a one-shot message
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
         let request = json!({
-            "janus": JaHandleRequestProtocol::Message,
+            "janus": "message",
             "body": body
         });
         self.send_request(request).await?;
@@ -179,7 +178,7 @@ impl JaHandle {
         R: DeserializeOwned,
     {
         let request = json!({
-            "janus": JaHandleRequestProtocol::Message,
+            "janus": "message",
             "body": body
         });
         let transaction = self.send_request(request).await?;
@@ -207,7 +206,7 @@ impl JaHandle {
     /// Send a message and wait for the ack
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
         let request = json!({
-            "janus": JaHandleRequestProtocol::Message,
+            "janus": "message",
             "body": body
         });
         let transaction = self.send_request(request).await?;
@@ -224,12 +223,12 @@ impl JaHandle {
     ) -> JaResult<JaResponse> {
         let request = match protocol {
             EstablishmentProtocol::JSEP(jsep) => json!({
-                "janus": JaHandleRequestProtocol::Message,
+                "janus": "message",
                 "body": body,
                 "jsep": jsep
             }),
             EstablishmentProtocol::RTP(rtp) => json!({
-                "janus": JaHandleRequestProtocol::Message,
+                "janus": "message",
                 "body": body,
                 "rtp": rtp
             }),
@@ -247,27 +246,17 @@ impl JaHandle {
     ) -> JaResult<()> {
         let request = match protocol {
             EstablishmentProtocol::JSEP(jsep) => json!({
-                "janus": JaHandleRequestProtocol::Message,
+                "janus": "message",
                 "body": body,
                 "jsep": jsep
             }),
             EstablishmentProtocol::RTP(rtp) => json!({
-                "janus": JaHandleRequestProtocol::Message,
+                "janus": "message",
                 "body": body,
                 "rtp": rtp
             }),
         };
         self.send_request(request).await?;
-        Ok(())
-    }
-
-    pub async fn detach(&self) -> JaResult<()> {
-        tracing::info!("Detaching handle {{ id: {} }}", self.inner.shared.id);
-        let request = json!({
-            "janus": JaHandleRequestProtocol::DetachPlugin,
-        });
-        self.send_request(request).await?;
-        // let session = self.shared.session.clone();
         Ok(())
     }
 
