@@ -14,6 +14,7 @@ use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::JaSuccessProtocol;
 use jarust::japrotocol::ResponseType;
 use jarust_transport::trans::TransportProtocol;
+use std::time::Duration;
 
 #[tokio::test]
 async fn it_successfully_connects() {
@@ -43,7 +44,7 @@ async fn it_successfully_creates_session() {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
             data: JaData { id: 2 },
         }),
-        transaction: None,
+        transaction: Some("abc123".to_string()),
         session_id: None,
         sender: None,
         establishment_protocol: None,
@@ -51,7 +52,7 @@ async fn it_successfully_creates_session() {
     .unwrap();
 
     server.mock_send_to_client(&msg).await;
-    let session = connection.create(10).await;
+    let session = connection.create(10, Duration::from_secs(10)).await;
 
     assert!(session.is_ok());
 }
@@ -84,7 +85,7 @@ async fn it_fails_to_create_session_with_janus_error() {
     .unwrap();
 
     server.mock_send_to_client(&msg).await;
-    let session = connection.create(10).await;
+    let session = connection.create(10, Duration::from_secs(10)).await;
 
     assert!(matches!(session.unwrap_err(), JaError::JanusError { .. }))
 }

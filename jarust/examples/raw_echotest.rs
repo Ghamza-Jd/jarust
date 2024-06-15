@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
@@ -11,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
         .init();
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
-    let session = connection.create(10).await?;
+    let session = connection.create(10, Duration::from_secs(10)).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     handle
