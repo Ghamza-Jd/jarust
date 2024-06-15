@@ -10,6 +10,7 @@ use crate::mocks::mock_connection::MockConnectionConfig;
 use crate::mocks::mock_session::mock_session;
 use crate::mocks::mock_session::MockSessionConfig;
 use crate::mocks::mock_transport::MockTransport;
+use fixtures::FIXTURE_TIMEOUT;
 use jarust::japlugin::Attach;
 use jarust::japrotocol::ErrorResponse;
 use jarust::japrotocol::JaData;
@@ -35,6 +36,7 @@ async fn it_successfully_attach_to_handle() {
         MockSessionConfig {
             session_id: FIXTURE_SESSION_ID,
             ka_interval: FIXTURE_KA_INTERVAL,
+            timeout: FIXTURE_TIMEOUT,
         },
     )
     .await
@@ -73,6 +75,7 @@ async fn it_fails_to_attach_session() {
         MockSessionConfig {
             session_id: FIXTURE_SESSION_ID,
             ka_interval: FIXTURE_KA_INTERVAL,
+            timeout: FIXTURE_TIMEOUT,
         },
     )
     .await

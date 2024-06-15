@@ -18,8 +18,9 @@ async fn main() -> anyhow::Result<()> {
         .url("wss://janus.conf.meetecho.com/ws")
         .build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
+    let timeout = Duration::from_secs(10);
 
-    let session = connection.create(10).await?;
+    let session = connection.create(10, timeout).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 
     tokio::spawn(async move {

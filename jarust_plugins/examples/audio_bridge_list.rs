@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
 
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
     let mut connection = jarust::connect(config, TransportType::Ws).await?;
-    let session = connection.create(10).await?;
+    let session = connection.create(10, timeout).await?;
     let (handle, ..) = session.attach_audio_bridge().await?;
 
     let rooms = handle.list_rooms(timeout).await?;

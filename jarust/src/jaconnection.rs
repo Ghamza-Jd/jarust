@@ -11,10 +11,12 @@ use crate::tmanager::TransactionManager;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
+use napmap::UnboundedNapMap;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
@@ -22,15 +24,15 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
 #[derive(Debug)]
 struct Shared {
-    demux_task: JaTask,
+    tasks: Vec<JaTask>,
     config: JaConfig,
+    rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
 }
 
 #[derive(Debug)]
 struct Exclusive {
     router: JaRouter,
     transport_session: TransportSession,
-    receiver: JaResponseStream,
     sessions: HashMap<u64, WeakJaSession>,
     transaction_manager: TransactionManager,
 }
@@ -51,7 +53,8 @@ impl JaConnection {
         config: JaConfig,
         transport: impl TransportProtocol,
     ) -> JaResult<Self> {
-        let (router, root_channel) = JaRouter::new(&config.namespace).await;
+        let (router, mut root_channel) = JaRouter::new(&config.namespace).await;
+        let rsp_map = Arc::new(napmap::unbounded());
         let transaction_manager = TransactionManager::new(32);
 
         let (transport_session, receiver) =
@@ -63,11 +66,27 @@ impl JaConnection {
             async move { Demuxer::demux_task(receiver, router, transaction_manager).await }
         });
 
-        let shared = Shared { demux_task, config };
+        let rsp_cache_task = jarust_rt::spawn({
+            let rsp_map = rsp_map.clone();
+            async move {
+                while let Some(rsp) = root_channel.recv().await {
+                    if let Some(transaction) = rsp.transaction.clone() {
+                        rsp_map.insert(transaction, rsp).await;
+                    }
+                }
+            }
+        });
+
+        let tasks = vec![demux_task, rsp_cache_task];
+
+        let shared = Shared {
+            tasks,
+            config,
+            rsp_map,
+        };
         let safe = Exclusive {
             router,
             transport_session,
-            receiver: root_channel,
             sessions: HashMap::new(),
             transaction_manager,
         };
@@ -80,21 +99,15 @@ impl JaConnection {
 
     /// Creates a new session with janus server.
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    pub async fn create(&mut self, ka_interval: u32) -> JaResult<JaSession> {
+    pub async fn create(&mut self, ka_interval: u32, timeout: Duration) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
 
         let request = json!({
             "janus": "create"
         });
 
-        self.send_request(request).await?;
-        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
-            Some(response) => response,
-            None => {
-                tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
-            }
-        };
+        let transaction = self.send_request(request).await?;
+        let response = self.poll_response(&transaction, timeout).await?;
 
         let session_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
@@ -134,7 +147,7 @@ impl JaConnection {
 
         let Some(transaction) = request["transaction"].as_str() else {
             let err = JaError::InvalidJanusRequest {
-                reason: "request type and/or transaction are missing".to_owned(),
+                reason: "request transaction is missing".to_owned(),
             };
             tracing::error!("{err}");
             return Err(err);
@@ -154,6 +167,33 @@ impl JaConnection {
             .send(message.as_bytes(), &path)
             .await?;
         Ok(transaction.into())
+    }
+
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
+    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
+        tracing::trace!("Polling response");
+        match tokio::time::timeout(
+            timeout,
+            self.inner.shared.rsp_map.get(transaction.to_string()),
+        )
+        .await
+        {
+            Ok(Some(response)) => match response.janus {
+                ResponseType::Error { error } => Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                }),
+                _ => Ok(response),
+            },
+            Ok(None) => {
+                tracing::error!("Incomplete packet");
+                Err(JaError::IncompletePacket)
+            }
+            Err(_) => {
+                tracing::error!("Request timeout");
+                Err(JaError::RequestTimeout)
+            }
+        }
     }
 
     fn decorate_request(&self, mut request: Value) -> Value {
@@ -178,19 +218,12 @@ impl JaConnection {
 
 impl JaConnection {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn server_info(&mut self) -> JaResult<JaResponse> {
+    pub async fn server_info(&mut self, timeout: Duration) -> JaResult<JaResponse> {
         let request = json!({
             "janus": "info"
         });
-
-        self.send_request(request).await?;
-        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
-            Some(response) => response,
-            None => {
-                tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
-            }
-        };
+        let transaction = self.send_request(request).await?;
+        let response = self.poll_response(&transaction, timeout).await?;
         Ok(response)
     }
 }
@@ -198,7 +231,9 @@ impl JaConnection {
 impl Drop for InnerConnection {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip_all)]
     fn drop(&mut self) {
-        tracing::debug!("Connection dropped");
-        self.shared.demux_task.cancel();
+        tracing::debug!("JaConnection dropped, cancelling all associated tasks");
+        self.shared.tasks.iter().for_each(|task| {
+            task.cancel();
+        });
     }
 }
