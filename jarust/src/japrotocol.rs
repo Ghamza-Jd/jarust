@@ -30,11 +30,6 @@ pub enum ResponseType {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct JaData {
-    pub id: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ErrorResponse {
     pub code: u16,
     pub reason: String,
@@ -50,6 +45,11 @@ pub enum JaSuccessProtocol {
         #[serde(rename = "plugindata")]
         plugin_data: PluginData,
     },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct JaData {
+    pub id: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
