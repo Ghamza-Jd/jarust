@@ -86,3 +86,11 @@ impl NetworkConnection for NwConn {
         self.router.add_subroute(subroute).await
     }
 }
+
+impl Drop for NwConn {
+    fn drop(&mut self) {
+        self.tasks.iter().for_each(|task| {
+            task.cancel();
+        });
+    }
+}
