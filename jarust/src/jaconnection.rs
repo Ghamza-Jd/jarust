@@ -6,6 +6,8 @@ use crate::japrotocol::ResponseType;
 use crate::jarouter::JaRouter;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
+use crate::nwconn::NetworkConnection;
+use crate::nwconn::NwConn;
 use crate::prelude::*;
 use crate::tmanager::TransactionManager;
 use jarust_rt::JaTask;
@@ -31,10 +33,8 @@ struct Shared {
 
 #[derive(Debug)]
 struct Exclusive {
-    router: JaRouter,
-    transport_session: TransportSession,
+    nwconn: NwConn,
     sessions: HashMap<u64, WeakJaSession>,
-    transaction_manager: TransactionManager,
 }
 
 #[derive(Debug)]
@@ -53,18 +53,9 @@ impl JaConnection {
         config: JaConfig,
         transport: impl TransportProtocol,
     ) -> JaResult<Self> {
-        let (router, mut root_channel) = JaRouter::new(&config.namespace).await;
+        let (nwconn, mut root_channel) =
+            NwConn::new(&config.url, &config.namespace, transport).await?;
         let rsp_map = Arc::new(napmap::unbounded());
-        let transaction_manager = TransactionManager::new(32);
-
-        let (transport_session, receiver) =
-            TransportSession::connect(transport, &config.url).await?;
-
-        let demux_task = jarust_rt::spawn({
-            let router = router.clone();
-            let transaction_manager = transaction_manager.clone();
-            async move { Demuxer::demux_task(receiver, router, transaction_manager).await }
-        });
 
         let rsp_cache_task = jarust_rt::spawn({
             let rsp_map = rsp_map.clone();
@@ -77,7 +68,7 @@ impl JaConnection {
             }
         });
 
-        let tasks = vec![demux_task, rsp_cache_task];
+        let tasks = vec![rsp_cache_task];
 
         let shared = Shared {
             tasks,
@@ -85,10 +76,8 @@ impl JaConnection {
             rsp_map,
         };
         let safe = Exclusive {
-            router,
-            transport_session,
+            nwconn,
             sessions: HashMap::new(),
-            transaction_manager,
         };
         let connection = Arc::new(InnerConnection {
             shared,
@@ -143,30 +132,15 @@ impl JaConnection {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<String> {
         let request = self.decorate_request(request);
-        let message = serde_json::to_string(&request)?;
-
-        let Some(transaction) = request["transaction"].as_str() else {
-            let err = JaError::InvalidJanusRequest {
-                reason: "request transaction is missing".to_owned(),
-            };
-            tracing::error!("{err}");
-            return Err(err);
-        };
-
-        let path = JaRouter::path_from_request(&request)
-            .unwrap_or(self.inner.shared.config.namespace.clone());
-
-        let mut guard = self.inner.exclusive.lock().await;
-        guard
-            .transaction_manager
-            .create_transaction(transaction, &path)
-            .await;
-        tracing::debug!("Sending {request:#}");
-        guard
-            .transport_session
-            .send(message.as_bytes(), &path)
+        let transaction = self
+            .inner
+            .exclusive
+            .lock()
+            .await
+            .nwconn
+            .send(request)
             .await?;
-        Ok(transaction.into())
+        Ok(transaction)
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
@@ -210,7 +184,7 @@ impl JaConnection {
             .exclusive
             .lock()
             .await
-            .router
+            .nwconn
             .add_subroute(end)
             .await
     }
