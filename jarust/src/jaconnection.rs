@@ -4,10 +4,11 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
-use crate::nwconn::NetworkConnection;
-use crate::nwconn::NwConn;
+use crate::nw::nwconn::NetworkConnection;
+use crate::nw::nwconn::NwConn;
 use crate::prelude::*;
-use crate::tmanager::TransactionManager;
+use crate::transaction_gen::GenerateTransaction;
+use crate::transaction_gen::TransactionGenerator;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use napmap::UnboundedNapMap;
@@ -26,6 +27,7 @@ struct Shared {
     tasks: Vec<JaTask>,
     config: JaConfig,
     rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
+    transaction_generator: TransactionGenerator,
 }
 
 #[derive(Debug)]
@@ -49,6 +51,7 @@ impl JaConnection {
     pub(crate) async fn open(
         config: JaConfig,
         transport: impl TransportProtocol,
+        transaction_generator: impl GenerateTransaction,
     ) -> JaResult<Self> {
         let (nwconn, mut root_channel) =
             NwConn::new(&config.url, &config.namespace, transport).await?;
@@ -66,11 +69,13 @@ impl JaConnection {
         });
 
         let tasks = vec![rsp_cache_task];
+        let transaction_generator = TransactionGenerator::new(transaction_generator);
 
         let shared = Shared {
             tasks,
             config,
             rsp_map,
+            transaction_generator,
         };
         let safe = Exclusive {
             nwconn,
@@ -168,7 +173,11 @@ impl JaConnection {
     }
 
     fn decorate_request(&self, mut request: Value) -> Value {
-        let transaction = TransactionManager::random_transaction();
+        let transaction = self
+            .inner
+            .shared
+            .transaction_generator
+            .generate_transaction();
         if let Some(apisecret) = self.inner.shared.config.apisecret.clone() {
             request["apisecret"] = apisecret.into();
         };
