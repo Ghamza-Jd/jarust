@@ -1,9 +1,9 @@
-use crate::demuxer::Demuxer;
+use super::demuxer::Demuxer;
+use super::jarouter::JaRouter;
+use super::tmanager::TransactionManager;
 use crate::error::JaError;
 use crate::japrotocol::JaResponse;
-use crate::jarouter::JaRouter;
 use crate::prelude::JaResult;
-use crate::tmanager::TransactionManager;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
@@ -74,7 +74,7 @@ impl NetworkConnection for NwConn {
 
         let path = JaRouter::path_from_request(&message).unwrap_or(self.namespace.clone());
 
-        self.tmanager.create_transaction(&transaction, &path).await;
+        self.tmanager.create_transaction(transaction, &path).await;
         self.transport
             .send(message.to_string().as_bytes(), &path)
             .await?;

@@ -4,6 +4,7 @@ use jarust::japlugin::Attach;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
+use jarust::transaction_gen::TransactionGenerationStrategy;
 use serde_json::json;
 use std::time::Duration;
 use tokio::time;
@@ -17,7 +18,12 @@ async fn main() -> anyhow::Result<()> {
     let config = JaConfig::builder()
         .url("wss://janus.conf.meetecho.com/ws")
         .build();
-    let mut connection = jarust::connect(config, TransportType::Ws).await?;
+    let mut connection = jarust::connect(
+        config,
+        TransportType::Ws,
+        TransactionGenerationStrategy::Random,
+    )
+    .await?;
     let timeout = Duration::from_secs(10);
 
     let session = connection.create(10, timeout).await?;

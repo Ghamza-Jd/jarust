@@ -1,8 +1,9 @@
-use std::time::Duration;
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
+use jarust::transaction_gen::TransactionGenerationStrategy;
 use serde_json::json;
+use std::time::Duration;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
@@ -11,7 +12,12 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
         .init();
     let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
-    let mut connection = jarust::connect(config, TransportType::Ws).await?;
+    let mut connection = jarust::connect(
+        config,
+        TransportType::Ws,
+        TransactionGenerationStrategy::Random,
+    )
+    .await?;
     let session = connection.create(10, Duration::from_secs(10)).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
 

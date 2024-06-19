@@ -1,6 +1,4 @@
 use indexmap::IndexMap;
-use rand::distributions::Alphanumeric;
-use rand::Rng;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -88,13 +86,5 @@ impl TransactionManager {
             self.remove(&tx.id).await;
             tracing::trace!("Transaction closed successfully");
         }
-    }
-
-    pub fn random_transaction() -> String {
-        rand::thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(12)
-            .map(char::from)
-            .collect()
     }
 }
