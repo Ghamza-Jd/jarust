@@ -9,6 +9,7 @@ pub mod prelude;
 
 mod demuxer;
 mod jarouter;
+mod nwconn;
 mod tmanager;
 
 use jaconfig::JaConfig;

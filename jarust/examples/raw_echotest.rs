@@ -1,5 +1,4 @@
 use std::time::Duration;
-
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
