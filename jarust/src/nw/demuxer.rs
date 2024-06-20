@@ -1,5 +1,5 @@
 use super::jarouter::JaRouter;
-use super::tmanager::TransactionManager;
+use super::transaction_manager::TransactionManager;
 use crate::japrotocol::ResponseType;
 use crate::prelude::*;
 use bytes::Bytes;
@@ -55,13 +55,12 @@ impl Demuxer {
     ) -> JaResult<()> {
         // Check if we have a pending transaction and demux to the proper route
         if let Some(transaction) = message.transaction.clone() {
-            if let Some(pending) = transaction_manager.get(&transaction).await {
-                if pending.path == router.root_path() {
+            if let Some(path) = transaction_manager.get(&transaction).await {
+                if path == router.root_path() {
                     router.pub_root(message).await?;
                 } else {
-                    router.pub_subroute(&pending.path, message).await?;
+                    router.pub_subroute(&path, message).await?;
                 }
-                transaction_manager.success_close(&pending.id).await;
                 return Ok(());
             }
         }
