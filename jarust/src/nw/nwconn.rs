@@ -1,6 +1,6 @@
 use super::demuxer::Demuxer;
 use super::jarouter::JaRouter;
-use super::tmanager::TransactionManager;
+use super::transaction_manager::TransactionManager;
 use crate::error::JaError;
 use crate::japrotocol::JaResponse;
 use crate::prelude::JaResult;
@@ -30,7 +30,7 @@ pub(crate) struct NwConn {
     tasks: Vec<JaTask>,
     router: JaRouter,
     transport: TransportSession,
-    tmanager: TransactionManager,
+    transaction_manager: TransactionManager,
 }
 
 #[async_trait::async_trait]
@@ -42,12 +42,12 @@ impl NetworkConnection for NwConn {
     ) -> JaResult<(Self, mpsc::UnboundedReceiver<JaResponse>)> {
         let (router, root_channel) = JaRouter::new(namespace).await;
         let (transport, receiver) = TransportSession::connect(transport, url).await?;
-        let tmanager = TransactionManager::new(32);
+        let transaction_manager = TransactionManager::new(32);
 
         let demux_task = jarust_rt::spawn({
             let router = router.clone();
-            let tmanager = tmanager.clone();
-            async move { Demuxer::demux_task(receiver, router, tmanager).await }
+            let transaction_manager = transaction_manager.clone();
+            async move { Demuxer::demux_task(receiver, router, transaction_manager).await }
         });
 
         Ok((
@@ -56,7 +56,7 @@ impl NetworkConnection for NwConn {
                 tasks: vec![demux_task],
                 router,
                 transport,
-                tmanager,
+                transaction_manager,
             },
             root_channel,
         ))
@@ -74,7 +74,7 @@ impl NetworkConnection for NwConn {
 
         let path = JaRouter::path_from_request(&message).unwrap_or(self.namespace.clone());
 
-        self.tmanager.create_transaction(transaction, &path).await;
+        self.transaction_manager.insert(transaction, &path).await;
         self.transport
             .send(message.to_string().as_bytes(), &path)
             .await?;
