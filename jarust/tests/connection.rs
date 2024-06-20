@@ -6,6 +6,7 @@ use crate::fixtures::FIXTURE_URL;
 use crate::mocks::mock_connection::mock_connection;
 use crate::mocks::mock_connection::MockConnectionConfig;
 use crate::mocks::mock_transport::MockTransport;
+use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
 use jarust::error::JaError;
 use jarust::jaconfig::JaConfig;
 use jarust::japrotocol::ErrorResponse;
@@ -23,19 +24,23 @@ async fn it_successfully_connects() {
         .namespace("mock")
         .build();
     let transport = MockTransport::create_transport();
-    let connection = jarust::connect_with_transport(config, transport).await;
+    let generator = MockGenerateTransaction::new();
+    let connection = jarust::connect_with_transport(config, transport, generator).await;
     assert!(connection.is_ok());
 }
 
 #[tokio::test]
 async fn it_successfully_creates_session() {
     let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let mut generator = MockGenerateTransaction::new();
+    generator.next_transaction("abc123");
     let mut connection = mock_connection(
         transport,
         MockConnectionConfig {
             url: FIXTURE_URL.to_string(),
             namespace: FIXTURE_NAMESPACE.to_string(),
         },
+        generator,
     )
     .await
     .unwrap();
@@ -60,12 +65,15 @@ async fn it_successfully_creates_session() {
 #[tokio::test]
 async fn it_fails_to_create_session_with_janus_error() {
     let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let mut generator = MockGenerateTransaction::new();
+    generator.next_transaction("abc123");
     let mut connection = mock_connection(
         transport,
         MockConnectionConfig {
             url: FIXTURE_URL.to_string(),
             namespace: FIXTURE_NAMESPACE.to_string(),
         },
+        generator
     )
     .await
     .unwrap();
@@ -77,7 +85,7 @@ async fn it_fails_to_create_session_with_janus_error() {
                 reason: "".to_string(),
             },
         },
-        transaction: None,
+        transaction: Some("abc123".to_string()),
         session_id: None,
         sender: None,
         establishment_protocol: None,

@@ -17,16 +17,19 @@ use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::JaSuccessProtocol;
 use jarust::japrotocol::ResponseType;
+use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
 
 #[tokio::test]
 async fn it_successfully_attach_to_handle() {
     let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let generator = MockGenerateTransaction::new();
     let connection = mock_connection(
         transport,
         MockConnectionConfig {
             url: FIXTURE_URL.to_string(),
             namespace: FIXTURE_NAMESPACE.to_string(),
         },
+        generator,
     )
     .await
     .unwrap();
@@ -60,12 +63,14 @@ async fn it_successfully_attach_to_handle() {
 #[tokio::test]
 async fn it_fails_to_attach_session() {
     let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let generator = MockGenerateTransaction::new();
     let connection = mock_connection(
         transport,
         MockConnectionConfig {
             url: FIXTURE_URL.to_string(),
             namespace: FIXTURE_NAMESPACE.to_string(),
         },
+        generator,
     )
     .await
     .unwrap();

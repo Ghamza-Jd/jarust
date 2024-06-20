@@ -19,16 +19,20 @@ use jarust::japrotocol::GenericEvent;
 use jarust::japrotocol::JaHandleEvent;
 use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::ResponseType;
+use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
 
 #[tokio::test]
 async fn it_receives_incoming_handle_events() {
     let (transport, server) = MockTransport::transport_server_pair().unwrap();
+    let mut generator = MockGenerateTransaction::new();
+    generator.next_transaction("mock-transaction");
     let connection = mock_connection(
         transport,
         MockConnectionConfig {
             url: FIXTURE_URL.to_string(),
             namespace: FIXTURE_NAMESPACE.to_string(),
         },
+        generator,
     )
     .await
     .unwrap();
@@ -57,7 +61,7 @@ async fn it_receives_incoming_handle_events() {
 
     let event = serde_json::to_string(&JaResponse {
         janus: ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),
-        transaction: None,
+        transaction: Some("mock-transaction".to_string()),
         session_id: Some(FIXTURE_SESSION_ID),
         sender: Some(FIXTURE_HANDLE_ID),
         establishment_protocol: None,
