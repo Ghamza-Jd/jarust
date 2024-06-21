@@ -54,7 +54,7 @@ impl JaConnection {
         transaction_generator: impl GenerateTransaction,
     ) -> JaResult<Self> {
         let (nwconn, mut root_channel) =
-            NwConn::new(&config.url, &config.namespace, transport).await?;
+            NwConn::new(&config.url, &config.namespace, config.capacity, transport).await?;
         let rsp_map = Arc::new(napmap::unbounded());
 
         let rsp_cache_task = jarust_rt::spawn({

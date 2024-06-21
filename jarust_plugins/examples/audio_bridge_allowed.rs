@@ -18,7 +18,10 @@ async fn main() -> anyhow::Result<()> {
 
     let timeout = std::time::Duration::from_secs(10);
 
-    let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
+    let config = JaConfig::builder()
+        .url("ws://localhost:8188/ws")
+        .capacity(32)
+        .build();
     let mut connection = jarust::connect(
         config,
         TransportType::Ws,

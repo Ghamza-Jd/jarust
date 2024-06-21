@@ -15,6 +15,7 @@ pub(crate) trait NetworkConnection {
     async fn new(
         url: &str,
         namespace: &str,
+        capacity: usize,
         transport: impl TransportProtocol,
     ) -> JaResult<(Self, mpsc::UnboundedReceiver<JaResponse>)>
     where
@@ -38,11 +39,12 @@ impl NetworkConnection for NwConn {
     async fn new(
         url: &str,
         namespace: &str,
+        capacity: usize,
         transport: impl TransportProtocol,
     ) -> JaResult<(Self, mpsc::UnboundedReceiver<JaResponse>)> {
         let (router, root_channel) = Router::new(namespace).await;
         let (transport, receiver) = TransportSession::connect(transport, url).await?;
-        let transaction_manager = TransactionManager::new(32);
+        let transaction_manager = TransactionManager::new(capacity);
 
         let demux_task = jarust_rt::spawn({
             let router = router.clone();

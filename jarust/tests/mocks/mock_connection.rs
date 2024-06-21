@@ -7,6 +7,7 @@ use jarust::prelude::JaResult;
 pub struct MockConnectionConfig {
     pub url: String,
     pub namespace: String,
+    pub capacity: usize,
 }
 
 #[allow(dead_code)]
@@ -18,6 +19,7 @@ pub async fn mock_connection(
     let config = JaConfig::builder()
         .url(&config.url)
         .namespace(&config.namespace)
+        .capacity(config.capacity)
         .build();
 
     let connection = jarust::connect_with_transport(config, transport, generator).await?;
