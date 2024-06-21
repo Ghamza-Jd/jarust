@@ -17,6 +17,7 @@ pub async fn mock_session(
     mut connection: JaConnection,
     server: &MockServer,
     config: MockSessionConfig,
+    expected_transaction: &str,
 ) -> JaResult<JaSession> {
     let msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -24,16 +25,16 @@ pub async fn mock_session(
                 id: config.session_id,
             },
         }),
-        transaction: None,
+        transaction: Some(expected_transaction.to_string()),
         session_id: None,
         sender: None,
         establishment_protocol: None,
-    })
-    .unwrap();
+    })?;
 
     server.mock_send_to_client(&msg).await;
     let session = connection
         .create(config.ka_interval, config.timeout)
         .await?;
+
     Ok(session)
 }

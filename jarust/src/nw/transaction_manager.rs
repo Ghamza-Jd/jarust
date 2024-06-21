@@ -1,17 +1,17 @@
+use crate::nw::ringbuf_map::RingBufMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::nw::circular_map::CircularBuffer;
 
 #[derive(Clone, Debug)]
 pub(crate) struct TransactionManager {
-    inner: Arc<RwLock<CircularBuffer<String, String>>>
+    inner: Arc<RwLock<RingBufMap<String, String>>>,
 }
 
 impl TransactionManager {
     #[tracing::instrument(level = tracing::Level::TRACE)]
     pub(crate) fn new(capacity: usize) -> Self {
         tracing::debug!("Creating new transaction manager");
-        let transactions = CircularBuffer::new(capacity);
+        let transactions = RingBufMap::new(capacity);
         let inner = Arc::new(RwLock::new(transactions));
         Self { inner }
     }
