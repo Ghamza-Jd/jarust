@@ -52,9 +52,18 @@ pub async fn connect(
 
 #[cfg(target_family = "wasm")]
 /// Creates a new connection with janus server from the provided configs
-pub async fn connect(jaconfig: JaConfig, transport_type: TransportType) -> JaResult<JaConnection> {
+pub async fn connect(
+    jaconfig: JaConfig,
+    transport_type: TransportType,
+    transaction_generation_strategy: TransactionGenerationStrategy,
+) -> JaResult<JaConnection> {
     let transport = transport::wasm_web_socket::WasmWsTransport;
-    connect_with_transport(jaconfig, transport).await
+    connect_with_transport(
+        jaconfig,
+        transport,
+        transaction_generation_strategy.generator(),
+    )
+    .await
 }
 
 /// Creates a new connection with janus server from the provided configs and custom transport.
