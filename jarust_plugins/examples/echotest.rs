@@ -17,7 +17,10 @@ async fn main() -> anyhow::Result<()> {
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
-    let config = JaConfig::builder().url("ws://localhost:8188/ws").build();
+    let config = JaConfig::builder()
+        .url("ws://localhost:8188/ws")
+        .capacity(32)
+        .build();
     let mut connection = jarust::connect(
         config,
         TransportType::Ws,

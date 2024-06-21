@@ -3,6 +3,7 @@ mod mocks;
 
 #[cfg(test)]
 mod tests {
+    use crate::fixtures::FIXTURE_CAPACITY;
     use crate::fixtures::FIXTURE_HANDLE_ID;
     use crate::fixtures::FIXTURE_KA_INTERVAL;
     use crate::fixtures::FIXTURE_NAMESPACE;
@@ -33,6 +34,7 @@ mod tests {
             MockConnectionConfig {
                 url: FIXTURE_URL.to_string(),
                 namespace: FIXTURE_NAMESPACE.to_string(),
+                capacity: FIXTURE_CAPACITY,
             },
             generator.clone(),
         )

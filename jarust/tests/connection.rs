@@ -3,6 +3,7 @@ mod mocks;
 
 #[cfg(test)]
 mod tests {
+    use crate::fixtures::FIXTURE_CAPACITY;
     use crate::fixtures::FIXTURE_NAMESPACE;
     use crate::fixtures::FIXTURE_URL;
     use crate::mocks::mock_connection::mock_connection;
@@ -24,6 +25,7 @@ mod tests {
         let config = JaConfig::builder()
             .url("mock://some.janus.com")
             .namespace("mock")
+            .capacity(10)
             .build();
         let transport = MockTransport::create_transport();
         let generator = MockGenerateTransaction::new();
@@ -41,6 +43,7 @@ mod tests {
             MockConnectionConfig {
                 url: FIXTURE_URL.to_string(),
                 namespace: FIXTURE_NAMESPACE.to_string(),
+                capacity: FIXTURE_CAPACITY,
             },
             generator,
         )
@@ -74,6 +77,7 @@ mod tests {
             MockConnectionConfig {
                 url: FIXTURE_URL.to_string(),
                 namespace: FIXTURE_NAMESPACE.to_string(),
+                capacity: FIXTURE_CAPACITY,
             },
             generator,
         )
