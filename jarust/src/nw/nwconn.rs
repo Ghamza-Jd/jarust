@@ -27,7 +27,7 @@ pub(crate) trait NetworkConnection {
 #[derive(Debug)]
 pub(crate) struct NwConn {
     namespace: String,
-    tasks: Vec<JaTask>,
+    task: JaTask,
     router: Router,
     transport: TransportSession,
     transaction_manager: TransactionManager,
@@ -53,7 +53,7 @@ impl NetworkConnection for NwConn {
         Ok((
             Self {
                 namespace: namespace.into(),
-                tasks: vec![demux_task],
+                task: demux_task,
                 router,
                 transport,
                 transaction_manager,
@@ -89,8 +89,6 @@ impl NetworkConnection for NwConn {
 
 impl Drop for NwConn {
     fn drop(&mut self) {
-        self.tasks.iter().for_each(|task| {
-            task.cancel();
-        });
+        self.task.cancel();
     }
 }

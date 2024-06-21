@@ -24,7 +24,7 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
 #[derive(Debug)]
 struct Shared {
-    tasks: Vec<JaTask>,
+    task: JaTask,
     config: JaConfig,
     rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
     transaction_generator: TransactionGenerator,
@@ -68,11 +68,10 @@ impl JaConnection {
             }
         });
 
-        let tasks = vec![rsp_cache_task];
         let transaction_generator = TransactionGenerator::new(transaction_generator);
 
         let shared = Shared {
-            tasks,
+            task: rsp_cache_task,
             config,
             rsp_map,
             transaction_generator,
@@ -212,8 +211,6 @@ impl Drop for InnerConnection {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip_all)]
     fn drop(&mut self) {
         tracing::debug!("JaConnection dropped, cancelling all associated tasks");
-        self.shared.tasks.iter().for_each(|task| {
-            task.cancel();
-        });
+        self.shared.task.cancel();
     }
 }
