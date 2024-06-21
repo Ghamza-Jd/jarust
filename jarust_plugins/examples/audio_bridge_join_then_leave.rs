@@ -1,6 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::transaction_gen::TransactionGenerationStrategy;
+use jarust::TransactionGenerationStrategy;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::CreateRoomOptions;
 use jarust_plugins::audio_bridge::msg_opitons::JoinRoomOptions;

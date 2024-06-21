@@ -6,9 +6,11 @@ pub mod japlugin;
 pub mod japrotocol;
 pub mod jasession;
 pub mod prelude;
-pub mod transaction_gen;
 
 mod nw;
+
+pub use nw::transaction_gen::GenerateTransaction;
+pub use nw::transaction_gen::TransactionGenerationStrategy;
 
 use jaconfig::JaConfig;
 use jaconfig::TransportType;
@@ -16,8 +18,6 @@ use jaconnection::JaConnection;
 use jarust_transport::trans::TransportProtocol;
 use prelude::JaResult;
 use tracing::Level;
-use transaction_gen::GenerateTransaction;
-use transaction_gen::TransactionGenerationStrategy;
 
 /// Creates a new connection with janus server from the provided configs
 ///

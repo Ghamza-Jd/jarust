@@ -4,7 +4,7 @@ use jarust::japlugin::Attach;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
-use jarust::transaction_gen::TransactionGenerationStrategy;
+use jarust::TransactionGenerationStrategy;
 use serde_json::json;
 use std::time::Duration;
 use tokio::time;

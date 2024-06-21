@@ -1,7 +1,7 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
-use jarust::transaction_gen::TransactionGenerationStrategy;
+use jarust::TransactionGenerationStrategy;
 use serde_json::json;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
