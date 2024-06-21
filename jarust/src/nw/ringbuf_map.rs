@@ -13,6 +13,7 @@ where
     K: std::hash::Hash + Eq + Clone,
 {
     pub fn new(capacity: usize) -> Self {
+        assert!(capacity > 0, "capacity should be more than zero");
         Self {
             map: HashMap::new(),
             keys: VecDeque::with_capacity(capacity),
@@ -40,7 +41,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_circular_buffer() {
+    fn it_should_overwrite_the_first_inserted_val() {
         let mut buffer = RingBufMap::new(3);
         buffer.put("a", 1);
         buffer.put("b", 2);
@@ -50,5 +51,11 @@ mod tests {
         assert_eq!(buffer.get(&"b"), Some(&2));
         assert_eq!(buffer.get(&"c"), Some(&3));
         assert_eq!(buffer.get(&"d"), Some(&4));
+    }
+
+    #[test]
+    #[should_panic]
+    fn it_should_panic_on_passing_zero() {
+        RingBufMap::<String, String>::new(0);
     }
 }
