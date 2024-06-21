@@ -1,5 +1,5 @@
 use super::demuxer::Demuxer;
-use super::jarouter::JaRouter;
+use super::router::Router;
 use super::transaction_manager::TransactionManager;
 use crate::error::JaError;
 use crate::japrotocol::JaResponse;
@@ -28,7 +28,7 @@ pub(crate) trait NetworkConnection {
 pub(crate) struct NwConn {
     namespace: String,
     tasks: Vec<JaTask>,
-    router: JaRouter,
+    router: Router,
     transport: TransportSession,
     transaction_manager: TransactionManager,
 }
@@ -40,7 +40,7 @@ impl NetworkConnection for NwConn {
         namespace: &str,
         transport: impl TransportProtocol,
     ) -> JaResult<(Self, mpsc::UnboundedReceiver<JaResponse>)> {
-        let (router, root_channel) = JaRouter::new(namespace).await;
+        let (router, root_channel) = Router::new(namespace).await;
         let (transport, receiver) = TransportSession::connect(transport, url).await?;
         let transaction_manager = TransactionManager::new(32);
 
@@ -72,7 +72,7 @@ impl NetworkConnection for NwConn {
             return Err(err);
         };
 
-        let path = JaRouter::path_from_request(&message).unwrap_or(self.namespace.clone());
+        let path = Router::path_from_request(&message).unwrap_or(self.namespace.clone());
 
         self.transaction_manager.insert(transaction, &path).await;
         self.transport

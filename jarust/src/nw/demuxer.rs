@@ -1,4 +1,4 @@
-use super::jarouter::JaRouter;
+use super::router::Router;
 use super::transaction_manager::TransactionManager;
 use crate::japrotocol::ResponseType;
 use crate::prelude::*;
@@ -12,7 +12,7 @@ impl Demuxer {
     #[tracing::instrument(name = "incoming_event", level = tracing::Level::TRACE, skip_all)]
     pub(crate) async fn demux_task(
         inbound_stream: mpsc::UnboundedReceiver<Bytes>,
-        router: JaRouter,
+        router: Router,
         transaction_manager: TransactionManager,
     ) -> JaResult<()> {
         let mut stream = inbound_stream;
@@ -50,7 +50,7 @@ impl Demuxer {
     /// Route the message to the proper channel
     async fn demux_message(
         message: JaResponse,
-        router: &JaRouter,
+        router: &Router,
         transaction_manager: &TransactionManager,
     ) -> JaResult<()> {
         // Check if we have a pending transaction and demux to the proper route
@@ -66,7 +66,7 @@ impl Demuxer {
         }
 
         // Try get the route from the response
-        if let Some(path) = JaRouter::path_from_response(message.clone()) {
+        if let Some(path) = Router::path_from_response(message.clone()) {
             router.pub_subroute(&path, message).await?;
             return Ok(());
         }
