@@ -23,11 +23,11 @@ struct InnerRouter {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct JaRouter {
+pub(crate) struct Router {
     inner: Arc<InnerRouter>,
 }
 
-impl JaRouter {
+impl Router {
     #[tracing::instrument(level = tracing::Level::TRACE)]
     pub(crate) async fn new(root_path: &str) -> (Self, JaResponseStream) {
         let shared = Shared {
@@ -97,7 +97,7 @@ impl JaRouter {
     }
 }
 
-impl JaRouter {
+impl Router {
     pub fn root_path(&self) -> String {
         self.inner.shared.root_path.clone()
     }
@@ -126,13 +126,13 @@ impl JaRouter {
 
 #[cfg(test)]
 mod tests {
-    use super::JaRouter;
+    use super::Router;
     use crate::japrotocol::JaResponse;
     use crate::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn test_basic_usage() {
-        let (mut router, mut root_channel) = JaRouter::new("janus").await;
+        let (mut router, mut root_channel) = Router::new("janus").await;
         let mut channel_one = router.add_subroute("123").await;
 
         router

@@ -2,6 +2,6 @@ pub mod nwconn;
 pub mod transaction_gen;
 
 mod demuxer;
-mod jarouter;
 mod ringbuf_map;
+mod router;
 mod transaction_manager;
