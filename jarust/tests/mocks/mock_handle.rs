@@ -16,6 +16,7 @@ pub async fn mock_handle(
     session: JaSession,
     server: &MockServer,
     config: MockHandleConfig,
+    expected_transaction: &str,
 ) -> JaResult<(JaHandle, mpsc::UnboundedReceiver<JaResponse>)> {
     let attachment_msg = serde_json::to_string(&JaResponse {
         janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -23,7 +24,7 @@ pub async fn mock_handle(
                 id: config.handle_id,
             },
         }),
-        transaction: None,
+        transaction: Some(expected_transaction.to_string()),
         session_id: Some(config.session_id),
         sender: None,
         establishment_protocol: None,

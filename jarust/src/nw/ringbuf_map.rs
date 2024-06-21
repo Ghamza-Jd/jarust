@@ -1,13 +1,14 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
+use std::collections::VecDeque;
 
 #[derive(Debug)]
-pub struct CircularBuffer<K, V> {
+pub struct RingBufMap<K, V> {
     map: HashMap<K, V>,
     keys: VecDeque<K>,
     capacity: usize,
 }
 
-impl<K, V> CircularBuffer<K, V>
+impl<K, V> RingBufMap<K, V>
 where
     K: std::hash::Hash + Eq + Clone,
 {
@@ -40,7 +41,7 @@ mod tests {
 
     #[test]
     fn test_circular_buffer() {
-        let mut buffer = CircularBuffer::new(3);
+        let mut buffer = RingBufMap::new(3);
         buffer.put("a", 1);
         buffer.put("b", 2);
         buffer.put("c", 3);
