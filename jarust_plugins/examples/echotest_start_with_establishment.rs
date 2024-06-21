@@ -3,7 +3,7 @@ use jarust::jaconfig::TransportType;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
-use jarust::transaction_gen::TransactionGenerationStrategy;
+use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
