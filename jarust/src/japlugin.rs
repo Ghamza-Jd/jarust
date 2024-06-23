@@ -9,5 +9,9 @@ pub trait PluginTask {
 
 #[async_trait]
 pub trait Attach {
-    async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, JaResponseStream)>;
+    async fn attach(
+        &self,
+        plugin_id: &str,
+        capacity: usize,
+    ) -> JaResult<(JaHandle, JaResponseStream)>;
 }

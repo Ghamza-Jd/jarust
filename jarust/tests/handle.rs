@@ -63,6 +63,7 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 handle_id: FIXTURE_HANDLE_ID,
                 plugin_id: FIXTURE_PLUGIN_ID.to_string(),
+                capacity: FIXTURE_CAPACITY,
             },
             "mock-handle-transaction",
         )

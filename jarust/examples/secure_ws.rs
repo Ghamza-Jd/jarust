@@ -15,9 +15,10 @@ async fn main() -> anyhow::Result<()> {
     let env_filter = EnvFilter::from_default_env().add_directive("jarust=trace".parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
+    let capacity = 32;
     let config = JaConfig::builder()
         .url("wss://janus.conf.meetecho.com/ws")
-        .capacity(32)
+        .capacity(capacity)
         .build();
     let mut connection = jarust::connect(
         config,
@@ -28,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
     let timeout = Duration::from_secs(10);
 
     let session = connection.create(10, timeout).await?;
-    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest").await?;
+    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest", capacity).await?;
 
     tokio::spawn(async move {
         let mut interval = time::interval(time::Duration::from_secs(2));

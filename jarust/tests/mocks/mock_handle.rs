@@ -9,6 +9,7 @@ pub struct MockHandleConfig {
     pub session_id: u64,
     pub handle_id: u64,
     pub plugin_id: String,
+    pub capacity: usize,
 }
 
 #[allow(dead_code)]
@@ -31,7 +32,7 @@ pub async fn mock_handle(
     })
     .unwrap();
     server.mock_send_to_client(&attachment_msg).await;
-    let (handle, stream) = session.attach(&config.plugin_id).await?;
+    let (handle, stream) = session.attach(&config.plugin_id, config.capacity).await?;
 
     Ok((handle, stream))
 }

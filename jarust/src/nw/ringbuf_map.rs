@@ -13,9 +13,9 @@ where
     K: std::hash::Hash + Eq + Clone,
 {
     pub fn new(capacity: usize) -> Self {
-        assert!(capacity > 0, "capacity should be more than zero");
+        assert!(capacity > 0, "capacity should be > 0");
         Self {
-            map: HashMap::new(),
+            map: HashMap::with_capacity(capacity),
             keys: VecDeque::with_capacity(capacity),
             capacity,
         }

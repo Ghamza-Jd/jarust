@@ -7,6 +7,7 @@ pub mod japrotocol;
 pub mod jasession;
 pub mod prelude;
 
+mod napmap;
 mod nw;
 
 pub use nw::transaction_gen::GenerateTransaction;

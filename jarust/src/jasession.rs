@@ -132,7 +132,11 @@ impl Drop for Exclusive {
 impl Attach for JaSession {
     /// Attach a plugin to the current session
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    async fn attach(&self, plugin_id: &str) -> JaResult<(JaHandle, JaResponseStream)> {
+    async fn attach(
+        &self,
+        plugin_id: &str,
+        capacity: usize,
+    ) -> JaResult<(JaHandle, JaResponseStream)> {
         tracing::info!("Attaching new handle");
 
         let request = json!({
@@ -172,7 +176,7 @@ impl Attach for JaSession {
             .add_subroute(&format!("{}/{}", self.inner.shared.id, handle_id))
             .await;
 
-        let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id);
+        let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id, capacity);
 
         self.inner
             .exclusive

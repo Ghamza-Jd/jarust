@@ -4,6 +4,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
+use crate::napmap::NapMap;
 use crate::nw::nwconn::NetworkConnection;
 use crate::nw::nwconn::NwConn;
 use crate::nw::transaction_gen::GenerateTransaction;
@@ -11,7 +12,6 @@ use crate::nw::transaction_gen::TransactionGenerator;
 use crate::prelude::*;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
-use napmap::UnboundedNapMap;
 use serde_json::json;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 struct Shared {
     task: JaTask,
     config: JaConfig,
-    rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
+    rsp_map: Arc<NapMap<String, JaResponse>>,
     transaction_generator: TransactionGenerator,
 }
 
@@ -55,7 +55,7 @@ impl JaConnection {
     ) -> JaResult<Self> {
         let (nwconn, mut root_channel) =
             NwConn::new(&config.url, &config.namespace, config.capacity, transport).await?;
-        let rsp_map = Arc::new(napmap::unbounded());
+        let rsp_map = Arc::new(NapMap::new(config.capacity));
 
         let rsp_cache_task = jarust_rt::spawn({
             let rsp_map = rsp_map.clone();
