@@ -12,11 +12,12 @@ async fn main() -> anyhow::Result<()> {
         .add_directive("jarust=trace".parse()?)
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
-    let timeout = std::time::Duration::from_secs(10);
 
+    let timeout = std::time::Duration::from_secs(10);
+    let capacity = 32;
     let config = JaConfig::builder()
         .url("ws://localhost:8188/ws")
-        .capacity(32)
+        .capacity(capacity)
         .build();
     let mut connection = jarust::connect(
         config,
@@ -25,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
     let session = connection.create(10, timeout).await?;
-    let (handle, mut events) = session.attach_audio_bridge().await?;
+    let (handle, mut events) = session.attach_audio_bridge(capacity).await?;
 
     let first_room = handle
         .create_room_with_config(Default::default(), timeout)

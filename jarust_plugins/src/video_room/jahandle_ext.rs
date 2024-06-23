@@ -11,8 +11,9 @@ pub trait VideoRoom: Attach {
 
     async fn attach_video_room(
         &self,
+        capacity: usize,
     ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
-        let (handle, mut receiver) = self.attach("janus.plugin.videoroom").await?;
+        let (handle, mut receiver) = self.attach("janus.plugin.videoroom", capacity).await?;
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
         let task = jarust_rt::spawn(async move {
             while let Some(rsp) = receiver.recv().await {

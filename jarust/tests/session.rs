@@ -62,7 +62,7 @@ mod tests {
         })
         .unwrap();
         server.mock_send_to_client(&attachment_msg).await;
-        let result = session.attach("mock.plugin.test").await;
+        let result = session.attach("mock.plugin.test", FIXTURE_CAPACITY).await;
         assert!(result.is_ok());
     }
 
@@ -110,7 +110,7 @@ mod tests {
         .unwrap();
 
         server.mock_send_to_client(&error).await;
-        let result = session.attach("mock.plugin.test").await;
+        let result = session.attach("mock.plugin.test", FIXTURE_CAPACITY).await;
         assert!(result.is_err());
     }
 }

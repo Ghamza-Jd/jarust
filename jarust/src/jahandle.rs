@@ -3,9 +3,9 @@ use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
+use crate::napmap::NapMap;
 use crate::prelude::*;
 use jarust_rt::JaTask;
-use napmap::UnboundedNapMap;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
@@ -18,8 +18,8 @@ struct Shared {
     id: u64,
     session: JaSession,
     task: JaTask,
-    ack_map: Arc<UnboundedNapMap<String, JaResponse>>,
-    rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
+    ack_map: Arc<NapMap<String, JaResponse>>,
+    rsp_map: Arc<NapMap<String, JaResponse>>,
 }
 
 struct InnerHandle {
@@ -39,8 +39,8 @@ pub struct WeakJaHandle {
 impl JaHandle {
     async fn demux_recv_stream(
         inbound_stream: JaResponseStream,
-        ack_map: Arc<UnboundedNapMap<String, JaResponse>>,
-        rsp_map: Arc<UnboundedNapMap<String, JaResponse>>,
+        ack_map: Arc<NapMap<String, JaResponse>>,
+        rsp_map: Arc<NapMap<String, JaResponse>>,
         event_sender: mpsc::UnboundedSender<JaResponse>,
     ) {
         let mut stream = inbound_stream;
@@ -74,11 +74,12 @@ impl JaHandle {
         session: JaSession,
         receiver: JaResponseStream,
         id: u64,
+        capacity: usize,
     ) -> (Self, JaResponseStream) {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
-        let ack_map = Arc::new(napmap::unbounded::<String, JaResponse>());
-        let rsp_map = Arc::new(napmap::unbounded::<String, JaResponse>());
+        let ack_map = Arc::new(NapMap::<String, JaResponse>::new(capacity));
+        let rsp_map = Arc::new(NapMap::<String, JaResponse>::new(capacity));
 
         let task = jarust_rt::spawn(JaHandle::demux_recv_stream(
             receiver,

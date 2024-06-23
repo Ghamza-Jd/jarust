@@ -11,8 +11,9 @@ pub trait EchoTest: Attach {
 
     async fn attach_echo_test(
         &self,
+        capacity: usize,
     ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
-        let (handle, mut receiver) = self.attach("janus.plugin.echotest").await?;
+        let (handle, mut receiver) = self.attach("janus.plugin.echotest", capacity).await?;
         let (tx, rx) = mpsc::unbounded_channel();
         let task = jarust_rt::spawn(async move {
             while let Some(rsp) = receiver.recv().await {
