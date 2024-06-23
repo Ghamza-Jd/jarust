@@ -20,7 +20,7 @@ use jarust_transport::trans::TransportProtocol;
 use prelude::JaResult;
 use tracing::Level;
 
-/// Creates a new connection with janus server from the provided configs
+/// Creates a new connection with janus server from the provided configs.
 ///
 /// ## Example:
 ///
@@ -28,6 +28,7 @@ use tracing::Level;
 /// let mut connection = jarust::connect(
 ///     JaConfig::new("ws://localhost:8188/ws", None, "janus"),
 ///     TransportType::Ws,
+///     TransactionGenerationStrategy::Random,
 /// )
 /// .await
 /// .unwrap();
@@ -43,7 +44,7 @@ pub async fn connect(
             jarust_transport::web_socket::WebsocketTransport::create_transport()
         }
     };
-    connect_with_transport(
+    custom_connect(
         jaconfig,
         transport,
         transaction_generation_strategy.generator(),
@@ -51,15 +52,15 @@ pub async fn connect(
     .await
 }
 
-#[cfg(target_family = "wasm")]
 /// Creates a new connection with janus server from the provided configs
+#[cfg(target_family = "wasm")]
 pub async fn connect(
     jaconfig: JaConfig,
     transport_type: TransportType,
     transaction_generation_strategy: TransactionGenerationStrategy,
 ) -> JaResult<JaConnection> {
     let transport = transport::wasm_web_socket::WasmWsTransport;
-    connect_with_transport(
+    custom_connect(
         jaconfig,
         transport,
         transaction_generation_strategy.generator(),
@@ -67,12 +68,9 @@ pub async fn connect(
     .await
 }
 
-/// Creates a new connection with janus server from the provided configs and custom transport.
-///
-/// Same as [`connect`], but takes a struct that implements [`Transport`] to be used instead
-/// of using one of the predefined transport types [`TransportType`]
+/// Creates a new customized connection with janus server from the provided configs, custom transport, and custom transaction generator.
 #[tracing::instrument(level = Level::TRACE)]
-pub async fn connect_with_transport(
+pub async fn custom_connect(
     jaconfig: JaConfig,
     transport: impl TransportProtocol,
     transaction_generator: impl GenerateTransaction,

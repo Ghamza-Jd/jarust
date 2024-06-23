@@ -22,7 +22,7 @@ pub async fn mock_connection(
         .capacity(config.capacity)
         .build();
 
-    let connection = jarust::connect_with_transport(config, transport, generator).await?;
+    let connection = jarust::custom_connect(config, transport, generator).await?;
 
     Ok(connection)
 }

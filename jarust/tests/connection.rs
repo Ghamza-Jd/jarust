@@ -29,7 +29,7 @@ mod tests {
             .build();
         let transport = MockTransport::create_transport();
         let generator = MockGenerateTransaction::new();
-        let connection = jarust::connect_with_transport(config, transport, generator).await;
+        let connection = jarust::custom_connect(config, transport, generator).await;
         assert!(connection.is_ok());
     }
 
