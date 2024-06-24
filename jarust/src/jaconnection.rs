@@ -10,6 +10,7 @@ use crate::nw::nwconn::NwConn;
 use crate::nw::transaction_gen::GenerateTransaction;
 use crate::nw::transaction_gen::TransactionGenerator;
 use crate::prelude::*;
+use crate::respones::ServerInfoRsp;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use serde_json::json;
@@ -196,14 +197,22 @@ impl JaConnection {
 }
 
 impl JaConnection {
+    /// Returns janus server info
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn server_info(&mut self, timeout: Duration) -> JaResult<JaResponse> {
+    pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
         let request = json!({
             "janus": "info"
         });
         let transaction = self.send_request(request).await?;
         let response = self.poll_response(&transaction, timeout).await?;
-        Ok(response)
+        match response.janus {
+            ResponseType::ServerInfo(info) => Ok(*info),
+            ResponseType::Error { error } => Err(JaError::JanusError {
+                code: error.code,
+                reason: error.reason,
+            }),
+            _ => Err(JaError::IncompletePacket),
+        }
     }
 }
 
