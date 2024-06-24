@@ -6,13 +6,17 @@ use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
 use jarust::TransactionGenerationStrategy;
 use serde_json::json;
+use std::path::Path;
 use std::time::Duration;
 use tokio::time;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-    let env_filter = EnvFilter::from_default_env().add_directive("jarust=trace".parse()?);
+    let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
+    let env_filter = EnvFilter::from_default_env()
+        .add_directive("jarust=trace".parse()?)
+        .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let capacity = 32;
@@ -27,6 +31,8 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
     let timeout = Duration::from_secs(10);
+
+    tracing::info!("server info: {:#?}", connection.server_info(timeout).await?);
 
     let session = connection.create(10, timeout).await?;
     let (handle, mut event_receiver) = session.attach("janus.plugin.echotest", capacity).await?;

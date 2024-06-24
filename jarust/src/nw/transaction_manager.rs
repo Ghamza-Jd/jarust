@@ -22,8 +22,6 @@ impl TransactionManager {
 
     #[tracing::instrument(parent = None, skip(self))]
     pub async fn insert(&self, id: &str, transaction: &str) {
-        let mut guard = self.inner.write().await;
-        guard.put(id.into(), transaction.into());
-        tracing::trace!("Transaction manager {:#?}", guard);
+        self.inner.write().await.put(id.into(), transaction.into());
     }
 }

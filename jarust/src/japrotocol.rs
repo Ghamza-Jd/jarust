@@ -1,3 +1,4 @@
+use crate::respones::ServerInfoRsp;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -19,8 +20,10 @@ pub struct JaResponse {
 pub enum ResponseType {
     #[serde(rename = "error")]
     Error { error: ErrorResponse },
+    // Wrapped in a box so the entire enum isn't as large as this varient
+    // e.g: Ack that doesn't contain any data will have allocate the same space as ServerInfo
     #[serde(rename = "server_info")]
-    ServerInfo,
+    ServerInfo(Box<ServerInfoRsp>),
     #[serde(rename = "ack")]
     Ack,
     #[serde(rename = "success")]
