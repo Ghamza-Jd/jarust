@@ -27,9 +27,11 @@ async fn main() -> anyhow::Result<()> {
         TransactionGenerationStrategy::Random,
     )
     .await?;
-    let session = connection.create(10, timeout).await?;
+    let session = connection
+        .create(10, 16 /* Buffer size on this session only */, timeout)
+        .await?;
     let (handle, mut events) = session
-        .attach_audio_bridge(16 /* Buffer size on this handle only */)
+        .attach_audio_bridge(16 /* Buffer size on this handle only */, timeout)
         .await?;
 
     let create_room_rsp = handle.create_room(None, timeout).await?;
