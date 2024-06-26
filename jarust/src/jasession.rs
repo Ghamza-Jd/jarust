@@ -3,6 +3,7 @@ use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
+use crate::napmap::NapMap;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
@@ -19,13 +20,13 @@ use tokio::time;
 pub struct Shared {
     id: u64,
     connection: JaConnection,
+    rsp_map: Arc<NapMap<String, JaResponse>>,
 }
 
 #[derive(Debug)]
 pub struct Exclusive {
-    receiver: JaResponseStream,
     handles: HashMap<u64, WeakJaHandle>,
-    task: Option<JaTask>,
+    tasks: Vec<JaTask>,
 }
 
 #[derive(Debug)]
@@ -47,15 +48,32 @@ pub struct WeakJaSession {
 impl JaSession {
     pub async fn new(
         connection: JaConnection,
-        receiver: JaResponseStream,
+        mut receiver: JaResponseStream,
         id: u64,
         ka_interval: u32,
+        capacity: usize,
     ) -> Self {
-        let shared = Shared { id, connection };
+        let rsp_map = Arc::new(NapMap::new(capacity));
+
+        let rsp_cache_task = jarust_rt::spawn({
+            let rsp_map = rsp_map.clone();
+            async move {
+                while let Some(rsp) = receiver.recv().await {
+                    if let Some(transaction) = rsp.transaction.clone() {
+                        rsp_map.insert(transaction, rsp).await;
+                    }
+                }
+            }
+        });
+
+        let shared = Shared {
+            id,
+            connection,
+            rsp_map,
+        };
         let safe = Exclusive {
-            receiver,
             handles: HashMap::new(),
-            task: None,
+            tasks: vec![rsp_cache_task],
         };
 
         let session = Self {
@@ -71,7 +89,13 @@ impl JaSession {
             let _ = this.keep_alive(ka_interval).await;
         });
 
-        session.inner.exclusive.lock().await.task = Some(keepalive_task);
+        session
+            .inner
+            .exclusive
+            .lock()
+            .await
+            .tasks
+            .push(keepalive_task);
 
         session
     }
@@ -89,17 +113,14 @@ impl JaSession {
         loop {
             interval.tick().await;
             tracing::debug!("Sending {{ id: {id} }}");
-            self.send_request(json!({
-                "janus": "keepalive"
-            }))
-            .await?;
-            let _ = match self.inner.exclusive.lock().await.receiver.recv().await {
-                Some(response) => response,
-                None => {
-                    tracing::error!("Incomplete packet");
-                    return Err(JaError::IncompletePacket);
-                }
-            };
+            let transaction = self
+                .send_request(json!({
+                    "janus": "keepalive"
+                }))
+                .await?;
+            let _ = self
+                .poll_response(&transaction, Duration::from_secs(ka_interval.into()))
+                .await?;
             tracing::debug!("OK");
         }
     }
@@ -107,6 +128,33 @@ impl JaSession {
     pub(crate) fn downgrade(&self) -> WeakJaSession {
         WeakJaSession {
             _inner: Arc::downgrade(&self.inner),
+        }
+    }
+
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
+    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
+        tracing::trace!("Polling response");
+        match tokio::time::timeout(
+            timeout,
+            self.inner.shared.rsp_map.get(transaction.to_string()),
+        )
+        .await
+        {
+            Ok(Some(response)) => match response.janus {
+                ResponseType::Error { error } => Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                }),
+                _ => Ok(response),
+            },
+            Ok(None) => {
+                tracing::error!("Incomplete packet");
+                Err(JaError::IncompletePacket)
+            }
+            Err(_) => {
+                tracing::error!("Request timeout");
+                Err(JaError::RequestTimeout)
+            }
         }
     }
 }
@@ -121,10 +169,9 @@ impl Drop for InnerSession {
 impl Drop for Exclusive {
     #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
-        if let Some(join_handle) = self.task.take() {
-            tracing::debug!("Keepalive task aborted");
-            join_handle.cancel();
-        }
+        self.tasks.iter().for_each(|task| {
+            task.cancel();
+        });
     }
 }
 
@@ -136,6 +183,7 @@ impl Attach for JaSession {
         &self,
         plugin_id: &str,
         capacity: usize,
+        timeout: Duration,
     ) -> JaResult<(JaHandle, JaResponseStream)> {
         tracing::info!("Attaching new handle");
 
@@ -144,15 +192,8 @@ impl Attach for JaSession {
             "plugin": plugin_id,
         });
 
-        self.send_request(request).await?;
-
-        let response = match self.inner.exclusive.lock().await.receiver.recv().await {
-            Some(response) => response,
-            None => {
-                tracing::error!("Incomplete packet");
-                return Err(JaError::IncompletePacket);
-            }
-        };
+        let transaction = self.send_request(request).await?;
+        let response = self.poll_response(&transaction, timeout).await?;
 
         let handle_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,

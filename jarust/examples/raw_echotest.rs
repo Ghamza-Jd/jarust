@@ -22,8 +22,11 @@ async fn main() -> anyhow::Result<()> {
         TransactionGenerationStrategy::Random,
     )
     .await?;
-    let session = connection.create(10, Duration::from_secs(10)).await?;
-    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest", capacity).await?;
+    let timeout = Duration::from_secs(10);
+    let session = connection.create(10, capacity, timeout).await?;
+    let (handle, mut event_receiver) = session
+        .attach("janus.plugin.echotest", capacity, timeout)
+        .await?;
 
     handle
         .send_waiton_ack(

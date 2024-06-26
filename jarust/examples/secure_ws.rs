@@ -34,8 +34,10 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("server info: {:#?}", connection.server_info(timeout).await?);
 
-    let session = connection.create(10, timeout).await?;
-    let (handle, mut event_receiver) = session.attach("janus.plugin.echotest", capacity).await?;
+    let session = connection.create(10, capacity, timeout).await?;
+    let (handle, mut event_receiver) = session
+        .attach("janus.plugin.echotest", capacity, timeout)
+        .await?;
 
     tokio::spawn(async move {
         let mut interval = time::interval(time::Duration::from_secs(2));

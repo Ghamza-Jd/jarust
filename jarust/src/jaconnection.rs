@@ -90,7 +90,12 @@ impl JaConnection {
 
     /// Creates a new session with janus server.
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    pub async fn create(&mut self, ka_interval: u32, timeout: Duration) -> JaResult<JaSession> {
+    pub async fn create(
+        &mut self,
+        ka_interval: u32,
+        capacity: usize,
+        timeout: Duration,
+    ) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
 
         let request = json!({
@@ -118,7 +123,8 @@ impl JaConnection {
 
         let channel = self.add_subroute(&format!("{session_id}")).await;
 
-        let session = JaSession::new(self.clone(), channel, session_id, ka_interval).await;
+        let session =
+            JaSession::new(self.clone(), channel, session_id, ka_interval, capacity).await;
         self.inner
             .exclusive
             .lock()
