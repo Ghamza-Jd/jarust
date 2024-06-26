@@ -157,6 +157,10 @@ impl JaSession {
             }
         }
     }
+
+    pub(crate) async fn remove_handle(&self, handle_id: u64) {
+        self.inner.exclusive.lock().await.handles.remove(&handle_id);
+    }
 }
 
 impl Drop for InnerSession {

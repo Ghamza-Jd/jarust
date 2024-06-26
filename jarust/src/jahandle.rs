@@ -276,6 +276,19 @@ impl JaHandle {
         self.send_waiton_ack(request, timeout).await?;
         Ok(())
     }
+
+    pub async fn detach(self, timeout: Duration) -> JaResult<()> {
+        let request = json!({
+            "janus": "detach"
+        });
+        self.send_waiton_ack(request, timeout).await?;
+        self.inner
+            .shared
+            .session
+            .remove_handle(self.inner.shared.id)
+            .await;
+        Ok(())
+    }
 }
 
 impl Drop for InnerHandle {
