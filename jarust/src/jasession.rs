@@ -231,3 +231,20 @@ impl Attach for JaSession {
         Ok((handle, event_receiver))
     }
 }
+
+impl JaSession {
+    pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
+        tracing::info!("Destroying session");
+
+        let request = json!({
+            "janus": "destroy"
+        });
+
+        let transaction = self.send_request(request).await?;
+        let _ = self.poll_response(&transaction, timeout).await?;
+
+        self.inner.exclusive.lock().await.handles.clear();
+
+        Ok(())
+    }
+}
