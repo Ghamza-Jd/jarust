@@ -7,6 +7,7 @@ use crate::napmap::NapMap;
 use crate::prelude::*;
 use jarust_rt::JaTask;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
@@ -268,6 +269,15 @@ impl JaHandle {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+pub struct Candidate {
+    #[serde(rename = "sdpMid")]
+    pub sdp_mid: String,
+    #[serde(rename = "sdpMLineIndex")]
+    pub sdp_mline_index: String,
+    pub candidate: String,
+}
+
 impl JaHandle {
     pub async fn hangup(&self, timeout: Duration) -> JaResult<()> {
         let request = json!({
@@ -287,6 +297,43 @@ impl JaHandle {
             .session
             .remove_handle(self.inner.shared.id)
             .await;
+        Ok(())
+    }
+
+    pub async fn trickle_single_candidate(
+        &self,
+        candidate: Candidate,
+        timeout: Duration,
+    ) -> JaResult<()> {
+        let request = json!({
+            "janus": "trickle",
+            "candidate": candidate
+        });
+        self.send_waiton_ack(request, timeout).await?;
+        Ok(())
+    }
+
+    pub async fn trickle_candidates(
+        &self,
+        candidates: Vec<Candidate>,
+        timeout: Duration,
+    ) -> JaResult<()> {
+        let request = json!({
+            "janus": "trickle",
+            "candidates": candidates
+        });
+        self.send_waiton_ack(request, timeout).await?;
+        Ok(())
+    }
+
+    pub async fn complete_trickle(&self, timeout: Duration) -> JaResult<()> {
+        let request = json!({
+            "janus": "trickle",
+            "candidate": {
+                "completed" : true
+            }
+        });
+        self.send_waiton_ack(request, timeout).await?;
         Ok(())
     }
 }
