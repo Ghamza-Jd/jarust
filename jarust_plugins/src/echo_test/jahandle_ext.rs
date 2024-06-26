@@ -2,6 +2,7 @@ use super::events::PluginEvent;
 use super::handle::EchoTestHandle;
 use jarust::prelude::*;
 use std::ops::Deref;
+use std::time::Duration;
 use tokio::sync::mpsc;
 
 #[async_trait::async_trait]
@@ -12,8 +13,11 @@ pub trait EchoTest: Attach {
     async fn attach_echo_test(
         &self,
         capacity: usize,
+        timeout: Duration,
     ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
-        let (handle, mut receiver) = self.attach("janus.plugin.echotest", capacity).await?;
+        let (handle, mut receiver) = self
+            .attach("janus.plugin.echotest", capacity, timeout)
+            .await?;
         let (tx, rx) = mpsc::unbounded_channel();
         let task = jarust_rt::spawn(async move {
             while let Some(rsp) = receiver.recv().await {

@@ -31,8 +31,9 @@ async fn main() -> anyhow::Result<()> {
         TransactionGenerationStrategy::Random,
     )
     .await?;
-    let session = connection.create(10, Duration::from_secs(10)).await?;
-    let (handle, mut event_receiver) = session.attach_echo_test(capacity).await?;
+    let timeout = Duration::from_secs(10);
+    let session = connection.create(10, capacity, timeout).await?;
+    let (handle, mut event_receiver) = session.attach_echo_test(capacity, timeout).await?;
 
     let rsp = handle
         .start_with_establishment(
