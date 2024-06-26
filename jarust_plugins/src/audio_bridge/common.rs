@@ -4,7 +4,7 @@ use serde::Serialize;
 /// Rooms and Participants Identifier.
 ///
 /// Identifier should be by default unsigned integer, unless configured otherwise in the audiobridge config.
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Identifier {
     /// String Identifier
@@ -13,7 +13,7 @@ pub enum Identifier {
     Uint(u64),
 }
 
-#[derive(PartialEq, Debug, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Participant {
     pub id: Identifier,
     pub display: Option<String>,

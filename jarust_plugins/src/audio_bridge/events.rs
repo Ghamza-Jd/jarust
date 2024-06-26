@@ -9,7 +9,7 @@ use jarust::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
 enum AudioBridgeEventDto {
     #[serde(rename = "joined")]
@@ -36,13 +36,13 @@ enum AudioBridgeEventDto {
     },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum PluginEvent {
     AudioBridgeEvent(AudioBridgeEvent),
     GenericEvent(GenericEvent),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum AudioBridgeEvent {
     RoomJoinedWithEstabilshment {
         id: Identifier,

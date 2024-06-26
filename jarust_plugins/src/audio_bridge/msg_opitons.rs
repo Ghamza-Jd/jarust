@@ -1,7 +1,7 @@
 use super::common::Identifier;
 use serde::Serialize;
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct CreateRoomOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -95,7 +95,7 @@ pub struct CreateRoomOptions {
     pub groups: Option<Vec<String>>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct EditRoomOptions {
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -130,7 +130,7 @@ pub struct EditRoomOptions {
     pub permanent: Option<bool>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct DestroyRoomMsg {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -138,7 +138,7 @@ pub struct DestroyRoomMsg {
     pub permanent: Option<bool>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct JoinRoomOptions {
     /// Unique ID to assign to the participant, assigned by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -236,7 +236,7 @@ pub struct JoinRoomOptions {
     pub generate_offer: Option<bool>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AllowedOptions {
     pub action: AllowAction,
 
@@ -248,7 +248,7 @@ pub struct AllowedOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AllowAction {
     Enable,
