@@ -268,6 +268,16 @@ impl JaHandle {
     }
 }
 
+impl JaHandle {
+    pub async fn hangup(&self, timeout: Duration) -> JaResult<()> {
+        let request = json!({
+            "janus": "hangup"
+        });
+        self.send_waiton_ack(request, timeout).await?;
+        Ok(())
+    }
+}
+
 impl Drop for InnerHandle {
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
     fn drop(&mut self) {
