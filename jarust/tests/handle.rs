@@ -72,7 +72,6 @@ mod tests {
         .await
         .unwrap();
 
-        // generator.next_transaction("mock-event-transaction");
         let event = serde_json::to_string(&JaResponse {
             janus: ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),
             transaction: Some("mock-event-transaction".to_string()),
