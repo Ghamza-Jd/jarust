@@ -45,6 +45,7 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
                 timeout: FIXTURE_TIMEOUT,
+                capacity: FIXTURE_CAPACITY,
             },
             "mock-transaction",
         )
@@ -62,7 +63,9 @@ mod tests {
         })
         .unwrap();
         server.mock_send_to_client(&attachment_msg).await;
-        let result = session.attach("mock.plugin.test", FIXTURE_CAPACITY).await;
+        let result = session
+            .attach("mock.plugin.test", FIXTURE_CAPACITY, FIXTURE_TIMEOUT)
+            .await;
         assert!(result.is_ok());
     }
 
@@ -89,6 +92,7 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
                 timeout: FIXTURE_TIMEOUT,
+                capacity: FIXTURE_CAPACITY,
             },
             "mock-transaction",
         )
@@ -110,7 +114,9 @@ mod tests {
         .unwrap();
 
         server.mock_send_to_client(&error).await;
-        let result = session.attach("mock.plugin.test", FIXTURE_CAPACITY).await;
+        let result = session
+            .attach("mock.plugin.test", FIXTURE_CAPACITY, FIXTURE_TIMEOUT)
+            .await;
         assert!(result.is_err());
     }
 }

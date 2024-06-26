@@ -62,7 +62,7 @@ mod tests {
         .unwrap();
 
         server.mock_send_to_client(&msg).await;
-        let session = connection.create(10, Duration::from_secs(10)).await;
+        let session = connection.create(10, 32, Duration::from_secs(10)).await;
 
         assert!(session.is_ok());
     }
@@ -99,7 +99,7 @@ mod tests {
         .unwrap();
 
         server.mock_send_to_client(&msg).await;
-        let session = connection.create(10, Duration::from_secs(10)).await;
+        let session = connection.create(10, 32, Duration::from_secs(10)).await;
 
         assert!(matches!(session.unwrap_err(), JaError::JanusError { .. }))
     }
