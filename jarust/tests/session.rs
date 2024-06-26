@@ -15,6 +15,7 @@ mod tests {
     use crate::mocks::mock_session::mock_session;
     use crate::mocks::mock_session::MockSessionConfig;
     use crate::mocks::mock_transport::MockTransport;
+    use jarust::error::JaError;
     use jarust::japlugin::Attach;
     use jarust::japrotocol::ErrorResponse;
     use jarust::japrotocol::JaData;
@@ -34,7 +35,7 @@ mod tests {
                 namespace: FIXTURE_NAMESPACE.to_string(),
                 capacity: FIXTURE_CAPACITY,
             },
-            generator,
+            generator.clone(),
         )
         .await
         .unwrap();
@@ -56,17 +57,20 @@ mod tests {
             janus: ResponseType::Success(JaSuccessProtocol::Data {
                 data: JaData { id: 3 },
             }),
-            transaction: None,
+            transaction: Some("mock-attach-plugin-transaction".to_string()),
             session_id: Some(FIXTURE_SESSION_ID),
             sender: None,
             establishment_protocol: None,
         })
         .unwrap();
         server.mock_send_to_client(&attachment_msg).await;
-        let result = session
+
+        generator.next_transaction("mock-attach-plugin-transaction");
+        // no need for assertion, if unwrap fails the test will fail
+        let _ = session
             .attach("mock.plugin.test", FIXTURE_CAPACITY, FIXTURE_TIMEOUT)
-            .await;
-        assert!(result.is_ok());
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
@@ -81,7 +85,7 @@ mod tests {
                 namespace: FIXTURE_NAMESPACE.to_string(),
                 capacity: FIXTURE_CAPACITY,
             },
-            generator,
+            generator.clone(),
         )
         .await
         .unwrap();
@@ -106,7 +110,7 @@ mod tests {
                     reason: "".to_string(),
                 },
             },
-            transaction: None,
+            transaction: Some("mock-attach-plugin-transaction".to_string()),
             session_id: Some(FIXTURE_SESSION_ID),
             sender: None,
             establishment_protocol: None,
@@ -114,9 +118,13 @@ mod tests {
         .unwrap();
 
         server.mock_send_to_client(&error).await;
+        generator.next_transaction("mock-attach-plugin-transaction");
         let result = session
             .attach("mock.plugin.test", FIXTURE_CAPACITY, FIXTURE_TIMEOUT)
             .await;
-        assert!(result.is_err());
+        assert!(matches!(
+            result,
+            Err(JaError::JanusError { code: _, reason: _ })
+        ));
     }
 }
