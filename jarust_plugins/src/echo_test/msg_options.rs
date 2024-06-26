@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct StartOptions {
     pub audio: bool,
     pub video: bool,

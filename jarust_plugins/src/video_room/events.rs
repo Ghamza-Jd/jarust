@@ -2,7 +2,7 @@ use jarust::error::JaError;
 use jarust::japrotocol::GenericEvent;
 use jarust::japrotocol::JaResponse;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum PluginEvent {
     GenericEvent(GenericEvent),
 }

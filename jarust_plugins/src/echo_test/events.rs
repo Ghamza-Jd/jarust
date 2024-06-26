@@ -7,19 +7,19 @@ use jarust::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 enum EchoTestEventDto {
     #[serde(untagged)]
     Result { echotest: String, result: String },
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum PluginEvent {
     EchoTestEvent(EchoTestEvent),
     GenericEvent(GenericEvent),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum EchoTestEvent {
     Result {
         echotest: String,
