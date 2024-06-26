@@ -2,7 +2,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use std::collections::HashMap;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServerInfoRsp {
     pub name: String,
@@ -46,7 +46,7 @@ pub struct ServerInfoRsp {
     pub plugins: HashMap<String, MetaData>,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub struct MetaData {
     name: String,
     author: String,

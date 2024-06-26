@@ -4,7 +4,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 /// The top-level response
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct JaResponse {
     #[serde(flatten)]
     pub janus: ResponseType,
@@ -15,7 +15,7 @@ pub struct JaResponse {
     pub establishment_protocol: Option<EstablishmentProtocol>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(tag = "janus")]
 pub enum ResponseType {
     #[serde(rename = "error")]
@@ -32,13 +32,13 @@ pub enum ResponseType {
     Event(JaHandleEvent),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub struct ErrorResponse {
     pub code: u16,
     pub reason: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(tag = "janus")]
 pub enum JaSuccessProtocol {
     #[serde(untagged)]
@@ -55,13 +55,13 @@ pub struct JaData {
     pub id: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PluginData {
     pub plugin: String,
     pub data: Value,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 #[serde(tag = "janus")]
 pub enum JaHandleEvent {
     #[serde(rename = "event")]
@@ -73,7 +73,7 @@ pub enum JaHandleEvent {
     GenericEvent(GenericEvent),
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 #[serde(tag = "janus")]
 pub enum GenericEvent {
     #[serde(rename = "detached")]
@@ -96,7 +96,7 @@ pub enum GenericEvent {
     Trickle,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub enum JsepType {
     #[serde(rename = "offer")]
     Offer,
@@ -104,14 +104,14 @@ pub enum JsepType {
     Answer,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub struct Jsep {
     #[serde(rename = "type")]
     pub jsep_type: JsepType,
     pub sdp: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub struct RTP {
     pub ip: String,
     pub port: u64,
@@ -123,7 +123,7 @@ pub struct RTP {
     pub fec: Option<bool>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub enum EstablishmentProtocol {
     #[serde(rename = "jsep")]
     JSEP(Jsep),

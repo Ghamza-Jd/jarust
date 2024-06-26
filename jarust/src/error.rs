@@ -1,4 +1,4 @@
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum JaError {
     /* Transformed Errors */
     #[error("Transport: {0}")]

@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct JaConfig {
     pub(crate) url: String,
     pub(crate) apisecret: Option<String>,
@@ -6,7 +6,7 @@ pub struct JaConfig {
     pub(crate) capacity: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum TransportType {
     Ws,
 }
