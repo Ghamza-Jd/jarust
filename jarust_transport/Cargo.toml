@@ -20,7 +20,7 @@ futures-util = "0.3.29"
 thiserror = "1.0.51"
 tokio = { workspace = true, features = ["sync", "time", "rt"] }
 tracing.workspace = true
-jarust_rt = { version = "0.3.0", path = "../jarust_rt" }
+jarust_rt = { version = "0.4.0", path = "../jarust_rt" }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rustls = { version = "0.22.2", optional = true }
