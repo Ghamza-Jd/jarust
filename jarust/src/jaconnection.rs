@@ -9,6 +9,7 @@ use crate::nw::nwconn::NetworkConnection;
 use crate::nw::nwconn::NwConn;
 use crate::nw::transaction_gen::GenerateTransaction;
 use crate::nw::transaction_gen::TransactionGenerator;
+use crate::params::CreateConnectionParams;
 use crate::prelude::*;
 use crate::respones::ServerInfoRsp;
 use jarust_rt::JaTask;
@@ -90,12 +91,7 @@ impl JaConnection {
 
     /// Creates a new session with janus server.
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    pub async fn create(
-        &mut self,
-        ka_interval: u32,
-        capacity: usize,
-        timeout: Duration,
-    ) -> JaResult<JaSession> {
+    pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
 
         let request = json!({
@@ -103,7 +99,7 @@ impl JaConnection {
         });
 
         let transaction = self.send_request(request).await?;
-        let response = self.poll_response(&transaction, timeout).await?;
+        let response = self.poll_response(&transaction, params.timeout).await?;
 
         let session_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
@@ -123,8 +119,14 @@ impl JaConnection {
 
         let channel = self.add_subroute(&format!("{session_id}")).await;
 
-        let session =
-            JaSession::new(self.clone(), channel, session_id, ka_interval, capacity).await;
+        let session = JaSession::new(
+            self.clone(),
+            channel,
+            session_id,
+            params.ka_interval,
+            params.capacity,
+        )
+        .await;
         self.inner
             .exclusive
             .lock()
