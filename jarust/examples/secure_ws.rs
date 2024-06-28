@@ -4,6 +4,8 @@ use jarust::japlugin::Attach;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
+use jarust::params::AttachHandleParams;
+use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use serde_json::json;
 use std::path::Path;
@@ -34,9 +36,19 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("server info: {:#?}", connection.server_info(timeout).await?);
 
-    let session = connection.create(10, capacity, timeout).await?;
+    let session = connection
+        .create(CreateConnectionParams {
+            ka_interval: 10,
+            capacity,
+            timeout,
+        })
+        .await?;
     let (handle, mut event_receiver) = session
-        .attach("janus.plugin.echotest", capacity, timeout)
+        .attach(AttachHandleParams {
+            plugin_id: "janus.plugin.echotest".to_string(),
+            capacity,
+            timeout,
+        })
         .await?;
 
     tokio::spawn(async move {

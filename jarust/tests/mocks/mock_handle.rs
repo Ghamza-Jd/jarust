@@ -2,6 +2,7 @@ use super::mock_transport::MockServer;
 use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaSuccessProtocol;
 use jarust::japrotocol::ResponseType;
+use jarust::params::AttachHandleParams;
 use jarust::prelude::*;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -35,7 +36,11 @@ pub async fn mock_handle(
     .unwrap();
     server.mock_send_to_client(&attachment_msg).await;
     let (handle, stream) = session
-        .attach(&config.plugin_id, config.capacity, config.timeout)
+        .attach(AttachHandleParams {
+            plugin_id: config.plugin_id,
+            capacity: config.capacity,
+            timeout: config.timeout,
+        })
         .await?;
 
     Ok((handle, stream))
