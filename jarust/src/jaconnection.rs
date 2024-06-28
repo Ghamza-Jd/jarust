@@ -127,6 +127,7 @@ impl JaConnection {
             params.capacity,
         )
         .await;
+
         self.inner
             .exclusive
             .lock()
