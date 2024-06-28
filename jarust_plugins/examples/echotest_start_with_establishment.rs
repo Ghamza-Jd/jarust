@@ -3,11 +3,13 @@ use jarust::jaconfig::TransportType;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::Jsep;
 use jarust::japrotocol::JsepType;
+use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::StartOptions;
+use jarust_plugins::AttachPluginParams;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -32,8 +34,16 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
     let timeout = Duration::from_secs(10);
-    let session = connection.create(10, capacity, timeout).await?;
-    let (handle, mut event_receiver) = session.attach_echo_test(capacity, timeout).await?;
+    let session = connection
+        .create(CreateConnectionParams {
+            ka_interval: 10,
+            capacity,
+            timeout,
+        })
+        .await?;
+    let (handle, mut event_receiver) = session
+        .attach_echo_test(AttachPluginParams { capacity, timeout })
+        .await?;
 
     let rsp = handle
         .start_with_establishment(

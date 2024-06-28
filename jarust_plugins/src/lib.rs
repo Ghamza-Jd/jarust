@@ -6,3 +6,7 @@ pub mod audio_bridge;
 
 #[cfg(feature = "video_room")]
 pub mod video_room;
+
+pub mod common;
+
+pub use common::AttachPluginParams;

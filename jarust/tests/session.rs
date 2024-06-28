@@ -22,6 +22,7 @@ mod tests {
     use jarust::japrotocol::JaResponse;
     use jarust::japrotocol::JaSuccessProtocol;
     use jarust::japrotocol::ResponseType;
+    use jarust::params::AttachHandleParams;
 
     #[tokio::test]
     async fn it_successfully_attach_to_handle() {
@@ -68,7 +69,11 @@ mod tests {
         generator.next_transaction("mock-attach-plugin-transaction");
         // no need for assertion, if unwrap fails the test will fail
         let _ = session
-            .attach("mock.plugin.test", FIXTURE_CAPACITY, FIXTURE_TIMEOUT)
+            .attach(AttachHandleParams {
+                plugin_id: "mock.plugin.test".to_string(),
+                capacity: FIXTURE_CAPACITY,
+                timeout: FIXTURE_TIMEOUT,
+            })
             .await
             .unwrap();
     }
@@ -120,7 +125,11 @@ mod tests {
         server.mock_send_to_client(&error).await;
         generator.next_transaction("mock-attach-plugin-transaction");
         let result = session
-            .attach("mock.plugin.test", FIXTURE_CAPACITY, FIXTURE_TIMEOUT)
+            .attach(AttachHandleParams {
+                plugin_id: "mock.plugin.test".to_string(),
+                capacity: FIXTURE_CAPACITY,
+                timeout: FIXTURE_TIMEOUT,
+            })
             .await;
         assert!(matches!(
             result,

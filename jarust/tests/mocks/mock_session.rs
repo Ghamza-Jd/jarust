@@ -3,6 +3,7 @@ use jarust::jaconnection::JaConnection;
 use jarust::japrotocol::JaData;
 use jarust::japrotocol::JaSuccessProtocol;
 use jarust::japrotocol::ResponseType;
+use jarust::params::CreateConnectionParams;
 use jarust::prelude::*;
 use std::time::Duration;
 
@@ -34,7 +35,11 @@ pub async fn mock_session(
 
     server.mock_send_to_client(&msg).await;
     let session = connection
-        .create(config.ka_interval, config.capacity, config.timeout)
+        .create(CreateConnectionParams {
+            ka_interval: config.ka_interval,
+            capacity: config.capacity,
+            timeout: config.timeout,
+        })
         .await?;
 
     Ok(session)
