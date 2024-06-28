@@ -1,7 +1,7 @@
+use crate::params::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
-use std::time::Duration;
 
 pub trait PluginTask {
     fn assign_task(&mut self, task: JaTask);
@@ -10,10 +10,5 @@ pub trait PluginTask {
 
 #[async_trait]
 pub trait Attach {
-    async fn attach(
-        &self,
-        plugin_id: &str,
-        capacity: usize,
-        timeout: Duration,
-    ) -> JaResult<(JaHandle, JaResponseStream)>;
+    async fn attach(&self, params: AttachHandleParams) -> JaResult<(JaHandle, JaResponseStream)>;
 }

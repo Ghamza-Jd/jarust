@@ -4,6 +4,7 @@ use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::napmap::NapMap;
+use crate::params::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
@@ -46,7 +47,7 @@ pub struct WeakJaSession {
 }
 
 impl JaSession {
-    pub async fn new(
+    pub(crate) async fn new(
         connection: JaConnection,
         mut receiver: JaResponseStream,
         id: u64,
@@ -183,21 +184,16 @@ impl Drop for Exclusive {
 impl Attach for JaSession {
     /// Attach a plugin to the current session
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    async fn attach(
-        &self,
-        plugin_id: &str,
-        capacity: usize,
-        timeout: Duration,
-    ) -> JaResult<(JaHandle, JaResponseStream)> {
+    async fn attach(&self, params: AttachHandleParams) -> JaResult<(JaHandle, JaResponseStream)> {
         tracing::info!("Attaching new handle");
 
         let request = json!({
             "janus": "attach",
-            "plugin": plugin_id,
+            "plugin": params.plugin_id,
         });
 
         let transaction = self.send_request(request).await?;
-        let response = self.poll_response(&transaction, timeout).await?;
+        let response = self.poll_response(&transaction, params.timeout).await?;
 
         let handle_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
@@ -221,7 +217,8 @@ impl Attach for JaSession {
             .add_subroute(&format!("{}/{}", self.inner.shared.id, handle_id))
             .await;
 
-        let (handle, event_receiver) = JaHandle::new(self.clone(), receiver, handle_id, capacity);
+        let (handle, event_receiver) =
+            JaHandle::new(self.clone(), receiver, handle_id, params.capacity);
 
         self.inner
             .exclusive

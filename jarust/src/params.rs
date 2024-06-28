@@ -9,3 +9,13 @@ pub struct CreateConnectionParams {
     /// Request timeout
     pub timeout: Duration,
 }
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub struct AttachHandleParams {
+    /// Janus plugin identifier
+    pub plugin_id: String,
+    /// Handle buffer capacity
+    pub capacity: usize,
+    /// Request timeout
+    pub timeout: Duration,
+}
