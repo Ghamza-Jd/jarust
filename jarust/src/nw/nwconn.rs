@@ -10,7 +10,6 @@ use jarust_transport::trans::TransportSession;
 use serde_json::Value;
 use tokio::sync::mpsc;
 
-#[async_trait::async_trait]
 pub(crate) trait NetworkConnection {
     async fn new(
         url: &str,
@@ -34,7 +33,6 @@ pub(crate) struct NwConn {
     transaction_manager: TransactionManager,
 }
 
-#[async_trait::async_trait]
 impl NetworkConnection for NwConn {
     async fn new(
         url: &str,
