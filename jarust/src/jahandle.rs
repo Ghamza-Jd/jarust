@@ -11,7 +11,6 @@ use serde::Serialize;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
-use std::sync::Weak;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
@@ -30,11 +29,6 @@ struct InnerHandle {
 #[derive(Clone)]
 pub struct JaHandle {
     inner: Arc<InnerHandle>,
-}
-
-#[derive(Debug)]
-pub struct WeakJaHandle {
-    _inner: Weak<InnerHandle>,
 }
 
 impl JaHandle {
@@ -261,12 +255,6 @@ impl JaHandle {
         self.send_request(request).await?;
         Ok(())
     }
-
-    pub(crate) fn downgrade(&self) -> WeakJaHandle {
-        WeakJaHandle {
-            _inner: Arc::downgrade(&self.inner),
-        }
-    }
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
@@ -292,11 +280,6 @@ impl JaHandle {
             "janus": "detach"
         });
         self.send_waiton_ack(request, timeout).await?;
-        self.inner
-            .shared
-            .session
-            .remove_handle(self.inner.shared.id)
-            .await;
         Ok(())
     }
 

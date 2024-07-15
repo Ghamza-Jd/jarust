@@ -3,7 +3,6 @@ use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
-use crate::jasession::WeakJaSession;
 use crate::napmap::NapMap;
 use crate::nw::jatransport::ConnectionParams;
 use crate::nw::jatransport::JaTransport;
@@ -14,11 +13,9 @@ use crate::respones::ServerInfoRsp;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use serde_json::json;
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
-use tokio::sync::Mutex;
 
 pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
@@ -30,14 +27,8 @@ struct Shared {
 }
 
 #[derive(Debug)]
-struct Exclusive {
-    sessions: HashMap<u64, WeakJaSession>,
-}
-
-#[derive(Debug)]
 struct InnerConnection {
     shared: Shared,
-    exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Clone, Debug)]
@@ -80,13 +71,7 @@ impl JaConnection {
             rsp_map,
             transport,
         };
-        let safe = Exclusive {
-            sessions: HashMap::new(),
-        };
-        let connection = Arc::new(InnerConnection {
-            shared,
-            exclusive: Mutex::new(safe),
-        });
+        let connection = Arc::new(InnerConnection { shared });
         Ok(Self { inner: connection })
     }
 
@@ -133,13 +118,6 @@ impl JaConnection {
             self.inner.shared.transport.clone(),
         )
         .await;
-
-        self.inner
-            .exclusive
-            .lock()
-            .await
-            .sessions
-            .insert(session_id, session.downgrade());
 
         tracing::info!("Session created {{ session_id: {session_id} }}");
 

@@ -98,7 +98,7 @@ impl JaTransport {
             .send(message.to_string().as_bytes(), &path)
             .await?;
         tracing::debug!("{message:#?}");
-        Ok(transaction.into())
+        Ok(transaction)
     }
 
     pub async fn add_session_subroute(
