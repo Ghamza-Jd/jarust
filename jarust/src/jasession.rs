@@ -1,5 +1,4 @@
 use crate::jahandle::JaHandle;
-use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::napmap::NapMap;
@@ -10,9 +9,7 @@ use async_trait::async_trait;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
-use std::collections::HashMap;
 use std::sync::Arc;
-use std::sync::Weak;
 use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time;
@@ -26,7 +23,6 @@ pub struct Shared {
 
 #[derive(Debug)]
 pub struct Exclusive {
-    handles: HashMap<u64, WeakJaHandle>,
     tasks: Vec<JaTask>,
 }
 
@@ -39,11 +35,6 @@ struct InnerSession {
 #[derive(Clone, Debug)]
 pub struct JaSession {
     inner: Arc<InnerSession>,
-}
-
-#[derive(Debug)]
-pub struct WeakJaSession {
-    _inner: Weak<InnerSession>,
 }
 
 impl JaSession {
@@ -73,7 +64,6 @@ impl JaSession {
             transport,
         };
         let safe = Exclusive {
-            handles: HashMap::new(),
             tasks: vec![rsp_cache_task],
         };
 
@@ -125,12 +115,6 @@ impl JaSession {
         }
     }
 
-    pub(crate) fn downgrade(&self) -> WeakJaSession {
-        WeakJaSession {
-            _inner: Arc::downgrade(&self.inner),
-        }
-    }
-
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling response");
@@ -156,10 +140,6 @@ impl JaSession {
                 Err(JaError::RequestTimeout)
             }
         }
-    }
-
-    pub(crate) async fn remove_handle(&self, handle_id: u64) {
-        self.inner.exclusive.lock().await.handles.remove(&handle_id);
     }
 }
 
@@ -220,13 +200,6 @@ impl Attach for JaSession {
         let (handle, event_receiver) =
             JaHandle::new(self.clone(), receiver, handle_id, params.capacity);
 
-        self.inner
-            .exclusive
-            .lock()
-            .await
-            .handles
-            .insert(handle_id, handle.downgrade());
-
         tracing::info!("Handle created {{ handle_id: {handle_id} }}");
 
         Ok((handle, event_receiver))
@@ -243,8 +216,6 @@ impl JaSession {
 
         let transaction = self.send_request(request).await?;
         let _ = self.poll_response(&transaction, timeout).await?;
-
-        self.inner.exclusive.lock().await.handles.clear();
 
         Ok(())
     }
