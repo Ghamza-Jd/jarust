@@ -39,13 +39,13 @@ pub struct JaSession {
 
 impl JaSession {
     pub(crate) async fn new(
-        mut receiver: JaResponseStream,
         id: u64,
         ka_interval: u32,
         capacity: usize,
         transport: JaTransport,
     ) -> Self {
         let rsp_map = Arc::new(NapMap::new(capacity));
+        let mut receiver = transport.add_session_subroute(id).await;
 
         let rsp_cache_task = jarust_rt::spawn({
             let rsp_map = rsp_map.clone();
@@ -190,15 +190,13 @@ impl Attach for JaSession {
             }
         };
 
-        let receiver = self
-            .inner
-            .shared
-            .transport
-            .add_handle_subroute(self.inner.shared.id, handle_id)
-            .await;
-
-        let (handle, event_receiver) =
-            JaHandle::new(self.clone(), receiver, handle_id, params.capacity);
+        let (handle, event_receiver) = JaHandle::new(
+            handle_id,
+            self.inner.shared.id,
+            params.capacity,
+            self.inner.shared.transport.clone(),
+        )
+        .await;
 
         tracing::info!("Handle created {{ handle_id: {handle_id} }}");
 
