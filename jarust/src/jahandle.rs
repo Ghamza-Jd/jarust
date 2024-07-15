@@ -2,8 +2,8 @@ use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::jasession::JaSession;
 use crate::napmap::NapMap;
+use crate::nw::jatransport::JaTransport;
 use crate::prelude::*;
 use jarust_rt::JaTask;
 use serde::de::DeserializeOwned;
@@ -16,10 +16,11 @@ use tokio::sync::mpsc;
 
 struct Shared {
     id: u64,
-    session: JaSession,
+    session_id: u64,
     task: JaTask,
     ack_map: Arc<NapMap<String, JaResponse>>,
     rsp_map: Arc<NapMap<String, JaResponse>>,
+    transport: JaTransport,
 }
 
 struct InnerHandle {
@@ -65,16 +66,18 @@ impl JaHandle {
         }
     }
 
-    pub(crate) fn new(
-        session: JaSession,
-        receiver: JaResponseStream,
+    pub(crate) async fn new(
         id: u64,
+        session_id: u64,
         capacity: usize,
+        transport: JaTransport,
     ) -> (Self, JaResponseStream) {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let ack_map = Arc::new(NapMap::<String, JaResponse>::new(capacity));
         let rsp_map = Arc::new(NapMap::<String, JaResponse>::new(capacity));
+
+        let receiver = transport.add_handle_subroute(session_id, id).await;
 
         let task = jarust_rt::spawn(JaHandle::demux_recv_stream(
             receiver,
@@ -85,10 +88,11 @@ impl JaHandle {
 
         let shared = Shared {
             id,
-            session,
+            session_id,
             task,
             ack_map,
             rsp_map,
+            transport,
         };
 
         let jahandle = Self {
@@ -99,9 +103,9 @@ impl JaHandle {
     }
 
     async fn send_request(&self, mut request: Value) -> JaResult<String> {
-        let session = self.inner.shared.session.clone();
         request["handle_id"] = self.inner.shared.id.into();
-        session.send_request(request).await
+        request["session_id"] = self.inner.shared.session_id.into();
+        self.inner.shared.transport.send(request).await
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]

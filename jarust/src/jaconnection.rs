@@ -103,15 +103,7 @@ impl JaConnection {
             }
         };
 
-        let channel = self
-            .inner
-            .shared
-            .transport
-            .add_session_subroute(session_id)
-            .await;
-
         let session = JaSession::new(
-            channel,
             session_id,
             params.ka_interval,
             params.capacity,
