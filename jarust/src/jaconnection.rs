@@ -5,17 +5,15 @@ use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
 use crate::jasession::WeakJaSession;
 use crate::napmap::NapMap;
-use crate::nw::nwconn::NetworkConnection;
-use crate::nw::nwconn::NwConn;
+use crate::nw::jatransport::ConnectionParams;
+use crate::nw::jatransport::JaTransport;
 use crate::nw::transaction_gen::GenerateTransaction;
-use crate::nw::transaction_gen::TransactionGenerator;
 use crate::params::CreateConnectionParams;
 use crate::prelude::*;
 use crate::respones::ServerInfoRsp;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use serde_json::json;
-use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -27,14 +25,12 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 #[derive(Debug)]
 struct Shared {
     task: JaTask,
-    config: JaConfig,
     rsp_map: Arc<NapMap<String, JaResponse>>,
-    transaction_generator: TransactionGenerator,
+    transport: JaTransport,
 }
 
 #[derive(Debug)]
 struct Exclusive {
-    nwconn: NwConn,
     sessions: HashMap<u64, WeakJaSession>,
 }
 
@@ -55,8 +51,17 @@ impl JaConnection {
         transport: impl TransportProtocol,
         transaction_generator: impl GenerateTransaction,
     ) -> JaResult<Self> {
-        let (nwconn, mut root_channel) =
-            NwConn::new(&config.url, &config.namespace, config.capacity, transport).await?;
+        let (transport, mut root_channel) = JaTransport::new(
+            ConnectionParams {
+                url: &config.url,
+                capacity: config.capacity,
+                apisecret: config.apisecret,
+                namespace: &config.namespace,
+            },
+            transport,
+            transaction_generator,
+        )
+        .await?;
         let rsp_map = Arc::new(NapMap::new(config.capacity));
 
         let rsp_cache_task = jarust_rt::spawn({
@@ -70,16 +75,12 @@ impl JaConnection {
             }
         });
 
-        let transaction_generator = TransactionGenerator::new(transaction_generator);
-
         let shared = Shared {
             task: rsp_cache_task,
-            config,
             rsp_map,
-            transaction_generator,
+            transport,
         };
         let safe = Exclusive {
-            nwconn,
             sessions: HashMap::new(),
         };
         let connection = Arc::new(InnerConnection {
@@ -98,7 +99,7 @@ impl JaConnection {
             "janus": "create"
         });
 
-        let transaction = self.send_request(request).await?;
+        let transaction = self.inner.shared.transport.send(request).await?;
         let response = self.poll_response(&transaction, params.timeout).await?;
 
         let session_id = match response.janus {
@@ -117,14 +118,19 @@ impl JaConnection {
             }
         };
 
-        let channel = self.add_subroute(&format!("{session_id}")).await;
+        let channel = self
+            .inner
+            .shared
+            .transport
+            .add_session_subroute(session_id)
+            .await;
 
         let session = JaSession::new(
-            self.clone(),
             channel,
             session_id,
             params.ka_interval,
             params.capacity,
+            self.inner.shared.transport.clone(),
         )
         .await;
 
@@ -139,21 +145,6 @@ impl JaConnection {
 
         Ok(session)
     }
-
-    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub(crate) async fn send_request(&mut self, request: Value) -> JaResult<String> {
-        let request = self.decorate_request(request);
-        let transaction = self
-            .inner
-            .exclusive
-            .lock()
-            .await
-            .nwconn
-            .send(request)
-            .await?;
-        Ok(transaction)
-    }
-
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling response");
@@ -180,29 +171,6 @@ impl JaConnection {
             }
         }
     }
-
-    fn decorate_request(&self, mut request: Value) -> Value {
-        let transaction = self
-            .inner
-            .shared
-            .transaction_generator
-            .generate_transaction();
-        if let Some(apisecret) = self.inner.shared.config.apisecret.clone() {
-            request["apisecret"] = apisecret.into();
-        };
-        request["transaction"] = transaction.into();
-        request
-    }
-
-    pub(crate) async fn add_subroute(&self, end: &str) -> JaResponseStream {
-        self.inner
-            .exclusive
-            .lock()
-            .await
-            .nwconn
-            .add_subroute(end)
-            .await
-    }
 }
 
 impl JaConnection {
@@ -212,7 +180,7 @@ impl JaConnection {
         let request = json!({
             "janus": "info"
         });
-        let transaction = self.send_request(request).await?;
+        let transaction = self.inner.shared.transport.send(request).await?;
         let response = self.poll_response(&transaction, timeout).await?;
         match response.janus {
             ResponseType::ServerInfo(info) => Ok(*info),
