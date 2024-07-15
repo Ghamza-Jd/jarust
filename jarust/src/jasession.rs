@@ -1,9 +1,9 @@
-use crate::jaconnection::JaConnection;
 use crate::jahandle::JaHandle;
 use crate::jahandle::WeakJaHandle;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::napmap::NapMap;
+use crate::nw::jatransport::JaTransport;
 use crate::params::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
@@ -20,8 +20,8 @@ use tokio::time;
 #[derive(Debug)]
 pub struct Shared {
     id: u64,
-    connection: JaConnection,
     rsp_map: Arc<NapMap<String, JaResponse>>,
+    transport: JaTransport,
 }
 
 #[derive(Debug)]
@@ -48,11 +48,11 @@ pub struct WeakJaSession {
 
 impl JaSession {
     pub(crate) async fn new(
-        connection: JaConnection,
         mut receiver: JaResponseStream,
         id: u64,
         ka_interval: u32,
         capacity: usize,
+        transport: JaTransport,
     ) -> Self {
         let rsp_map = Arc::new(NapMap::new(capacity));
 
@@ -69,8 +69,8 @@ impl JaSession {
 
         let shared = Shared {
             id,
-            connection,
             rsp_map,
+            transport,
         };
         let safe = Exclusive {
             handles: HashMap::new(),
@@ -102,9 +102,8 @@ impl JaSession {
     }
 
     pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<String> {
-        let mut connection = self.inner.shared.connection.clone();
         request["session_id"] = self.inner.shared.id.into();
-        connection.send_request(request).await
+        self.inner.shared.transport.send(request).await
     }
 
     #[tracing::instrument(skip(self))]
@@ -211,10 +210,11 @@ impl Attach for JaSession {
             }
         };
 
-        let connection = self.inner.shared.connection.clone();
-
-        let receiver = connection
-            .add_subroute(&format!("{}/{}", self.inner.shared.id, handle_id))
+        let receiver = self
+            .inner
+            .shared
+            .transport
+            .add_handle_subroute(self.inner.shared.id, handle_id)
             .await;
 
         let (handle, event_receiver) =
