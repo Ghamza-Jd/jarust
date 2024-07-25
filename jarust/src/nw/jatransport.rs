@@ -270,6 +270,41 @@ impl JaTransport {
             _ => Err(JaError::IncompletePacket),
         }
     }
+
+    pub async fn attach(
+        &self,
+        session_id: u64,
+        plugin_id: String,
+        timeout: Duration,
+    ) -> JaResult<JaResponse> {
+        let request = json!({
+            "janus": "attach",
+            "session_id": session_id,
+            "plugin": plugin_id
+        });
+        let transaction = self.send(request).await?;
+        self.poll_response(&transaction, timeout).await
+    }
+
+    pub async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaResult<()> {
+        let request = json!({
+            "janus": "keepalive",
+            "session_id": session_id
+        });
+        let transaction = self.send(request).await?;
+        self.poll_ack(&transaction, timeout).await?;
+        Ok(())
+    }
+
+    pub async fn destory(&self, session_id: u64, timeout: Duration) -> JaResult<()> {
+        let request = json!({
+            "janus": "destroy",
+            "session_id": session_id
+        });
+        let transaction = self.send(request).await?;
+        self.poll_response(&transaction, timeout).await?;
+        Ok(())
+    }
 }
 
 impl Drop for InnerJaTransport {
