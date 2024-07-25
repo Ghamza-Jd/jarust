@@ -18,8 +18,6 @@ struct Shared {
     id: u64,
     session_id: u64,
     task: JaTask,
-    ack_map: Arc<NapMap<String, JaResponse>>,
-    rsp_map: Arc<NapMap<String, JaResponse>>,
     transport: JaTransport,
 }
 
@@ -90,8 +88,6 @@ impl JaHandle {
             id,
             session_id,
             task,
-            ack_map,
-            rsp_map,
             transport,
         };
 
@@ -106,60 +102,6 @@ impl JaHandle {
         request["handle_id"] = self.inner.shared.id.into();
         request["session_id"] = self.inner.shared.session_id.into();
         self.inner.shared.transport.send(request).await
-    }
-
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
-    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
-        tracing::trace!("Polling response");
-        match tokio::time::timeout(
-            timeout,
-            self.inner.shared.rsp_map.get(transaction.to_string()),
-        )
-        .await
-        {
-            Ok(Some(response)) => match response.janus {
-                ResponseType::Error { error } => Err(JaError::JanusError {
-                    code: error.code,
-                    reason: error.reason,
-                }),
-                _ => Ok(response),
-            },
-            Ok(None) => {
-                tracing::error!("Incomplete packet");
-                Err(JaError::IncompletePacket)
-            }
-            Err(_) => {
-                tracing::error!("Request timeout");
-                Err(JaError::RequestTimeout)
-            }
-        }
-    }
-
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.inner.shared.id))]
-    async fn poll_ack(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
-        tracing::trace!("Polling ack");
-        match tokio::time::timeout(
-            timeout,
-            self.inner.shared.ack_map.get(transaction.to_string()),
-        )
-        .await
-        {
-            Ok(Some(response)) => match response.janus {
-                ResponseType::Error { error } => Err(JaError::JanusError {
-                    code: error.code,
-                    reason: error.reason,
-                }),
-                _ => Ok(response),
-            },
-            Ok(None) => {
-                tracing::error!("Incomplete packet");
-                Err(JaError::IncompletePacket)
-            }
-            Err(_) => {
-                tracing::error!("Request timeout");
-                Err(JaError::RequestTimeout)
-            }
-        }
     }
 
     /// Send a one-shot message
@@ -182,7 +124,12 @@ impl JaHandle {
             "body": body
         });
         let transaction = self.send_request(request).await?;
-        let response = self.poll_response(&transaction, timeout).await?;
+        let response = self
+            .inner
+            .shared
+            .transport
+            .poll_response(&transaction, timeout)
+            .await?;
 
         let result = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
@@ -210,7 +157,12 @@ impl JaHandle {
             "body": body
         });
         let transaction = self.send_request(request).await?;
-        let response = self.poll_ack(&transaction, timeout).await?;
+        let response = self
+            .inner
+            .shared
+            .transport
+            .poll_ack(&transaction, timeout)
+            .await?;
         Ok(response)
     }
 
@@ -234,7 +186,12 @@ impl JaHandle {
             }),
         };
         let transaction = self.send_request(request).await?;
-        let response = self.poll_ack(&transaction, timeout).await?;
+        let response = self
+            .inner
+            .shared
+            .transport
+            .poll_ack(&transaction, timeout)
+            .await?;
         Ok(response)
     }
 

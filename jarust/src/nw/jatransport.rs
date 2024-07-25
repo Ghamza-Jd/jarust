@@ -3,6 +3,9 @@ use super::router::Router;
 use super::transaction_gen::TransactionGenerator;
 use super::transaction_manager::TransactionManager;
 use crate::japrotocol::JaResponse;
+use crate::japrotocol::ResponseType;
+use crate::napmap::NapMap;
+use crate::prelude::JaError;
 use crate::prelude::JaResult;
 use crate::GenerateTransaction;
 use jarust_rt::JaTask;
@@ -10,15 +13,18 @@ use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
 use serde_json::Value;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 
 #[derive(Debug)]
 struct Shared {
-    task: JaTask,
+    tasks: Vec<JaTask>,
     namespace: String,
     apisecret: Option<String>,
     transaction_generator: TransactionGenerator,
+    ack_map: Arc<NapMap<String, JaResponse>>,
+    rsp_map: Arc<NapMap<String, JaResponse>>,
 }
 
 #[derive(Debug)]
@@ -57,17 +63,54 @@ impl JaTransport {
         let transaction_manager = TransactionManager::new(conn_params.capacity);
         let transaction_generator = TransactionGenerator::new(transaction_generator);
 
+        let ack_map = Arc::new(NapMap::<String, JaResponse>::new(conn_params.capacity));
+        let rsp_map = Arc::new(NapMap::<String, JaResponse>::new(conn_params.capacity));
+
+        let (rsp_sender, mut rsp_receiver) = mpsc::unbounded_channel::<JaResponse>();
+        let (ack_sender, mut ack_receiver) = mpsc::unbounded_channel::<JaResponse>();
+
+        let rsp_task = jarust_rt::spawn({
+            let rsp_map = rsp_map.clone();
+            async move {
+                while let Some(rsp) = rsp_receiver.recv().await {
+                    if let Some(transaction) = rsp.transaction.clone() {
+                        rsp_map.insert(transaction, rsp).await;
+                    }
+                }
+            }
+        });
+
+        let ack_task = jarust_rt::spawn({
+            let ack_map = ack_map.clone();
+            async move {
+                while let Some(rsp) = ack_receiver.recv().await {
+                    if let Some(transaction) = rsp.transaction.clone() {
+                        ack_map.insert(transaction, rsp).await;
+                    }
+                }
+            }
+        });
+
         let demux_task = jarust_rt::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
-            async move { Demuxer::demux_task(receiver, router, transaction_manager).await }
+            let demuxer_v2 = Demuxer {
+                inbound_stream: receiver,
+                router,
+                rsp_sender,
+                ack_sender,
+                transaction_manager,
+            };
+            async move { demuxer_v2.start().await }
         });
 
         let shared = Shared {
-            task: demux_task,
+            tasks: vec![demux_task, rsp_task, ack_task],
             namespace: conn_params.namespace.into(),
             apisecret: conn_params.apisecret,
             transaction_generator,
+            ack_map,
+            rsp_map,
         };
         let exclusive = Exclusive {
             router,
@@ -99,6 +142,64 @@ impl JaTransport {
             .await?;
         tracing::debug!("{message:#?}");
         Ok(transaction)
+    }
+
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    pub async fn poll_response(
+        &self,
+        transaction: &str,
+        timeout: Duration,
+    ) -> JaResult<JaResponse> {
+        tracing::trace!("Polling response");
+        match tokio::time::timeout(
+            timeout,
+            self.inner.shared.rsp_map.get(transaction.to_string()),
+        )
+        .await
+        {
+            Ok(Some(response)) => match response.janus {
+                ResponseType::Error { error } => Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                }),
+                _ => Ok(response),
+            },
+            Ok(None) => {
+                tracing::error!("Incomplete packet");
+                Err(JaError::IncompletePacket)
+            }
+            Err(_) => {
+                tracing::error!("Request timeout");
+                Err(JaError::RequestTimeout)
+            }
+        }
+    }
+
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    pub async fn poll_ack(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
+        tracing::trace!("Polling ack");
+        match tokio::time::timeout(
+            timeout,
+            self.inner.shared.ack_map.get(transaction.to_string()),
+        )
+        .await
+        {
+            Ok(Some(response)) => match response.janus {
+                ResponseType::Error { error } => Err(JaError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                }),
+                _ => Ok(response),
+            },
+            Ok(None) => {
+                tracing::error!("Incomplete packet");
+                Err(JaError::IncompletePacket)
+            }
+            Err(_) => {
+                tracing::error!("Request timeout");
+                Err(JaError::RequestTimeout)
+            }
+        }
     }
 
     pub async fn add_session_subroute(
@@ -144,6 +245,8 @@ impl JaTransport {
 
 impl Drop for InnerJaTransport {
     fn drop(&mut self) {
-        self.shared.task.cancel();
+        self.shared.tasks.iter().for_each(|task| {
+            task.cancel();
+        });
     }
 }
