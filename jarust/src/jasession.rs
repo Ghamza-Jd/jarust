@@ -7,8 +7,6 @@ use crate::params::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
-use serde_json::json;
-use serde_json::Value;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -86,11 +84,6 @@ impl JaSession {
         session
     }
 
-    pub(crate) async fn send_request(&self, mut request: Value) -> JaResult<String> {
-        request["session_id"] = self.inner.shared.id.into();
-        self.inner.shared.transport.send(request).await
-    }
-
     #[tracing::instrument(skip(self))]
     async fn keep_alive(self, ka_interval: u32) -> JaResult<()> {
         let mut interval = time::interval(Duration::from_secs(ka_interval.into()));
@@ -98,17 +91,12 @@ impl JaSession {
         loop {
             interval.tick().await;
             tracing::debug!("Sending {{ id: {id} }}");
-            let transaction = self
-                .send_request(json!({
-                    "janus": "keepalive"
-                }))
-                .await?;
             let _ = self
                 .inner
                 .shared
                 .transport
-                .poll_ack(&transaction, Duration::from_secs(ka_interval.into()))
-                .await?;
+                .keep_alive(id, Duration::from_secs(ka_interval.into()))
+                .await;
             tracing::debug!("OK");
         }
     }
@@ -137,17 +125,12 @@ impl Attach for JaSession {
     async fn attach(&self, params: AttachHandleParams) -> JaResult<(JaHandle, JaResponseStream)> {
         tracing::info!("Attaching new handle");
 
-        let request = json!({
-            "janus": "attach",
-            "plugin": params.plugin_id,
-        });
-
-        let transaction = self.send_request(request).await?;
+        let session_id = self.inner.shared.id;
         let response = self
             .inner
             .shared
             .transport
-            .poll_response(&transaction, params.timeout)
+            .attach(session_id, params.plugin_id, params.timeout)
             .await?;
 
         let handle_id = match response.janus {
@@ -183,19 +166,11 @@ impl Attach for JaSession {
 impl JaSession {
     pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
         tracing::info!("Destroying session");
-
-        let request = json!({
-            "janus": "destroy"
-        });
-
-        let transaction = self.send_request(request).await?;
-        let _ = self
-            .inner
+        let session_id = self.inner.shared.id;
+        self.inner
             .shared
             .transport
-            .poll_response(&transaction, timeout)
-            .await?;
-
-        Ok(())
+            .destory(session_id, timeout)
+            .await
     }
 }
