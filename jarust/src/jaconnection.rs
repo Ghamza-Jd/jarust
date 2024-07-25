@@ -12,7 +12,6 @@ use crate::prelude::*;
 use crate::respones::ServerInfoRsp;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
-use serde_json::json;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -77,19 +76,7 @@ impl JaConnection {
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
-
-        let request = json!({
-            "janus": "create"
-        });
-
-        let transaction = self.inner.shared.transport.send(request).await?;
-        let response = self
-            .inner
-            .shared
-            .transport
-            .poll_response(&transaction, params.timeout)
-            .await?;
-
+        let response = self.inner.shared.transport.create(params.timeout).await?;
         let session_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
             ResponseType::Error { error } => {
@@ -124,24 +111,7 @@ impl JaConnection {
     /// Returns janus server info
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
-        let request = json!({
-            "janus": "info"
-        });
-        let transaction = self.inner.shared.transport.send(request).await?;
-        let response = self
-            .inner
-            .shared
-            .transport
-            .poll_response(&transaction, timeout)
-            .await?;
-        match response.janus {
-            ResponseType::ServerInfo(info) => Ok(*info),
-            ResponseType::Error { error } => Err(JaError::JanusError {
-                code: error.code,
-                reason: error.reason,
-            }),
-            _ => Err(JaError::IncompletePacket),
-        }
+        self.inner.shared.transport.server_info(timeout).await
     }
 }
 

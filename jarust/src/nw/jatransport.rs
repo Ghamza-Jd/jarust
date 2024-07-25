@@ -7,10 +7,12 @@ use crate::japrotocol::ResponseType;
 use crate::napmap::NapMap;
 use crate::prelude::JaError;
 use crate::prelude::JaResult;
+use crate::respones::ServerInfoRsp;
 use crate::GenerateTransaction;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
+use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
 use std::time::Duration;
@@ -240,6 +242,33 @@ impl JaTransport {
         };
         request["transaction"] = transaction.clone().into();
         (request, transaction)
+    }
+}
+
+impl JaTransport {
+    pub async fn create(&self, timeout: Duration) -> JaResult<JaResponse> {
+        let request = json!({
+            "janus": "create"
+        });
+
+        let transaction = self.send(request).await?;
+        self.poll_response(&transaction, timeout).await
+    }
+
+    pub async fn server_info(&self, timeout: Duration) -> JaResult<ServerInfoRsp> {
+        let request = json!({
+            "janus": "info"
+        });
+        let transaction = self.send(request).await?;
+        let response = self.poll_response(&transaction, timeout).await?;
+        match response.janus {
+            ResponseType::ServerInfo(info) => Ok(*info),
+            ResponseType::Error { error } => Err(JaError::JanusError {
+                code: error.code,
+                reason: error.reason,
+            }),
+            _ => Err(JaError::IncompletePacket),
+        }
     }
 }
 
