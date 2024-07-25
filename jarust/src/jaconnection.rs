@@ -22,7 +22,6 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 #[derive(Debug)]
 struct Shared {
     task: JaTask,
-    rsp_map: Arc<NapMap<String, JaResponse>>,
     transport: JaTransport,
 }
 
@@ -68,7 +67,6 @@ impl JaConnection {
 
         let shared = Shared {
             task: rsp_cache_task,
-            rsp_map,
             transport,
         };
         let connection = Arc::new(InnerConnection { shared });
@@ -85,7 +83,12 @@ impl JaConnection {
         });
 
         let transaction = self.inner.shared.transport.send(request).await?;
-        let response = self.poll_response(&transaction, params.timeout).await?;
+        let response = self
+            .inner
+            .shared
+            .transport
+            .poll_response(&transaction, params.timeout)
+            .await?;
 
         let session_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
@@ -115,32 +118,6 @@ impl JaConnection {
 
         Ok(session)
     }
-    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
-        tracing::trace!("Polling response");
-        match tokio::time::timeout(
-            timeout,
-            self.inner.shared.rsp_map.get(transaction.to_string()),
-        )
-        .await
-        {
-            Ok(Some(response)) => match response.janus {
-                ResponseType::Error { error } => Err(JaError::JanusError {
-                    code: error.code,
-                    reason: error.reason,
-                }),
-                _ => Ok(response),
-            },
-            Ok(None) => {
-                tracing::error!("Incomplete packet");
-                Err(JaError::IncompletePacket)
-            }
-            Err(_) => {
-                tracing::error!("Request timeout");
-                Err(JaError::RequestTimeout)
-            }
-        }
-    }
 }
 
 impl JaConnection {
@@ -151,7 +128,12 @@ impl JaConnection {
             "janus": "info"
         });
         let transaction = self.inner.shared.transport.send(request).await?;
-        let response = self.poll_response(&transaction, timeout).await?;
+        let response = self
+            .inner
+            .shared
+            .transport
+            .poll_response(&transaction, timeout)
+            .await?;
         match response.janus {
             ResponseType::ServerInfo(info) => Ok(*info),
             ResponseType::Error { error } => Err(JaError::JanusError {

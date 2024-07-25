@@ -5,17 +5,19 @@ use crate::prelude::*;
 use bytes::Bytes;
 use tokio::sync::mpsc;
 
-pub(crate) struct Demuxer;
+pub(crate) struct Demuxer {
+    pub(crate) inbound_stream: mpsc::UnboundedReceiver<Bytes>,
+    pub(crate) router: Router,
+    pub(crate) rsp_sender: mpsc::UnboundedSender<JaResponse>,
+    pub(crate) ack_sender: mpsc::UnboundedSender<JaResponse>,
+    pub(crate) transaction_manager: TransactionManager,
+}
 
 impl Demuxer {
     /// Async task to handle demultiplexing of the inbound stream
-    #[tracing::instrument(name = "incoming_event", level = tracing::Level::TRACE, skip_all)]
-    pub(crate) async fn demux_task(
-        inbound_stream: mpsc::UnboundedReceiver<Bytes>,
-        router: Router,
-        transaction_manager: TransactionManager,
-    ) -> JaResult<()> {
-        let mut stream = inbound_stream;
+    #[tracing::instrument(name = "incoming_message", level = tracing::Level::TRACE, skip_all)]
+    pub(crate) async fn start(self) -> JaResult<()> {
+        let mut stream = self.inbound_stream;
         while let Some(next) = stream.recv().await {
             let Ok(incoming_event) = std::str::from_utf8(&next) else {
                 tracing::error!("Incomplete packet received");
@@ -25,30 +27,38 @@ impl Demuxer {
             tracing::debug!("Received {incoming_event}");
 
             // Parse the incoming message
-            let message = match serde_json::from_str::<JaResponse>(incoming_event) {
-                Ok(response) => match &response.janus {
+            match serde_json::from_str::<JaResponse>(incoming_event) {
+                Ok(response) => match response.clone().janus {
                     ResponseType::Error { error } => {
                         tracing::error!("{error:#?}");
-                        response
+                        _ = self.rsp_sender.send(response.clone());
+                        _ = self.ack_sender.send(response);
                     }
-                    _ => response,
+                    ResponseType::Ack => {
+                        _ = self.ack_sender.send(response);
+                    }
+                    ResponseType::Success(_) | ResponseType::ServerInfo(_) => {
+                        _ = self.rsp_sender.send(response);
+                    }
+                    ResponseType::Event(_) => {
+                        if let Err(what) =
+                            Demuxer::demux_event(response, &self.router, &self.transaction_manager)
+                                .await
+                        {
+                            tracing::error!("Error demuxing message: {what}");
+                        }
+                    }
                 },
                 Err(what) => {
                     tracing::error!("Error parsing response: {what}");
-                    continue;
                 }
             };
-
-            // Try send the message to the proper route
-            if let Err(what) = Self::demux_message(message, &router, &transaction_manager).await {
-                tracing::error!("Error demuxing message: {what}");
-            }
         }
         Ok(())
     }
 
     /// Route the message to the proper channel
-    async fn demux_message(
+    async fn demux_event(
         message: JaResponse,
         router: &Router,
         transaction_manager: &TransactionManager,

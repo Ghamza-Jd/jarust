@@ -17,7 +17,6 @@ use tokio::time;
 #[derive(Debug)]
 pub struct Shared {
     id: u64,
-    rsp_map: Arc<NapMap<String, JaResponse>>,
     transport: JaTransport,
 }
 
@@ -58,11 +57,7 @@ impl JaSession {
             }
         });
 
-        let shared = Shared {
-            id,
-            rsp_map,
-            transport,
-        };
+        let shared = Shared { id, transport };
         let safe = Exclusive {
             tasks: vec![rsp_cache_task],
         };
@@ -109,36 +104,12 @@ impl JaSession {
                 }))
                 .await?;
             let _ = self
-                .poll_response(&transaction, Duration::from_secs(ka_interval.into()))
+                .inner
+                .shared
+                .transport
+                .poll_ack(&transaction, Duration::from_secs(ka_interval.into()))
                 .await?;
             tracing::debug!("OK");
-        }
-    }
-
-    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
-        tracing::trace!("Polling response");
-        match tokio::time::timeout(
-            timeout,
-            self.inner.shared.rsp_map.get(transaction.to_string()),
-        )
-        .await
-        {
-            Ok(Some(response)) => match response.janus {
-                ResponseType::Error { error } => Err(JaError::JanusError {
-                    code: error.code,
-                    reason: error.reason,
-                }),
-                _ => Ok(response),
-            },
-            Ok(None) => {
-                tracing::error!("Incomplete packet");
-                Err(JaError::IncompletePacket)
-            }
-            Err(_) => {
-                tracing::error!("Request timeout");
-                Err(JaError::RequestTimeout)
-            }
         }
     }
 }
@@ -172,7 +143,12 @@ impl Attach for JaSession {
         });
 
         let transaction = self.send_request(request).await?;
-        let response = self.poll_response(&transaction, params.timeout).await?;
+        let response = self
+            .inner
+            .shared
+            .transport
+            .poll_response(&transaction, params.timeout)
+            .await?;
 
         let handle_id = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
@@ -213,7 +189,12 @@ impl JaSession {
         });
 
         let transaction = self.send_request(request).await?;
-        let _ = self.poll_response(&transaction, timeout).await?;
+        let _ = self
+            .inner
+            .shared
+            .transport
+            .poll_response(&transaction, timeout)
+            .await?;
 
         Ok(())
     }
