@@ -94,14 +94,14 @@ impl JaTransport {
         let demux_task = jarust_rt::spawn({
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
-            let demuxer_v2 = Demuxer {
+            let demuxer = Demuxer {
                 inbound_stream: receiver,
                 router,
                 rsp_sender,
                 ack_sender,
                 transaction_manager,
             };
-            async move { demuxer_v2.start().await }
+            async move { demuxer.start().await }
         });
 
         let shared = Shared {
