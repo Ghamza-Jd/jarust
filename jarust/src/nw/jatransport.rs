@@ -2,7 +2,9 @@ use super::demuxer::Demuxer;
 use super::router::Router;
 use super::transaction_gen::TransactionGenerator;
 use super::transaction_manager::TransactionManager;
+use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaResponse;
+use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::napmap::NapMap;
 use crate::prelude::JaError;
@@ -12,6 +14,7 @@ use crate::GenerateTransaction;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
+use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
@@ -147,11 +150,7 @@ impl JaTransport {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    pub async fn poll_response(
-        &self,
-        transaction: &str,
-        timeout: Duration,
-    ) -> JaResult<JaResponse> {
+    async fn poll_response(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling response");
         match tokio::time::timeout(
             timeout,
@@ -178,7 +177,7 @@ impl JaTransport {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    pub async fn poll_ack(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
+    async fn poll_ack(&self, transaction: &str, timeout: Duration) -> JaResult<JaResponse> {
         tracing::trace!("Polling ack");
         match tokio::time::timeout(
             timeout,
@@ -304,6 +303,129 @@ impl JaTransport {
         let transaction = self.send(request).await?;
         self.poll_response(&transaction, timeout).await?;
         Ok(())
+    }
+}
+
+impl JaTransport {
+    pub async fn fire_and_forget_msg(
+        &self,
+        session_id: u64,
+        handle_id: u64,
+        body: Value,
+    ) -> JaResult<()> {
+        let request = json!({
+            "janus": "message",
+            "session_id": session_id,
+            "handle_id": handle_id,
+            "body": body
+        });
+        self.send(request).await?;
+        Ok(())
+    }
+
+    pub async fn send_msg_waiton_ack(
+        &self,
+        session_id: u64,
+        handle_id: u64,
+        body: Value,
+        timeout: Duration,
+    ) -> JaResult<JaResponse> {
+        let request = json!({
+            "janus": "message",
+            "session_id": session_id,
+            "handle_id": handle_id,
+            "body": body
+        });
+        let transaction = self.send(request).await?;
+        self.poll_ack(&transaction, timeout).await
+    }
+
+    pub async fn send_msg_waiton_rsp<R>(
+        &self,
+        session_id: u64,
+        handle_id: u64,
+        body: Value,
+        timeout: Duration,
+    ) -> JaResult<R>
+    where
+        R: DeserializeOwned,
+    {
+        let request = json!({
+            "janus": "message",
+            "session_id": session_id,
+            "handle_id": handle_id,
+            "body": body
+        });
+        let transaction = self.send(request).await?;
+        let response = self.poll_response(&transaction, timeout).await?;
+
+        let result = match response.janus {
+            ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
+                match serde_json::from_value::<R>(plugin_data.data) {
+                    Ok(result) => result,
+                    Err(error) => {
+                        tracing::error!("Failed to parse with error {error:#?}");
+                        return Err(JaError::UnexpectedResponse);
+                    }
+                }
+            }
+            _ => {
+                tracing::error!("Request failed");
+                return Err(JaError::UnexpectedResponse);
+            }
+        };
+        Ok(result)
+    }
+
+    pub async fn fire_and_forget_msg_with_establishment(
+        &self,
+        session_id: u64,
+        handle_id: u64,
+        body: Value,
+        protocol: EstablishmentProtocol,
+    ) -> JaResult<()> {
+        let request = match protocol {
+            EstablishmentProtocol::JSEP(jsep) => json!({
+                "janus": "message",
+                "session_id": session_id,
+                "handle_id": handle_id,
+                "body": body,
+                "jsep": jsep
+            }),
+            EstablishmentProtocol::RTP(rtp) => json!({
+                "janus": "message",
+                "body": body,
+                "rtp": rtp
+            }),
+        };
+        self.send(request).await?;
+        Ok(())
+    }
+
+    pub async fn send_msg_waiton_ack_with_establishment(
+        &self,
+        session_id: u64,
+        handle_id: u64,
+        body: Value,
+        protocol: EstablishmentProtocol,
+        timeout: Duration,
+    ) -> JaResult<JaResponse> {
+        let request = match protocol {
+            EstablishmentProtocol::JSEP(jsep) => json!({
+                "janus": "message",
+                "session_id": session_id,
+                "handle_id": handle_id,
+                "body": body,
+                "jsep": jsep
+            }),
+            EstablishmentProtocol::RTP(rtp) => json!({
+                "janus": "message",
+                "body": body,
+                "rtp": rtp
+            }),
+        };
+        let transaction = self.send(request).await?;
+        self.poll_ack(&transaction, timeout).await
     }
 }
 

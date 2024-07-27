@@ -98,19 +98,17 @@ impl JaHandle {
         (jahandle, event_receiver)
     }
 
-    async fn send_request(&self, mut request: Value) -> JaResult<String> {
-        request["handle_id"] = self.inner.shared.id.into();
-        request["session_id"] = self.inner.shared.session_id.into();
-        self.inner.shared.transport.send(request).await
-    }
-
     /// Send a one-shot message
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
-        let request = json!({
-            "janus": "message",
-            "body": body
-        });
-        self.send_request(request).await?;
+        self.inner
+            .shared
+            .transport
+            .fire_and_forget_msg(
+                self.inner.shared.session_id,
+                self.inner.shared.session_id,
+                body,
+            )
+            .await?;
         Ok(())
     }
 
@@ -119,51 +117,30 @@ impl JaHandle {
     where
         R: DeserializeOwned,
     {
-        let request = json!({
-            "janus": "message",
-            "body": body
-        });
-        let transaction = self.send_request(request).await?;
-        let response = self
-            .inner
+        self.inner
             .shared
             .transport
-            .poll_response(&transaction, timeout)
-            .await?;
-
-        let result = match response.janus {
-            ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
-                match serde_json::from_value::<R>(plugin_data.data) {
-                    Ok(result) => result,
-                    Err(error) => {
-                        tracing::error!("Failed to parse with error {error:#?}");
-                        return Err(JaError::UnexpectedResponse);
-                    }
-                }
-            }
-            _ => {
-                tracing::error!("Request failed");
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
-        Ok(result)
+            .send_msg_waiton_rsp(
+                self.inner.shared.session_id,
+                self.inner.shared.session_id,
+                body,
+                timeout,
+            )
+            .await
     }
 
     /// Send a message and wait for the ack
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
-        let request = json!({
-            "janus": "message",
-            "body": body
-        });
-        let transaction = self.send_request(request).await?;
-        let response = self
-            .inner
+        self.inner
             .shared
             .transport
-            .poll_ack(&transaction, timeout)
-            .await?;
-        Ok(response)
+            .send_msg_waiton_ack(
+                self.inner.shared.session_id,
+                self.inner.shared.id,
+                body,
+                timeout,
+            )
+            .await
     }
 
     /// Send a message with a specific establishment protocol and wait for the ack
@@ -173,26 +150,17 @@ impl JaHandle {
         protocol: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<JaResponse> {
-        let request = match protocol {
-            EstablishmentProtocol::JSEP(jsep) => json!({
-                "janus": "message",
-                "body": body,
-                "jsep": jsep
-            }),
-            EstablishmentProtocol::RTP(rtp) => json!({
-                "janus": "message",
-                "body": body,
-                "rtp": rtp
-            }),
-        };
-        let transaction = self.send_request(request).await?;
-        let response = self
-            .inner
+        self.inner
             .shared
             .transport
-            .poll_ack(&transaction, timeout)
-            .await?;
-        Ok(response)
+            .send_msg_waiton_ack_with_establishment(
+                self.inner.shared.session_id,
+                self.inner.shared.id,
+                body,
+                protocol,
+                timeout,
+            )
+            .await
     }
 
     /// Send a one-shot message with a specific establishment protocol
@@ -201,20 +169,16 @@ impl JaHandle {
         body: Value,
         protocol: EstablishmentProtocol,
     ) -> JaResult<()> {
-        let request = match protocol {
-            EstablishmentProtocol::JSEP(jsep) => json!({
-                "janus": "message",
-                "body": body,
-                "jsep": jsep
-            }),
-            EstablishmentProtocol::RTP(rtp) => json!({
-                "janus": "message",
-                "body": body,
-                "rtp": rtp
-            }),
-        };
-        self.send_request(request).await?;
-        Ok(())
+        self.inner
+            .shared
+            .transport
+            .fire_and_forget_msg_with_establishment(
+                self.inner.shared.session_id,
+                self.inner.shared.id,
+                body,
+                protocol,
+            )
+            .await
     }
 }
 
