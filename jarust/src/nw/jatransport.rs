@@ -394,6 +394,8 @@ impl JaTransport {
             }),
             EstablishmentProtocol::RTP(rtp) => json!({
                 "janus": "message",
+                "session_id": session_id,
+                "handle_id": handle_id,
                 "body": body,
                 "rtp": rtp
             }),
@@ -420,6 +422,8 @@ impl JaTransport {
             }),
             EstablishmentProtocol::RTP(rtp) => json!({
                 "janus": "message",
+                "session_id": session_id,
+                "handle_id": handle_id,
                 "body": body,
                 "rtp": rtp
             }),
