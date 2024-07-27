@@ -103,11 +103,7 @@ impl JaHandle {
         self.inner
             .shared
             .transport
-            .fire_and_forget_msg(
-                self.inner.shared.session_id,
-                self.inner.shared.session_id,
-                body,
-            )
+            .fire_and_forget_msg(self.inner.shared.session_id, self.inner.shared.id, body)
             .await?;
         Ok(())
     }
@@ -122,7 +118,7 @@ impl JaHandle {
             .transport
             .send_msg_waiton_rsp(
                 self.inner.shared.session_id,
-                self.inner.shared.session_id,
+                self.inner.shared.id,
                 body,
                 timeout,
             )
