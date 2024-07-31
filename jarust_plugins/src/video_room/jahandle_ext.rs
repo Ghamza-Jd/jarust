@@ -1,15 +1,19 @@
-use super::events::PluginEvent;
-use super::handle::VideoRoomHandle;
-use crate::AttachPluginParams;
+use std::ops::Deref;
+
+use tokio::sync::mpsc;
+
 use jarust::params::AttachHandleParams;
 use jarust::prelude::*;
-use std::ops::Deref;
-use tokio::sync::mpsc;
+
+use crate::AttachPluginParams;
+
+use super::events::PluginEvent;
+use super::handle::VideoRoomHandle;
 
 #[async_trait::async_trait]
 pub trait VideoRoom: Attach {
-    type Event: TryFrom<JaResponse, Error = JaError> + Send + Sync + 'static;
-    type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
+    type Event: TryFrom<JaResponse, Error=JaError> + Send + Sync + 'static;
+    type Handle: From<JaHandle> + Deref<Target=JaHandle> + PluginTask;
 
     async fn attach_video_room(
         &self,
@@ -17,7 +21,7 @@ pub trait VideoRoom: Attach {
     ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
-                plugin_id: "janus.plugin.echotest".to_string(),
+                plugin_id: "janus.plugin.videoroom".to_string(),
                 capacity: params.capacity,
                 timeout: params.timeout,
             })
