@@ -1,0 +1,25 @@
+Vide room docs: https://janus.conf.meetecho.com/docs/videoroom
+
+- [x] Setup
+- [ ] Sync
+    - [x] Create
+    - [x] Destroy
+    - [x] Edit
+    - [x] Exists
+    - [x] List
+    - [x] Allowed
+    - [x] Kick
+    - [x] Moderate
+    - [x] enable_recording
+    - [x] listparticipants
+- [ ] Async
+    - [ ] join
+    - [ ] configure
+    - [ ] joinandconfigure
+    - [ ] publish
+    - [ ] unpublish
+    - [ ] start
+    - [ ] pause
+    - [ ] switch
+    - [ ] leave
+- [ ] Events (TBD)
