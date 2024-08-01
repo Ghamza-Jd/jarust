@@ -1,13 +1,16 @@
-use super::common::Identifier;
-use super::common::Participant;
+use serde::Deserialize;
+use serde_json::from_value;
+
 use jarust::error::JaError;
 use jarust::japrotocol::EstablishmentProtocol;
 use jarust::japrotocol::GenericEvent;
 use jarust::japrotocol::JaHandleEvent;
 use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::ResponseType;
-use serde::Deserialize;
-use serde_json::from_value;
+
+use crate::Identifier;
+
+use super::common::Participant;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
@@ -136,9 +139,8 @@ impl TryFrom<JaResponse> for PluginEvent {
 
 #[cfg(test)]
 mod tests {
-    use super::PluginEvent;
-    use crate::audio_bridge::common::Identifier;
-    use crate::audio_bridge::events::AudioBridgeEvent;
+    use serde_json::json;
+
     use jarust::japrotocol::EstablishmentProtocol;
     use jarust::japrotocol::JaHandleEvent;
     use jarust::japrotocol::JaResponse;
@@ -146,7 +148,11 @@ mod tests {
     use jarust::japrotocol::JsepType;
     use jarust::japrotocol::PluginData;
     use jarust::japrotocol::ResponseType;
-    use serde_json::json;
+
+    use crate::audio_bridge::events::AudioBridgeEvent;
+    use crate::Identifier;
+
+    use super::PluginEvent;
 
     #[test]
     fn it_parse_room_joined() {
@@ -209,8 +215,8 @@ mod tests {
                 participants: vec![],
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
-                    sdp: "test_sdp".to_string()
-                })
+                    sdp: "test_sdp".to_string(),
+                }),
             })
         );
     }
@@ -238,7 +244,7 @@ mod tests {
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
                 id: Identifier::Uint(7513785212278430),
-                room: Identifier::Uint(6846571539994870)
+                room: Identifier::Uint(6846571539994870),
             })
         );
     }
@@ -268,7 +274,7 @@ mod tests {
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomChanged {
                 id: Identifier::Uint(3862697705388820),
                 room: Identifier::Uint(6168266702836626),
-                participants: vec![]
+                participants: vec![],
             })
         );
     }

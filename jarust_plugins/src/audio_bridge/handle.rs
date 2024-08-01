@@ -1,4 +1,14 @@
-use super::common::Identifier;
+use std::ops::Deref;
+use std::time::Duration;
+
+use serde_json::json;
+
+use jarust::japrotocol::EstablishmentProtocol;
+use jarust::prelude::*;
+use jarust_rt::JaTask;
+
+use crate::Identifier;
+
 use super::msg_opitons::AllowedOptions;
 use super::msg_opitons::ChangeRoomOptions;
 use super::msg_opitons::ConfigureOptions;
@@ -18,12 +28,6 @@ use super::responses::Room;
 use super::responses::RoomCreatedRsp;
 use super::responses::RoomDestroyedRsp;
 use super::responses::RoomEditedRsp;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::prelude::*;
-use jarust_rt::JaTask;
-use serde_json::json;
-use std::ops::Deref;
-use std::time::Duration;
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,
@@ -47,7 +51,7 @@ impl AudioBridgeHandle {
             },
             timeout,
         )
-        .await
+            .await
     }
 
     /// Create a new audio room dynamically with the given configuration,

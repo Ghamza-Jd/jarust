@@ -1,6 +1,8 @@
-use super::common::Identifier;
-use super::common::Participant;
 use serde::Deserialize;
+
+use crate::Identifier;
+
+use super::common::Participant;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomCreatedRsp {
