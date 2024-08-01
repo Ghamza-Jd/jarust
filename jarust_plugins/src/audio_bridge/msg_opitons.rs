@@ -1,5 +1,6 @@
-use super::common::Identifier;
 use serde::Serialize;
+
+use crate::Identifier;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct CreateRoomOptions {
