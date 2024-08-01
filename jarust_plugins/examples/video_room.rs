@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
         TransportType::Ws,
         TransactionGenerationStrategy::Random,
     )
-        .await?;
+    .await?;
     let capacity = 10;
     let session = connection
         .create(CreateConnectionParams {
@@ -40,11 +40,11 @@ async fn main() -> anyhow::Result<()> {
         .attach_video_room(AttachPluginParams { capacity, timeout })
         .await?;
 
-    let create_room_rsp = handle.create_room(None, timeout).await?;
+    let room_id = handle.create_room(None, timeout).await?.room;
 
     handle
         .edit_room(
-            create_room_rsp.room,
+            room_id.clone(),
             VideoRoomEditOptions {
                 secret: None,
                 new_description: Some("A brand new description!".to_string()),
@@ -63,7 +63,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let exists = handle.exists(create_room_rsp.room, timeout).await?;
+    let exists = handle.exists(room_id.clone(), timeout).await?;
     tracing::info!(
         "Does the room we just created and edited exist? {:#?}",
         exists.exists
@@ -74,7 +74,7 @@ async fn main() -> anyhow::Result<()> {
 
     let allowed_enable = handle
         .allowed(
-            create_room_rsp.room,
+            room_id.clone(),
             VideoRoomAllowedAction::Enable,
             vec![],
             Default::default(),
@@ -84,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Allowed list: {:#?}", allowed_enable.allowed);
     let allowed_add = handle
         .allowed(
-            create_room_rsp.room,
+            room_id.clone(),
             VideoRoomAllowedAction::Add,
             vec!["teststring".to_string(), "removeme".to_string()],
             Default::default(),
@@ -94,7 +94,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Allowed list: {:#?}", allowed_add.allowed);
     let allowed_remove = handle
         .allowed(
-            create_room_rsp.room,
+            room_id.clone(),
             VideoRoomAllowedAction::Remove,
             vec!["removeme".to_string()],
             Default::default(),
@@ -104,7 +104,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Allowed list: {:#?}", allowed_remove.allowed);
     handle
         .allowed(
-            create_room_rsp.room,
+            room_id.clone(),
             VideoRoomAllowedAction::Disable,
             vec![],
             Default::default(),
@@ -112,9 +112,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let list_participants_rsp = handle
-        .list_participants(create_room_rsp.room, timeout)
-        .await?;
+    let list_participants_rsp = handle.list_participants(room_id.clone(), timeout).await?;
     tracing::info!(
         "Participants in room {:#?}: {:#?}",
         list_participants_rsp.room,
@@ -122,7 +120,7 @@ async fn main() -> anyhow::Result<()> {
     );
 
     handle
-        .destroy_room(create_room_rsp.room, Default::default(), timeout)
+        .destroy_room(room_id, Default::default(), timeout)
         .await?;
 
     Ok(())

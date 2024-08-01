@@ -6,6 +6,7 @@ use serde_json::json;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
 
+use crate::Identifier;
 use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
 
@@ -20,7 +21,7 @@ pub struct VideoRoomHandle {
 impl VideoRoomHandle {
     pub async fn create_room(
         &self,
-        room: Option<u64>,
+        room: Option<Identifier>,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
@@ -48,13 +49,13 @@ impl VideoRoomHandle {
 
     pub async fn destroy_room(
         &self,
-        room: u64,
+        room: Identifier,
         options: VideoRoomDestroyOptions,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "destroy".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = serde_json::to_value(room)?;
 
         self.handle
             .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
@@ -63,7 +64,7 @@ impl VideoRoomHandle {
 
     pub async fn edit_room(
         &self,
-        room: u64,
+        room: Identifier,
         options: VideoRoomEditOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
@@ -76,7 +77,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    pub async fn exists(&self, room: u64, timeout: Duration) -> JaResult<RoomExistsRsp> {
+    pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<RoomExistsRsp> {
         let message = json!({
             "request": "exists",
             "room": room
@@ -103,7 +104,7 @@ impl VideoRoomHandle {
 
     pub async fn allowed(
         &self,
-        room: u64,
+        room: Identifier,
         action: VideoRoomAllowedAction,
         allowed: Vec<String>,
         options: VideoRoomAllowedOptions,
@@ -133,8 +134,8 @@ impl VideoRoomHandle {
 
     pub async fn kick(
         &self,
-        room: u64,
-        participant: u64,
+        room: Identifier,
+        participant: Identifier,
         options: VideoRoomKickOptions,
         timeout: Duration,
     ) -> JaResult<()> {
@@ -148,43 +149,43 @@ impl VideoRoomHandle {
 
     pub async fn moderate(
         &self,
-        room: u64,
-        participant: u64,
+        room: Identifier,
+        participant: Identifier,
         m_line: u64,
         options: VideoRoomModerateOptions,
         timeout: Duration,
     ) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "moderate".into();
-        message["room"] = serde_json::to_value(&room)?;
-        message["participant"] = serde_json::to_value(&participant)?;
-        message["m_line"] = serde_json::to_value(&m_line)?;
+        message["room"] = serde_json::to_value(room)?;
+        message["participant"] = serde_json::to_value(participant)?;
+        message["m_line"] = serde_json::to_value(m_line)?;
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
     pub async fn enable_recording(
         &self,
-        room: u64,
+        room: Identifier,
         options: VideoRoomEnableRecordingOptions,
         timeout: Duration,
     ) -> JaResult<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "enable_recording".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = serde_json::to_value(room)?;
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
     pub async fn list_participants(
         &self,
-        room: u64,
+        room: Identifier,
         timeout: Duration,
     ) -> JaResult<ListParticipantsRsp> {
         self.handle
             .send_waiton_rsp::<ListParticipantsRsp>(
                 json!({
-                    "request": "list_participants",
+                    "request": "listparticipants",
                     "room": room
                 }),
                 timeout,
@@ -194,13 +195,13 @@ impl VideoRoomHandle {
 
     pub async fn list_forwarders(
         &self,
-        room: u64,
+        room: Identifier,
         options: VideoRoomListForwardersOptions,
         timeout: Duration,
     ) -> JaResult<ListForwardersRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "list_forwarders".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = serde_json::to_value(room)?;
 
         self.handle
             .send_waiton_rsp::<ListForwardersRsp>(message, timeout)

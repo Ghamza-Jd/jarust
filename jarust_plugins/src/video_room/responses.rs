@@ -1,9 +1,11 @@
 use serde::Deserialize;
 
+use crate::Identifier;
+
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Room {
     /// unique numeric ID
-    pub room: u64,
+    pub room: Identifier,
     /// name of the room
     pub description: String,
     /// whether a PIN is required to join this room
@@ -61,7 +63,7 @@ pub struct Room {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Participant {
     /// unique numeric ID of the participant
-    pub id: u64,
+    pub id: Identifier,
     /// display name of the participant, if any
     pub display: Option<String>,
     /// whether user is an active publisher in the room
@@ -73,7 +75,7 @@ pub struct Participant {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Publisher {
     /// unique ID of active publisher
-    pub id: u64,
+    pub id: Identifier,
     /// display name of active publisher
     pub display: Option<String>,
     /// true if this participant is a dummy publisher
@@ -119,7 +121,7 @@ pub struct Stream {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Attendee {
     /// unique ID of the attendee
-    pub id: u64,
+    pub id: Identifier,
 
     /// display name of the attendee, if any
     pub display: Option<String>,
@@ -152,13 +154,13 @@ pub struct RtpForwarder {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RtpForwarderPublisher {
-    pub publisher_id: u64,
+    pub publisher_id: Identifier,
     pub forwarders: Vec<RtpForwarder>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomCreatedRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub permanent: bool,
 }
 
@@ -169,29 +171,29 @@ pub struct ListRoomsRsp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ListParticipantsRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub participants: Vec<Participant>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomDestroyedRsp {
-    pub room: u64,
+    pub room: Identifier,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomEditedRsp {
-    pub room: u64,
+    pub room: Identifier,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomExistsRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub exists: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AccessRsp {
-    pub room: u64,
+    pub room: Identifier,
     // TODO: Is it better to have an empty Vec here or should this be wrapped in Option?
     #[serde(default = "Vec::default")]
     pub allowed: Vec<String>,
@@ -199,6 +201,6 @@ pub struct AccessRsp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ListForwardersRsp {
-    pub room: u64,
+    pub room: Identifier,
     pub publisher: Vec<RtpForwarderPublisher>,
 }
