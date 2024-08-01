@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+use crate::Identifier;
+
 //
 // Create Message
 //
@@ -8,7 +10,7 @@ use serde::Serialize;
 pub struct VideoRoomCreateOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<u64>,
+    pub room: Option<Identifier>,
 
     /// whether the room should be saved in the config file, default=false
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -247,7 +249,7 @@ pub struct VideoRoomPublisherJoinOptions {
     /// unique ID to register for the publisher;
     /// optional, will be chosen by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<u64>,
+    pub id: Option<Identifier>,
 
     /// display name for the publisher
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -271,7 +273,7 @@ pub struct VideoRoomSubscriberJoinOptions {
     /// unique ID of the publisher that originated this request;
     /// optional, unless mandated by the room configuration
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub private_id: Option<u64>,
+    pub private_id: Option<Identifier>,
 
     /// list of media streams to subscribe to
     streams: Vec<VideoRoomSubscriberJoinStream>,
@@ -280,7 +282,7 @@ pub struct VideoRoomSubscriberJoinOptions {
 #[derive(Serialize, Default)]
 pub struct VideoRoomSubscriberJoinStream {
     /// unique ID of publisher owning the stream to subscribe to
-    pub feed: u64,
+    pub feed: Identifier,
 
     /// unique mid of the publisher stream to subscribe to
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -540,7 +542,7 @@ pub struct VideoRoomConfigureSubscriberStream {
 #[derive(Serialize, Default)]
 pub struct VideoRoomSwitchStream {
     /// unique ID of the publisher the new source is from
-    pub feed: u64,
+    pub feed: Identifier,
 
     /// unique mid of the source we want to switch to
     pub mid: u64,
