@@ -12,8 +12,8 @@ use super::handle::VideoRoomHandle;
 
 #[async_trait::async_trait]
 pub trait VideoRoom: Attach {
-    type Event: TryFrom<JaResponse, Error=JaError> + Send + Sync + 'static;
-    type Handle: From<JaHandle> + Deref<Target=JaHandle> + PluginTask;
+    type Event: TryFrom<JaResponse, Error = JaError> + Send + Sync + 'static;
+    type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
 
     async fn attach_video_room(
         &self,

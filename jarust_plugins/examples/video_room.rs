@@ -7,7 +7,7 @@ use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::AttachPluginParams;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
-use jarust_plugins::video_room::messages::{VideoRoomAllowedAction, VideoRoomEditOptions};
+use jarust_plugins::video_room::msg_options::{VideoRoomAllowedAction, VideoRoomEditOptions};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
