@@ -1,13 +1,6 @@
 use serde::Deserialize;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct VideoRoomPluginData {
-    pub plugin: String,
-    #[serde(rename = "data")]
-    pub event: VideoRoomPluginEvent,
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Room {
     /// unique numeric ID
     pub room: u64,
@@ -164,60 +157,6 @@ pub struct RtpForwarderPublisher {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-#[serde(tag = "videoroom")]
-pub enum VideoRoomPluginEvent {
-    #[serde(rename = "created")]
-    CreateRoom { room: u64, permanent: bool },
-    #[serde(rename = "edited")]
-    EditRoom { room: u64 },
-    #[serde(rename = "destroyed")]
-    DestroyRoom { room: u64 },
-    #[serde(rename = "participants")]
-    ListParticipantsRoom {
-        room: u64,
-        participants: Vec<Participant>,
-    },
-    #[serde(rename = "joined")]
-    JoinRoom {
-        room: u64,
-        description: Option<String>,
-        id: u64,
-        private_id: u64,
-        publishers: Vec<Publisher>,
-        attendees: Vec<Attendee>,
-    },
-    #[serde(rename = "rtp_forward")]
-    RtpForward {
-        room: u64,
-        publisher_id: u64,
-        forwarders: Vec<RtpForwarder>,
-    },
-    #[serde(rename = "stop_rtp_forward")]
-    StopRtpForward {
-        room: u64,
-        publisher_id: u64,
-        stream_id: u64,
-    },
-    #[serde(rename = "forwarders")]
-    ListRtpForward {
-        room: u64,
-        publishers: Vec<RtpForwarderPublisher>,
-    },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    ListRoom { list: Vec<Room> },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    AllowedRoom { room: u64, allowed: Vec<String> },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    ExistsRoom { room: u64, exists: bool },
-    #[serde(rename = "success")]
-    #[serde(untagged)]
-    Success {},
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomCreatedRsp {
     pub room: u64,
     pub permanent: bool,
@@ -256,4 +195,10 @@ pub struct AccessRsp {
     // TODO: Is it better to have an empty Vec here or should this be wrapped in Option?
     #[serde(default = "Vec::default")]
     pub allowed: Vec<String>,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+pub struct ListForwardersRsp {
+    pub room: u64,
+    pub publisher: Vec<RtpForwarderPublisher>,
 }

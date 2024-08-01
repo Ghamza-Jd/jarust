@@ -5,13 +5,6 @@ use serde::Serialize;
 //
 
 #[derive(Serialize, Default)]
-pub struct VideoRoomCreateMsg {
-    request: String,
-    #[serde(flatten)]
-    options: VideoRoomCreateOptions,
-}
-
-#[derive(Serialize, Default)]
 pub struct VideoRoomCreateOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -175,43 +168,9 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
-impl VideoRoomCreateMsg {
-    pub fn new(options: VideoRoomCreateOptions) -> Self {
-        Self {
-            request: "create".to_string(),
-            options,
-        }
-    }
-}
-
-//
-// List Message
-//
-
-#[derive(Serialize)]
-pub struct VideoRoomListMsg {
-    pub request: String,
-}
-
-impl Default for VideoRoomListMsg {
-    fn default() -> Self {
-        Self {
-            request: "list".to_string(),
-        }
-    }
-}
-
 //
 // Edit message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomEditMsg {
-    request: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: VideoRoomEditOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomEditOptions {
@@ -264,27 +223,9 @@ pub struct VideoRoomEditOptions {
     pub permanent: Option<bool>,
 }
 
-impl VideoRoomEditMsg {
-    pub fn new(room: u64, options: VideoRoomEditOptions) -> Self {
-        Self {
-            request: "edit".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
 //
 // Destroy Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomDestroyMsg {
-    request: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: VideoRoomDestroyOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomDestroyOptions {
@@ -297,47 +238,9 @@ pub struct VideoRoomDestroyOptions {
     pub permanent: Option<bool>,
 }
 
-impl VideoRoomDestroyMsg {
-    pub fn new(room: u64, options: VideoRoomDestroyOptions) -> Self {
-        Self {
-            request: "destroy".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
-//
-// Exists Message
-//
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomExistsMsg {
-    request: String,
-    pub room: u64,
-}
-
-impl VideoRoomExistsMsg {
-    pub fn new(room: u64) -> Self {
-        Self {
-            request: "exists".to_string(),
-            room,
-        }
-    }
-}
-
 //
 // Join Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomPublisherJoinMsg {
-    request: String,
-    pub ptype: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: VideoRoomPublisherJoinOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublisherJoinOptions {
@@ -353,26 +256,6 @@ pub struct VideoRoomPublisherJoinOptions {
     /// invitation token, in case the room has an ACL
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
-}
-
-impl VideoRoomPublisherJoinMsg {
-    pub fn new(room: u64, options: VideoRoomPublisherJoinOptions) -> Self {
-        Self {
-            request: "join".to_string(),
-            ptype: "publisher".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomSubscriberJoinMsg {
-    request: String,
-    pub ptype: String,
-    pub room: u64,
-    #[serde(flatten)]
-    options: VideoRoomSubscriberJoinOptions,
 }
 
 #[derive(Serialize, Default)]
@@ -408,31 +291,9 @@ pub struct VideoRoomSubscriberJoinStream {
     pub crossrefid: Option<u64>,
 }
 
-impl VideoRoomSubscriberJoinMsg {
-    pub fn new(room: u64, options: VideoRoomSubscriberJoinOptions) -> Self {
-        Self {
-            request: "join".to_string(),
-            ptype: "subscriber".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
 //
 // Allowed Message
 //
-
-#[derive(Serialize)]
-pub struct VideoRoomAllowedMsg {
-    request: String,
-    pub room: u64,
-    pub action: VideoRoomAllowedAction,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub allowed: Vec<String>,
-    #[serde(flatten)]
-    pub options: VideoRoomAllowedOptions,
-}
 
 #[derive(PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -450,35 +311,9 @@ pub struct VideoRoomAllowedOptions {
     pub secret: Option<String>,
 }
 
-impl VideoRoomAllowedMsg {
-    pub fn new(
-        room: u64,
-        action: VideoRoomAllowedAction,
-        allowed: Vec<String>,
-        options: VideoRoomAllowedOptions,
-    ) -> Self {
-        Self {
-            request: "allowed".to_string(),
-            room,
-            action,
-            allowed,
-            options,
-        }
-    }
-}
-
 //
 // Kick Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomKickMsg {
-    request: String,
-    pub room: u64,
-    pub id: u64,
-    #[serde(flatten)]
-    pub options: VideoRoomKickOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomKickOptions {
@@ -487,30 +322,9 @@ pub struct VideoRoomKickOptions {
     pub secret: Option<String>,
 }
 
-impl VideoRoomKickMsg {
-    pub fn new(room: u64, participant: u64, options: VideoRoomKickOptions) -> Self {
-        Self {
-            request: "kick".to_string(),
-            room,
-            id: participant,
-            options,
-        }
-    }
-}
-
 //
 // Moderate Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomModerateMsg {
-    request: String,
-    pub room: u64,
-    pub id: u64,
-    pub mid: u64,
-    #[serde(flatten)]
-    pub options: VideoRoomModerateOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomModerateOptions {
@@ -519,34 +333,9 @@ pub struct VideoRoomModerateOptions {
     pub secret: Option<String>,
 }
 
-impl VideoRoomModerateMsg {
-    pub fn new(
-        room: u64,
-        participant: u64,
-        m_line: u64,
-        options: VideoRoomModerateOptions,
-    ) -> Self {
-        Self {
-            request: "moderate".to_string(),
-            room,
-            id: participant,
-            mid: m_line,
-            options,
-        }
-    }
-}
-
 //
 // Enable Recording Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomEnableRecordingMsg {
-    request: String,
-    pub room: u64,
-    #[serde(flatten)]
-    pub options: VideoRoomEnableRecordingOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomEnableRecordingOptions {
@@ -557,46 +346,9 @@ pub struct VideoRoomEnableRecordingOptions {
     pub secret: Option<String>,
 }
 
-impl VideoRoomEnableRecordingMsg {
-    pub fn new(room: u64, options: VideoRoomEnableRecordingOptions) -> Self {
-        Self {
-            request: "enable_recording".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
-//
-// List Participants Message
-//
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomListParticipantsMsg {
-    request: String,
-    room: u64,
-}
-
-impl VideoRoomListParticipantsMsg {
-    pub fn new(room: u64) -> Self {
-        Self {
-            request: "listparticipants".to_string(),
-            room,
-        }
-    }
-}
-
 //
 // List Forwarders Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomListForwardersMsg {
-    request: String,
-    room: u64,
-    #[serde(flatten)]
-    options: VideoRoomListForwardersOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomListForwardersOptions {
@@ -605,26 +357,9 @@ pub struct VideoRoomListForwardersOptions {
     pub secret: Option<String>,
 }
 
-impl VideoRoomListForwardersMsg {
-    pub fn new(room: u64, options: VideoRoomListForwardersOptions) -> Self {
-        Self {
-            request: "listforwarders".to_string(),
-            room,
-            options,
-        }
-    }
-}
-
 //
 // Configure Publisher Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomConfigurePublisherMsg {
-    request: String,
-    #[serde(flatten)]
-    options: VideoRoomConfigurePublisherOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigurePublisherOptions {
@@ -686,25 +421,9 @@ pub struct VideoRoomConfigurePublisherStream {
     pub max_delay: Option<u64>,
 }
 
-impl VideoRoomConfigurePublisherMsg {
-    pub fn new(options: VideoRoomConfigurePublisherOptions) -> Self {
-        Self {
-            request: "configure".to_string(),
-            options,
-        }
-    }
-}
-
 //
 // Publish Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomPublishMsg {
-    request: String,
-    #[serde(flatten)]
-    options: VideoRoomPublishOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublishOptions {
@@ -755,75 +474,9 @@ pub struct VideoRoomPublishDescription {
     pub description: String,
 }
 
-impl VideoRoomPublishMsg {
-    pub fn new(options: VideoRoomPublishOptions) -> Self {
-        Self {
-            request: "publish".to_string(),
-            options,
-        }
-    }
-}
-
-//
-// Unpublish Message
-//
-
-#[derive(Serialize)]
-pub struct VideoRoomUnpublishMsg {
-    request: String,
-}
-
-impl Default for VideoRoomUnpublishMsg {
-    fn default() -> Self {
-        Self {
-            request: "unpublish".to_string(),
-        }
-    }
-}
-
-//
-// Start Message
-//
-
-#[derive(Serialize)]
-pub struct VideoRoomStartMsg {
-    request: String,
-}
-
-impl Default for VideoRoomStartMsg {
-    fn default() -> Self {
-        Self {
-            request: "start".to_string(),
-        }
-    }
-}
-
-//
-// Pause Message
-//
-
-#[derive(Serialize)]
-pub struct VideoRoomPauseMsg {
-    request: String,
-}
-
-impl Default for VideoRoomPauseMsg {
-    fn default() -> Self {
-        Self {
-            request: "pause".to_string(),
-        }
-    }
-}
-
 //
 // Configure Subscriber Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomConfigureSubscriberMsg {
-    request: String,
-    options: VideoRoomConfigureSubscriberOptions,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigureSubscriberOptions {
@@ -880,24 +533,9 @@ pub struct VideoRoomConfigureSubscriberStream {
     pub max_delay: Option<u64>,
 }
 
-impl VideoRoomConfigureSubscriberMsg {
-    pub fn new(options: VideoRoomConfigureSubscriberOptions) -> Self {
-        Self {
-            request: "configure".to_string(),
-            options,
-        }
-    }
-}
-
 //
 // Switch Message
 //
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomSwitchMsg {
-    request: String,
-    pub streams: Vec<VideoRoomSwitchStream>,
-}
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomSwitchStream {
@@ -909,26 +547,4 @@ pub struct VideoRoomSwitchStream {
 
     /// unique mid of the stream we want to pipe the new source to
     pub sub_mid: u64,
-}
-
-impl VideoRoomSwitchMsg {
-    pub fn new(streams: Vec<VideoRoomSwitchStream>) -> Self {
-        Self {
-            request: "switch".to_string(),
-            streams,
-        }
-    }
-}
-
-#[derive(Serialize)]
-pub struct VideoRoomLeaveMsg {
-    request: String,
-}
-
-impl Default for VideoRoomLeaveMsg {
-    fn default() -> Self {
-        Self {
-            request: "leave".to_string(),
-        }
-    }
 }
