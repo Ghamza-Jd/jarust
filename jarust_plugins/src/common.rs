@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
-use crate::Identifier::Uint;
+use serde::Deserialize;
+use serde::Serialize;
 
 pub struct AttachPluginParams {
     /// Circular buffer capacity
@@ -19,10 +18,4 @@ pub enum Identifier {
     String(String),
     /// Unsigned Integer Identifier
     Uint(u64),
-}
-
-impl Default for Identifier {
-    fn default() -> Self {
-        Uint(0)
-    }
 }
