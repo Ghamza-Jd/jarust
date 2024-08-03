@@ -1,6 +1,5 @@
-use serde::Serialize;
-
 use crate::Identifier;
+use serde::Serialize;
 
 //
 // Create Message
@@ -279,7 +278,7 @@ pub struct VideoRoomSubscriberJoinOptions {
     streams: Vec<VideoRoomSubscriberJoinStream>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomSubscriberJoinStream {
     /// unique ID of publisher owning the stream to subscribe to
     pub feed: Identifier,
@@ -533,20 +532,4 @@ pub struct VideoRoomConfigureSubscriberStream {
     /// maximum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_delay: Option<u64>,
-}
-
-//
-// Switch Message
-//
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomSwitchStream {
-    /// unique ID of the publisher the new source is from
-    pub feed: Identifier,
-
-    /// unique mid of the source we want to switch to
-    pub mid: u64,
-
-    /// unique mid of the stream we want to pipe the new source to
-    pub sub_mid: u64,
 }
