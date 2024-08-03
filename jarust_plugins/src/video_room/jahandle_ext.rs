@@ -18,7 +18,6 @@ pub trait VideoRoom: Attach {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.videoroom".to_string(),
-                capacity: params.capacity,
                 timeout: params.timeout,
             })
             .await?;

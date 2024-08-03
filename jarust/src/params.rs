@@ -14,8 +14,6 @@ pub struct CreateConnectionParams {
 pub struct AttachHandleParams {
     /// Janus plugin identifier
     pub plugin_id: String,
-    /// Circular buffer capacity
-    pub capacity: usize,
     /// Request timeout
     pub timeout: Duration,
 }
