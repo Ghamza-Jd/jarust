@@ -9,7 +9,6 @@ pub mod params;
 pub mod prelude;
 pub mod respones;
 
-mod napmap;
 mod nw;
 
 pub use nw::transaction_gen::GenerateTransaction;

@@ -1,16 +1,16 @@
 use super::demuxer::Demuxer;
+use super::napmap::NapMap;
 use super::router::Router;
+use super::transaction_gen::GenerateTransaction;
 use super::transaction_gen::TransactionGenerator;
 use super::transaction_manager::TransactionManager;
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::napmap::NapMap;
 use crate::prelude::JaError;
 use crate::prelude::JaResult;
 use crate::respones::ServerInfoRsp;
-use crate::GenerateTransaction;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
@@ -62,8 +62,8 @@ impl JaTransport {
         conn_params: ConnectionParams<'_>,
         transport: impl TransportProtocol,
         transaction_generator: impl GenerateTransaction,
-    ) -> JaResult<(Self, mpsc::UnboundedReceiver<JaResponse>)> {
-        let (router, root_channel) = Router::new(conn_params.namespace).await;
+    ) -> JaResult<Self> {
+        let (router, _) = Router::new(conn_params.namespace).await;
         let (transport, receiver) = TransportSession::connect(transport, conn_params.url).await?;
         let transaction_manager = TransactionManager::new(conn_params.capacity);
         let transaction_generator = TransactionGenerator::new(transaction_generator);
@@ -129,7 +129,7 @@ impl JaTransport {
         let this = Self {
             inner: Arc::new(inner),
         };
-        Ok((this, root_channel))
+        Ok(this)
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
@@ -201,19 +201,6 @@ impl JaTransport {
                 Err(JaError::RequestTimeout)
             }
         }
-    }
-
-    pub async fn add_session_subroute(
-        &self,
-        session_id: u64,
-    ) -> mpsc::UnboundedReceiver<JaResponse> {
-        self.inner
-            .exclusive
-            .lock()
-            .await
-            .router
-            .add_subroute(&format!("{session_id}"))
-            .await
     }
 
     pub async fn add_handle_subroute(
