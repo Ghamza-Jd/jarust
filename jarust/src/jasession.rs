@@ -1,7 +1,6 @@
 use crate::jahandle::JaHandle;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::napmap::NapMap;
 use crate::nw::jatransport::JaTransport;
 use crate::params::AttachHandleParams;
 use crate::prelude::*;
@@ -35,30 +34,9 @@ pub struct JaSession {
 }
 
 impl JaSession {
-    pub(crate) async fn new(
-        id: u64,
-        ka_interval: u32,
-        capacity: usize,
-        transport: JaTransport,
-    ) -> Self {
-        let rsp_map = Arc::new(NapMap::new(capacity));
-        let mut receiver = transport.add_session_subroute(id).await;
-
-        let rsp_cache_task = jarust_rt::spawn({
-            let rsp_map = rsp_map.clone();
-            async move {
-                while let Some(rsp) = receiver.recv().await {
-                    if let Some(transaction) = rsp.transaction.clone() {
-                        rsp_map.insert(transaction, rsp).await;
-                    }
-                }
-            }
-        });
-
+    pub(crate) async fn new(id: u64, ka_interval: u32, transport: JaTransport) -> Self {
         let shared = Shared { id, transport };
-        let safe = Exclusive {
-            tasks: vec![rsp_cache_task],
-        };
+        let safe = Exclusive { tasks: vec![] };
 
         let session = Self {
             inner: Arc::new(InnerSession {
@@ -102,10 +80,15 @@ impl JaSession {
     }
 }
 
-impl Drop for InnerSession {
-    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
-    fn drop(&mut self) {
-        tracing::debug!("Session dropped");
+impl JaSession {
+    pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
+        tracing::info!("Destroying session");
+        let session_id = self.inner.shared.id;
+        self.inner
+            .shared
+            .transport
+            .destory(session_id, timeout)
+            .await
     }
 }
 
@@ -152,7 +135,6 @@ impl Attach for JaSession {
         let (handle, event_receiver) = JaHandle::new(
             handle_id,
             self.inner.shared.id,
-            params.capacity,
             self.inner.shared.transport.clone(),
         )
         .await;
@@ -160,17 +142,5 @@ impl Attach for JaSession {
         tracing::info!("Handle created {{ handle_id: {handle_id} }}");
 
         Ok((handle, event_receiver))
-    }
-}
-
-impl JaSession {
-    pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
-        tracing::info!("Destroying session");
-        let session_id = self.inner.shared.id;
-        self.inner
-            .shared
-            .transport
-            .destory(session_id, timeout)
-            .await
     }
 }

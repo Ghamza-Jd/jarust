@@ -5,9 +5,9 @@ use tracing_subscriber::EnvFilter;
 use jarust::jaconfig::{JaConfig, TransportType};
 use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
-use jarust_plugins::AttachPluginParams;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::msg_options::{VideoRoomAllowedAction, VideoRoomEditOptions};
+use jarust_plugins::AttachPluginParams;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
@@ -36,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
             timeout,
         })
         .await?;
-    let (handle, mut events) = session
+    let (handle, _) = session
         .attach_video_room(AttachPluginParams { capacity, timeout })
         .await?;
 
