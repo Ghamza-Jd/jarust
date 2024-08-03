@@ -18,7 +18,6 @@ pub trait EchoTest: Attach {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.echotest".to_string(),
-                capacity: params.capacity,
                 timeout: params.timeout,
             })
             .await?;

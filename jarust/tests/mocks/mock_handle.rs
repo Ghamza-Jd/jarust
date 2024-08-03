@@ -11,7 +11,6 @@ pub struct MockHandleConfig {
     pub session_id: u64,
     pub handle_id: u64,
     pub plugin_id: String,
-    pub capacity: usize,
     pub timeout: Duration,
 }
 
@@ -38,7 +37,6 @@ pub async fn mock_handle(
     let (handle, stream) = session
         .attach(AttachHandleParams {
             plugin_id: config.plugin_id,
-            capacity: config.capacity,
             timeout: config.timeout,
         })
         .await?;

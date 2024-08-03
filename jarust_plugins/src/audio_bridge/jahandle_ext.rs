@@ -18,7 +18,6 @@ pub trait AudioBridge: Attach {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.audiobridge".to_string(),
-                capacity: params.capacity,
                 timeout: params.timeout,
             })
             .await?;

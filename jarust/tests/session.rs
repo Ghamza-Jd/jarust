@@ -71,7 +71,6 @@ mod tests {
         let _ = session
             .attach(AttachHandleParams {
                 plugin_id: "mock.plugin.test".to_string(),
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             })
             .await
@@ -127,7 +126,6 @@ mod tests {
         let result = session
             .attach(AttachHandleParams {
                 plugin_id: "mock.plugin.test".to_string(),
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             })
             .await;

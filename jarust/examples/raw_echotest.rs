@@ -35,7 +35,6 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session
         .attach(AttachHandleParams {
             plugin_id: "janus.plugin.echotest".to_string(),
-            capacity,
             timeout,
         })
         .await?;
