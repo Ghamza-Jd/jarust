@@ -1,5 +1,9 @@
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaResponse;
+use crate::nw::handle_msg::HandleMessage;
+use crate::nw::handle_msg::HandleMessageWithEstablishment;
+use crate::nw::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use crate::nw::handle_msg::HandleMessageWithTimeout;
 use crate::nw::jatransport::JaTransport;
 use crate::prelude::*;
 use serde::de::DeserializeOwned;
@@ -43,7 +47,12 @@ impl JaHandle {
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
         self.inner
             .transport
-            .fire_and_forget_msg(self.inner.session_id, self.inner.id, body)
+            // .fire_and_forget_msg(self.inner.session_id, self.inner.id, body)
+            .fire_and_forget_msg(HandleMessage {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
+                body,
+            })
             .await?;
         Ok(())
     }
@@ -55,7 +64,12 @@ impl JaHandle {
     {
         self.inner
             .transport
-            .send_msg_waiton_rsp(self.inner.session_id, self.inner.id, body, timeout)
+            .send_msg_waiton_rsp(HandleMessageWithTimeout {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
+                body,
+                timeout,
+            })
             .await
     }
 
@@ -63,7 +77,12 @@ impl JaHandle {
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
         self.inner
             .transport
-            .send_msg_waiton_ack(self.inner.session_id, self.inner.id, body, timeout)
+            .send_msg_waiton_ack(HandleMessageWithTimeout {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
+                body,
+                timeout,
+            })
             .await
     }
 
@@ -76,13 +95,13 @@ impl JaHandle {
     ) -> JaResult<JaResponse> {
         self.inner
             .transport
-            .send_msg_waiton_ack_with_establishment(
-                self.inner.session_id,
-                self.inner.id,
+            .send_msg_waiton_ack_with_establishment(HandleMessageWithEstablishmentAndTimeout {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
                 body,
                 protocol,
                 timeout,
-            )
+            })
             .await
     }
 
@@ -94,12 +113,12 @@ impl JaHandle {
     ) -> JaResult<()> {
         self.inner
             .transport
-            .fire_and_forget_msg_with_establishment(
-                self.inner.session_id,
-                self.inner.id,
+            .fire_and_forget_msg_with_establishment(HandleMessageWithEstablishment {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
                 body,
                 protocol,
-            )
+            })
             .await
     }
 }
