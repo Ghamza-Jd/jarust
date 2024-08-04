@@ -1,4 +1,8 @@
 use super::demuxer::Demuxer;
+use super::handle_msg::HandleMessage;
+use super::handle_msg::HandleMessageWithEstablishment;
+use super::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use super::handle_msg::HandleMessageWithTimeout;
 use super::napmap::NapMap;
 use super::router::Router;
 use super::transaction_gen::GenerateTransaction;
@@ -294,17 +298,12 @@ impl JaTransport {
 }
 
 impl JaTransport {
-    pub async fn fire_and_forget_msg(
-        &self,
-        session_id: u64,
-        handle_id: u64,
-        body: Value,
-    ) -> JaResult<()> {
+    pub async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaResult<()> {
         let request = json!({
             "janus": "message",
-            "session_id": session_id,
-            "handle_id": handle_id,
-            "body": body
+            "session_id": message.session_id,
+            "handle_id": message.handle_id,
+            "body": message.body
         });
         self.send(request).await?;
         Ok(())
@@ -312,39 +311,30 @@ impl JaTransport {
 
     pub async fn send_msg_waiton_ack(
         &self,
-        session_id: u64,
-        handle_id: u64,
-        body: Value,
-        timeout: Duration,
+        message: HandleMessageWithTimeout,
     ) -> JaResult<JaResponse> {
         let request = json!({
             "janus": "message",
-            "session_id": session_id,
-            "handle_id": handle_id,
-            "body": body
+            "session_id": message.session_id,
+            "handle_id": message.handle_id,
+            "body": message.body
         });
         let transaction = self.send(request).await?;
-        self.poll_ack(&transaction, timeout).await
+        self.poll_ack(&transaction, message.timeout).await
     }
 
-    pub async fn send_msg_waiton_rsp<R>(
-        &self,
-        session_id: u64,
-        handle_id: u64,
-        body: Value,
-        timeout: Duration,
-    ) -> JaResult<R>
+    pub async fn send_msg_waiton_rsp<R>(&self, message: HandleMessageWithTimeout) -> JaResult<R>
     where
         R: DeserializeOwned,
     {
         let request = json!({
             "janus": "message",
-            "session_id": session_id,
-            "handle_id": handle_id,
-            "body": body
+            "session_id": message.session_id,
+            "handle_id": message.handle_id,
+            "body": message.body
         });
         let transaction = self.send(request).await?;
-        let response = self.poll_response(&transaction, timeout).await?;
+        let response = self.poll_response(&transaction, message.timeout).await?;
 
         let result = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
@@ -366,26 +356,21 @@ impl JaTransport {
 
     pub async fn fire_and_forget_msg_with_establishment(
         &self,
-        session_id: u64,
-        handle_id: u64,
-        body: Value,
-        protocol: EstablishmentProtocol,
+        message: HandleMessageWithEstablishment,
     ) -> JaResult<()> {
-        let request = match protocol {
-            EstablishmentProtocol::JSEP(jsep) => json!({
-                "janus": "message",
-                "session_id": session_id,
-                "handle_id": handle_id,
-                "body": body,
-                "jsep": jsep
-            }),
-            EstablishmentProtocol::RTP(rtp) => json!({
-                "janus": "message",
-                "session_id": session_id,
-                "handle_id": handle_id,
-                "body": body,
-                "rtp": rtp
-            }),
+        let mut request = json!({
+            "janus": "message",
+            "session_id": message.session_id,
+            "handle_id": message.handle_id,
+            "body": message.body,
+        });
+        match message.protocol {
+            EstablishmentProtocol::JSEP(jsep) => {
+                request["jsep"] = serde_json::to_value(jsep)?;
+            }
+            EstablishmentProtocol::RTP(rtp) => {
+                request["rtp"] = serde_json::to_value(rtp)?;
+            }
         };
         self.send(request).await?;
         Ok(())
@@ -393,30 +378,24 @@ impl JaTransport {
 
     pub async fn send_msg_waiton_ack_with_establishment(
         &self,
-        session_id: u64,
-        handle_id: u64,
-        body: Value,
-        protocol: EstablishmentProtocol,
-        timeout: Duration,
+        message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaResult<JaResponse> {
-        let request = match protocol {
-            EstablishmentProtocol::JSEP(jsep) => json!({
-                "janus": "message",
-                "session_id": session_id,
-                "handle_id": handle_id,
-                "body": body,
-                "jsep": jsep
-            }),
-            EstablishmentProtocol::RTP(rtp) => json!({
-                "janus": "message",
-                "session_id": session_id,
-                "handle_id": handle_id,
-                "body": body,
-                "rtp": rtp
-            }),
+        let mut request = json!({
+            "janus": "message",
+            "session_id": message.session_id,
+            "handle_id": message.handle_id,
+            "body": message.body,
+        });
+        match message.protocol {
+            EstablishmentProtocol::JSEP(jsep) => {
+                request["jsep"] = serde_json::to_value(jsep)?;
+            }
+            EstablishmentProtocol::RTP(rtp) => {
+                request["rtp"] = serde_json::to_value(rtp)?;
+            }
         };
         let transaction = self.send(request).await?;
-        self.poll_ack(&transaction, timeout).await
+        self.poll_ack(&transaction, message.timeout).await
     }
 }
 
