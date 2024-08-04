@@ -1,6 +1,5 @@
 use crate::jaconfig::JaConfig;
 use crate::jasession::JaSession;
-use crate::params::CreateConnectionParams;
 use crate::prelude::*;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport_next::japrotocol::JaResponse;
@@ -24,6 +23,16 @@ struct InnerConnection {
 #[derive(Clone, Debug)]
 pub struct JaConnection {
     inner: Arc<InnerConnection>,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub struct CreateConnectionParams {
+    /// Keep alive interval in seconds
+    pub ka_interval: u32,
+    /// Circular buffer capacity
+    pub capacity: usize,
+    /// Request timeout
+    pub timeout: Duration,
 }
 
 impl JaConnection {

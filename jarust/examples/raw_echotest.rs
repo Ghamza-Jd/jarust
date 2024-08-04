@@ -1,8 +1,8 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
-use jarust::params::AttachHandleParams;
-use jarust::params::CreateConnectionParams;
+use jarust::japlugin::AttachHandleParams;
 use jarust::TransactionGenerationStrategy;
 use serde_json::json;
 use std::time::Duration;

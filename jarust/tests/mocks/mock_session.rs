@@ -1,6 +1,6 @@
 use super::mock_transport::MockServer;
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::jaconnection::JaConnection;
-use jarust::params::CreateConnectionParams;
 use jarust::prelude::*;
 use jarust_transport_next::japrotocol::JaData;
 use jarust_transport_next::japrotocol::JaSuccessProtocol;
