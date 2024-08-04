@@ -1,3 +1,4 @@
+use crate::japrotocol::Candidate;
 use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaResponse;
 use crate::nw::handle_msg::HandleMessage;
@@ -7,7 +8,6 @@ use crate::nw::handle_msg::HandleMessageWithTimeout;
 use crate::nw::jatransport::JaTransport;
 use crate::prelude::*;
 use serde::de::DeserializeOwned;
-use serde::Serialize;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
@@ -121,15 +121,6 @@ impl JaHandle {
             })
             .await
     }
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct Candidate {
-    #[serde(rename = "sdpMid")]
-    pub sdp_mid: String,
-    #[serde(rename = "sdpMLineIndex")]
-    pub sdp_mline_index: String,
-    pub candidate: String,
 }
 
 impl JaHandle {

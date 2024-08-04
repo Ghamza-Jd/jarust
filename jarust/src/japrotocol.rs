@@ -131,6 +131,15 @@ pub enum EstablishmentProtocol {
     RTP(RTP),
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+pub struct Candidate {
+    #[serde(rename = "sdpMid")]
+    pub sdp_mid: String,
+    #[serde(rename = "sdpMLineIndex")]
+    pub sdp_mline_index: String,
+    pub candidate: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::JaData;
