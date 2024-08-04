@@ -5,6 +5,7 @@ pub mod jatransport;
 pub mod prelude;
 pub mod respones;
 pub mod transaction_gen;
+pub mod transport;
 
 mod demuxer;
 mod napmap;
