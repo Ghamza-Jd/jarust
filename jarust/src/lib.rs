@@ -4,12 +4,11 @@ pub mod jaconnection;
 pub mod jahandle;
 pub mod japlugin;
 pub mod jasession;
-pub mod nw;
 pub mod params;
 pub mod prelude;
 
-pub use nw::transaction_gen::GenerateTransaction;
-pub use nw::transaction_gen::TransactionGenerationStrategy;
+pub use jarust_transport_next::transaction_gen::GenerateTransaction;
+pub use jarust_transport_next::transaction_gen::TransactionGenerationStrategy;
 
 use jaconfig::JaConfig;
 use jaconfig::TransportType;

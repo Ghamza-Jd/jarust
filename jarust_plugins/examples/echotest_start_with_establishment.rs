@@ -1,8 +1,5 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::nw::japrotocol::EstablishmentProtocol;
-use jarust::nw::japrotocol::Jsep;
-use jarust::nw::japrotocol::JsepType;
 use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;
@@ -10,6 +7,9 @@ use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::StartOptions;
 use jarust_plugins::AttachPluginParams;
+use jarust_transport_next::japrotocol::EstablishmentProtocol;
+use jarust_transport_next::japrotocol::Jsep;
+use jarust_transport_next::japrotocol::JsepType;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;

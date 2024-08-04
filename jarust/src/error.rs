@@ -3,6 +3,8 @@ pub enum JaError {
     /* Transformed Errors */
     #[error("Transport: {0}")]
     Transport(#[from] jarust_transport::error::JaTransportError),
+    #[error("TransportNext: {0}")]
+    TransportNext(#[from] jarust_transport_next::error::JaTransportError),
     #[error("Failed to parse json: {0}")]
     JsonParsingFailure(#[from] serde_json::Error),
     #[error("IO: {0}")]
