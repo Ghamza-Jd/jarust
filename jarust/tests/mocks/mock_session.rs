@@ -1,8 +1,8 @@
 use super::mock_transport::MockServer;
 use jarust::jaconnection::JaConnection;
-use jarust::japrotocol::JaData;
-use jarust::japrotocol::JaSuccessProtocol;
-use jarust::japrotocol::ResponseType;
+use jarust::nw::japrotocol::JaData;
+use jarust::nw::japrotocol::JaSuccessProtocol;
+use jarust::nw::japrotocol::ResponseType;
 use jarust::params::CreateConnectionParams;
 use jarust::prelude::*;
 use std::time::Duration;

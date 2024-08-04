@@ -1,16 +1,13 @@
+use super::common::Participant;
+use crate::Identifier;
+use jarust::error::JaError;
+use jarust::nw::japrotocol::EstablishmentProtocol;
+use jarust::nw::japrotocol::GenericEvent;
+use jarust::nw::japrotocol::JaHandleEvent;
+use jarust::nw::japrotocol::JaResponse;
+use jarust::nw::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
-
-use jarust::error::JaError;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::GenericEvent;
-use jarust::japrotocol::JaHandleEvent;
-use jarust::japrotocol::JaResponse;
-use jarust::japrotocol::ResponseType;
-
-use crate::Identifier;
-
-use super::common::Participant;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
@@ -139,20 +136,17 @@ impl TryFrom<JaResponse> for PluginEvent {
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
-    use jarust::japrotocol::EstablishmentProtocol;
-    use jarust::japrotocol::JaHandleEvent;
-    use jarust::japrotocol::JaResponse;
-    use jarust::japrotocol::Jsep;
-    use jarust::japrotocol::JsepType;
-    use jarust::japrotocol::PluginData;
-    use jarust::japrotocol::ResponseType;
-
+    use super::PluginEvent;
     use crate::audio_bridge::events::AudioBridgeEvent;
     use crate::Identifier;
-
-    use super::PluginEvent;
+    use jarust::nw::japrotocol::EstablishmentProtocol;
+    use jarust::nw::japrotocol::JaHandleEvent;
+    use jarust::nw::japrotocol::JaResponse;
+    use jarust::nw::japrotocol::Jsep;
+    use jarust::nw::japrotocol::JsepType;
+    use jarust::nw::japrotocol::PluginData;
+    use jarust::nw::japrotocol::ResponseType;
+    use serde_json::json;
 
     #[test]
     fn it_parse_room_joined() {

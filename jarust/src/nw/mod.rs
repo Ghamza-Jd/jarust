@@ -1,4 +1,5 @@
 pub mod handle_msg;
+pub mod japrotocol;
 pub mod jatransport;
 pub mod transaction_gen;
 
