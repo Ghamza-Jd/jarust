@@ -1,5 +1,5 @@
 use super::msg_options::StartOptions;
-use jarust::japrotocol::EstablishmentProtocol;
+use jarust::nw::japrotocol::EstablishmentProtocol;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
 use std::ops::Deref;

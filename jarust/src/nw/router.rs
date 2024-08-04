@@ -1,4 +1,4 @@
-use crate::japrotocol::JaResponse;
+use super::japrotocol::JaResponse;
 use crate::prelude::*;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -126,9 +126,9 @@ impl Router {
 
 #[cfg(test)]
 mod tests {
+    use super::super::japrotocol::JaResponse;
+    use super::super::japrotocol::ResponseType;
     use super::Router;
-    use crate::japrotocol::JaResponse;
-    use crate::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn test_basic_usage() {

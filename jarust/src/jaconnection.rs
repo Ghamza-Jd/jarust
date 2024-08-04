@@ -1,8 +1,8 @@
 use crate::jaconfig::JaConfig;
-use crate::japrotocol::JaResponse;
-use crate::japrotocol::JaSuccessProtocol;
-use crate::japrotocol::ResponseType;
 use crate::jasession::JaSession;
+use crate::nw::japrotocol::JaResponse;
+use crate::nw::japrotocol::JaSuccessProtocol;
+use crate::nw::japrotocol::ResponseType;
 use crate::nw::jatransport::ConnectionParams;
 use crate::nw::jatransport::JaTransport;
 use crate::nw::transaction_gen::GenerateTransaction;

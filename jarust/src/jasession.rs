@@ -1,6 +1,6 @@
 use crate::jahandle::JaHandle;
-use crate::japrotocol::JaSuccessProtocol;
-use crate::japrotocol::ResponseType;
+use crate::nw::japrotocol::JaSuccessProtocol;
+use crate::nw::japrotocol::ResponseType;
 use crate::nw::jatransport::JaTransport;
 use crate::params::AttachHandleParams;
 use crate::prelude::*;

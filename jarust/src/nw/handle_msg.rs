@@ -1,4 +1,4 @@
-use crate::japrotocol::EstablishmentProtocol;
+use super::japrotocol::EstablishmentProtocol;
 use serde_json::Value;
 use std::time::Duration;
 

@@ -3,13 +3,11 @@ pub mod jaconfig;
 pub mod jaconnection;
 pub mod jahandle;
 pub mod japlugin;
-pub mod japrotocol;
 pub mod jasession;
+pub mod nw;
 pub mod params;
 pub mod prelude;
 pub mod respones;
-
-mod nw;
 
 pub use nw::transaction_gen::GenerateTransaction;
 pub use nw::transaction_gen::TransactionGenerationStrategy;

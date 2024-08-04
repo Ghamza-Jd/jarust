@@ -1,6 +1,6 @@
+use super::japrotocol::{JaResponse, ResponseType};
 use super::router::Router;
 use super::transaction_manager::TransactionManager;
-use crate::japrotocol::ResponseType;
 use crate::prelude::*;
 use bytes::Bytes;
 use tokio::sync::mpsc;

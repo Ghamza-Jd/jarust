@@ -1,8 +1,8 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::Jsep;
-use jarust::japrotocol::JsepType;
+use jarust::nw::japrotocol::EstablishmentProtocol;
+use jarust::nw::japrotocol::Jsep;
+use jarust::nw::japrotocol::JsepType;
 use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;

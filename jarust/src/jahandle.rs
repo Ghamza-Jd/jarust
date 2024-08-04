@@ -1,10 +1,10 @@
-use crate::japrotocol::Candidate;
-use crate::japrotocol::EstablishmentProtocol;
-use crate::japrotocol::JaResponse;
 use crate::nw::handle_msg::HandleMessage;
 use crate::nw::handle_msg::HandleMessageWithEstablishment;
 use crate::nw::handle_msg::HandleMessageWithEstablishmentAndTimeout;
 use crate::nw::handle_msg::HandleMessageWithTimeout;
+use crate::nw::japrotocol::Candidate;
+use crate::nw::japrotocol::EstablishmentProtocol;
+use crate::nw::japrotocol::JaResponse;
 use crate::nw::jatransport::JaTransport;
 use crate::prelude::*;
 use serde::de::DeserializeOwned;

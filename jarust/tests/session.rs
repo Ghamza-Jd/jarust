@@ -17,11 +17,11 @@ mod tests {
     use crate::mocks::mock_transport::MockTransport;
     use jarust::error::JaError;
     use jarust::japlugin::Attach;
-    use jarust::japrotocol::ErrorResponse;
-    use jarust::japrotocol::JaData;
-    use jarust::japrotocol::JaResponse;
-    use jarust::japrotocol::JaSuccessProtocol;
-    use jarust::japrotocol::ResponseType;
+    use jarust::nw::japrotocol::ErrorResponse;
+    use jarust::nw::japrotocol::JaData;
+    use jarust::nw::japrotocol::JaResponse;
+    use jarust::nw::japrotocol::JaSuccessProtocol;
+    use jarust::nw::japrotocol::ResponseType;
     use jarust::params::AttachHandleParams;
 
     #[tokio::test]
