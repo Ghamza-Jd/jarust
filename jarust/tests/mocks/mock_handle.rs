@@ -1,5 +1,5 @@
 use super::mock_transport::MockServer;
-use jarust::params::AttachHandleParams;
+use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use jarust_transport_next::japrotocol::JaData;
 use jarust_transport_next::japrotocol::JaSuccessProtocol;

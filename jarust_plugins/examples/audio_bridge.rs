@@ -1,6 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::params::CreateConnectionParams;
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::MuteOptions;

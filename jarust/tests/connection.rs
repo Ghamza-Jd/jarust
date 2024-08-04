@@ -12,7 +12,7 @@ mod tests {
     use crate::mocks::mock_transport::MockTransport;
     use jarust::error::JaError;
     use jarust::jaconfig::JaConfig;
-    use jarust::params::CreateConnectionParams;
+    use jarust::jaconnection::CreateConnectionParams;
     use jarust_transport::trans::TransportProtocol;
     use jarust_transport_next::japrotocol::ErrorResponse;
     use jarust_transport_next::japrotocol::JaData;

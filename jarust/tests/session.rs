@@ -17,7 +17,7 @@ mod tests {
     use crate::mocks::mock_transport::MockTransport;
     use jarust::error::JaError;
     use jarust::japlugin::Attach;
-    use jarust::params::AttachHandleParams;
+    use jarust::japlugin::AttachHandleParams;
     use jarust_transport_next::japrotocol::ErrorResponse;
     use jarust_transport_next::japrotocol::JaData;
     use jarust_transport_next::japrotocol::JaResponse;

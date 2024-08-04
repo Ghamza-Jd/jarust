@@ -1,7 +1,7 @@
 use super::events::PluginEvent;
 use super::handle::VideoRoomHandle;
 use crate::AttachPluginParams;
-use jarust::params::AttachHandleParams;
+use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::sync::mpsc;

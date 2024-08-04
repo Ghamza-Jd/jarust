@@ -4,7 +4,6 @@ pub mod jaconnection;
 pub mod jahandle;
 pub mod japlugin;
 pub mod jasession;
-pub mod params;
 pub mod prelude;
 
 pub use jarust_transport_next::transaction_gen::GenerateTransaction;
