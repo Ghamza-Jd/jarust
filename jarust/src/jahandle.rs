@@ -1,12 +1,12 @@
-use crate::nw::handle_msg::HandleMessage;
-use crate::nw::handle_msg::HandleMessageWithEstablishment;
-use crate::nw::handle_msg::HandleMessageWithEstablishmentAndTimeout;
-use crate::nw::handle_msg::HandleMessageWithTimeout;
-use crate::nw::japrotocol::Candidate;
-use crate::nw::japrotocol::EstablishmentProtocol;
-use crate::nw::japrotocol::JaResponse;
-use crate::nw::jatransport::JaTransport;
 use crate::prelude::*;
+use jarust_transport_next::handle_msg::HandleMessage;
+use jarust_transport_next::handle_msg::HandleMessageWithEstablishment;
+use jarust_transport_next::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use jarust_transport_next::handle_msg::HandleMessageWithTimeout;
+use jarust_transport_next::japrotocol::Candidate;
+use jarust_transport_next::japrotocol::EstablishmentProtocol;
+use jarust_transport_next::japrotocol::JaResponse;
+use jarust_transport_next::jatransport::JaTransport;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
@@ -62,7 +62,8 @@ impl JaHandle {
     where
         R: DeserializeOwned,
     {
-        self.inner
+        let res = self
+            .inner
             .transport
             .send_msg_waiton_rsp(HandleMessageWithTimeout {
                 session_id: self.inner.session_id,
@@ -70,12 +71,14 @@ impl JaHandle {
                 body,
                 timeout,
             })
-            .await
+            .await?;
+        Ok(res)
     }
 
     /// Send a message and wait for the ack
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
-        self.inner
+        let ack = self
+            .inner
             .transport
             .send_msg_waiton_ack(HandleMessageWithTimeout {
                 session_id: self.inner.session_id,
@@ -83,7 +86,8 @@ impl JaHandle {
                 body,
                 timeout,
             })
-            .await
+            .await?;
+        Ok(ack)
     }
 
     /// Send a message with a specific establishment protocol and wait for the ack
@@ -93,7 +97,8 @@ impl JaHandle {
         protocol: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<JaResponse> {
-        self.inner
+        let ack = self
+            .inner
             .transport
             .send_msg_waiton_ack_with_establishment(HandleMessageWithEstablishmentAndTimeout {
                 session_id: self.inner.session_id,
@@ -102,7 +107,8 @@ impl JaHandle {
                 protocol,
                 timeout,
             })
-            .await
+            .await?;
+        Ok(ack)
     }
 
     /// Send a one-shot message with a specific establishment protocol
@@ -119,7 +125,8 @@ impl JaHandle {
                 body,
                 protocol,
             })
-            .await
+            .await?;
+        Ok(())
     }
 }
 

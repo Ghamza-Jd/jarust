@@ -1,15 +1,15 @@
 use crate::jaconfig::JaConfig;
 use crate::jasession::JaSession;
-use crate::nw::japrotocol::JaResponse;
-use crate::nw::japrotocol::JaSuccessProtocol;
-use crate::nw::japrotocol::ResponseType;
-use crate::nw::jatransport::ConnectionParams;
-use crate::nw::jatransport::JaTransport;
-use crate::nw::respones::ServerInfoRsp;
-use crate::nw::transaction_gen::GenerateTransaction;
 use crate::params::CreateConnectionParams;
 use crate::prelude::*;
 use jarust_transport::trans::TransportProtocol;
+use jarust_transport_next::japrotocol::JaResponse;
+use jarust_transport_next::japrotocol::JaSuccessProtocol;
+use jarust_transport_next::japrotocol::ResponseType;
+use jarust_transport_next::jatransport::ConnectionParams;
+use jarust_transport_next::jatransport::JaTransport;
+use jarust_transport_next::respones::ServerInfoRsp;
+use jarust_transport_next::transaction_gen::GenerateTransaction;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -82,6 +82,7 @@ impl JaConnection {
     /// Returns janus server info
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
-        self.inner.transport.server_info(timeout).await
+        let res = self.inner.transport.server_info(timeout).await?;
+        Ok(res)
     }
 }

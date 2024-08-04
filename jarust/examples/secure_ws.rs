@@ -1,12 +1,12 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
 use jarust::japlugin::Attach;
-use jarust::nw::japrotocol::EstablishmentProtocol;
-use jarust::nw::japrotocol::Jsep;
-use jarust::nw::japrotocol::JsepType;
 use jarust::params::AttachHandleParams;
 use jarust::params::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
+use jarust_transport_next::japrotocol::EstablishmentProtocol;
+use jarust_transport_next::japrotocol::Jsep;
+use jarust_transport_next::japrotocol::JsepType;
 use serde_json::json;
 use std::path::Path;
 use std::time::Duration;

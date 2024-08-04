@@ -17,6 +17,7 @@ doctest = false
 async-trait.workspace = true
 jarust = { version = "0.4.0", path = "../jarust" }
 jarust_rt = { version = "0.4.0", path = "../jarust_rt" }
+jarust_transport_next = { version = "0.4.0", path = "../jarust_transport_next" }
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["sync"] }
