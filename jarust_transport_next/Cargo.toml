@@ -1,0 +1,25 @@
+[package]
+name = "jarust_transport_next"
+version.workspace = true
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+edition.workspace = true
+repository.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+bytes.workspace = true
+futures-util = "0.3.29"
+indexmap = "2.2.6"
+jarust_rt = { version = "0.4.0", path = "../jarust_rt" }
+jarust_transport = { version = "0.4.0", path = "../jarust_transport" }
+rand = "0.8.5"
+serde_json.workspace = true
+serde.workspace = true
+thiserror = "1.0.51"
+tokio = { workspace = true, features = ["sync", "time", "rt"] }
+tracing.workspace = true
