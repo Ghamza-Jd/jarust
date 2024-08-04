@@ -15,6 +15,7 @@ use super::transaction_gen::TransactionGenerator;
 use super::transaction_manager::TransactionManager;
 use crate::error::JaTransportError;
 use crate::prelude::JaTransportResult;
+use crate::transport::JanusTransport;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
@@ -243,8 +244,9 @@ impl JaTransport {
     }
 }
 
-impl JaTransport {
-    pub async fn create(&self, timeout: Duration) -> JaTransportResult<JaResponse> {
+#[async_trait::async_trait]
+impl JanusTransport for JaTransport {
+    async fn create(&self, timeout: Duration) -> JaTransportResult<JaResponse> {
         let request = json!({
             "janus": "create"
         });
@@ -253,7 +255,7 @@ impl JaTransport {
         self.poll_response(&transaction, timeout).await
     }
 
-    pub async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
+    async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
         let request = json!({
             "janus": "info"
         });
@@ -269,7 +271,7 @@ impl JaTransport {
         }
     }
 
-    pub async fn attach(
+    async fn attach(
         &self,
         session_id: u64,
         plugin_id: String,
@@ -284,7 +286,7 @@ impl JaTransport {
         self.poll_response(&transaction, timeout).await
     }
 
-    pub async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
+    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let request = json!({
             "janus": "keepalive",
             "session_id": session_id
@@ -294,7 +296,7 @@ impl JaTransport {
         Ok(())
     }
 
-    pub async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
+    async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let request = json!({
             "janus": "destroy",
             "session_id": session_id
@@ -303,10 +305,8 @@ impl JaTransport {
         self.poll_response(&transaction, timeout).await?;
         Ok(())
     }
-}
 
-impl JaTransport {
-    pub async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -317,7 +317,7 @@ impl JaTransport {
         Ok(())
     }
 
-    pub async fn send_msg_waiton_ack(
+    async fn send_msg_waiton_ack(
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse> {
@@ -331,7 +331,7 @@ impl JaTransport {
         self.poll_ack(&transaction, message.timeout).await
     }
 
-    pub async fn send_msg_waiton_rsp<R>(
+    async fn send_msg_waiton_rsp<R>(
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<R>
@@ -365,7 +365,7 @@ impl JaTransport {
         Ok(result)
     }
 
-    pub async fn fire_and_forget_msg_with_establishment(
+    async fn fire_and_forget_msg_with_establishment(
         &self,
         message: HandleMessageWithEstablishment,
     ) -> JaTransportResult<()> {
@@ -387,7 +387,7 @@ impl JaTransport {
         Ok(())
     }
 
-    pub async fn send_msg_waiton_ack_with_establishment(
+    async fn send_msg_waiton_ack_with_establishment(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse> {

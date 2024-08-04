@@ -7,6 +7,7 @@ use jarust_transport_next::japrotocol::Candidate;
 use jarust_transport_next::japrotocol::EstablishmentProtocol;
 use jarust_transport_next::japrotocol::JaResponse;
 use jarust_transport_next::jatransport::JaTransport;
+use jarust_transport_next::transport::JanusTransport;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;

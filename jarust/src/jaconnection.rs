@@ -9,6 +9,7 @@ use jarust_transport_next::jatransport::ConnectionParams;
 use jarust_transport_next::jatransport::JaTransport;
 use jarust_transport_next::respones::ServerInfoRsp;
 use jarust_transport_next::transaction_gen::GenerateTransaction;
+use jarust_transport_next::transport::JanusTransport;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
