@@ -276,7 +276,7 @@ pub struct VideoRoomSubscriberJoinOptions {
     pub private_id: Option<Identifier>,
 
     /// list of media streams to subscribe to
-    streams: Vec<VideoRoomSubscriberJoinStream>,
+    pub streams: Vec<VideoRoomSubscriberJoinStream>,
 }
 
 #[derive(Serialize, Default)]
@@ -286,11 +286,26 @@ pub struct VideoRoomSubscriberJoinStream {
 
     /// unique mid of the publisher stream to subscribe to
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mid: Option<u64>,
+    pub mid: Option<String>,
 
     /// id to map this subscription with entries in streams list
     #[serde(skip_serializing_if = "Option::is_none")]
     pub crossrefid: Option<u64>,
+}
+
+#[derive(Serialize, Default)]
+pub struct VideoRoomSubscriberUnsubscribeStream {
+    /// unique ID of publisher owning the stream to subscribe to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feed: Option<Identifier>,
+
+    /// unique mid of the publisher stream to subscribe to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mid: Option<String>,
+
+    /// id to map this subscription with entries in streams list
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub_mid: Option<u64>,
 }
 
 //
@@ -395,16 +410,16 @@ pub struct VideoRoomConfigurePublisherOptions {
     pub audio_level_average: Option<u64>,
 
     /// list of streams to configure
-    streams: Vec<VideoRoomConfigurePublisherStream>,
+    pub streams: Vec<VideoRoomConfigurePublisherStream>,
 
     /// descriptions (names) for the published streams
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    descriptions: Vec<VideoRoomPublishDescription>,
+    pub descriptions: Vec<VideoRoomPublishDescription>,
 }
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigurePublisherStream {
-    pub mid: u64,
+    pub mid: String,
 
     /// whether we should send this publisher a keyframe request
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -421,6 +436,18 @@ pub struct VideoRoomConfigurePublisherStream {
     /// maximum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_delay: Option<u64>,
+}
+
+//
+// Join and configure wrapper
+//
+
+#[derive(Serialize, Default)]
+pub struct JoinAndConfigureOptions {
+    #[serde(flatten)]
+    pub join_options: VideoRoomPublisherJoinOptions,
+    #[serde(flatten)]
+    pub configure_options: VideoRoomConfigurePublisherOptions,
 }
 
 //
@@ -464,13 +491,13 @@ pub struct VideoRoomPublishOptions {
 
     /// descriptions (names) for the published streams
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    descriptions: Vec<VideoRoomPublishDescription>,
+    pub descriptions: Vec<VideoRoomPublishDescription>,
 }
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublishDescription {
     /// unique mid of a stream being published
-    pub mid: u64,
+    pub mid: String,
 
     /// text description of the stream (e.g., My front webcam)
     pub description: String,
@@ -483,16 +510,16 @@ pub struct VideoRoomPublishDescription {
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigureSubscriberOptions {
     /// list of streams to configure
-    streams: Vec<VideoRoomConfigureSubscriberStream>,
+    pub streams: Vec<VideoRoomConfigureSubscriberStream>,
     /// trigger an ICE restart
     #[serde(skip_serializing_if = "Option::is_none")]
-    restart: Option<bool>,
+    pub restart: Option<bool>,
 }
 
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigureSubscriberStream {
     /// mid of the m-line to refer to
-    pub mid: u64,
+    pub mid: String,
 
     /// depending on whether the mindex media should be relayed or not
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -545,8 +572,93 @@ pub struct VideoRoomSwitchStream {
     pub feed: Identifier,
 
     /// unique mid of the source we want to switch to
-    pub mid: u64,
+    pub mid: String,
 
     /// unique mid of the stream we want to pipe the new source to
-    pub sub_mid: u64,
+    pub sub_mid: String,
+}
+
+//
+// RTP Forward Message
+//
+
+#[derive(Serialize, Default)]
+pub struct VideoRoomRtpForwardOptions {
+    /// unique numeric ID of the publisher to relay externally
+    pub publisher_id: Identifier,
+
+    /// host address to forward the RTP and data packets to
+    pub host: String,
+
+    /// ipv4|ipv6, if we need to resolve the host address to an IP; by default, whatever we get
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub host_family: Option<String>,
+
+    pub streams: Vec<VideoRoomRtpForwardStream>,
+
+    /// length of authentication tag (32 or 80); optional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub srtp_suite: Option<u16>,
+
+    /// key to use as crypto (base64 encoded key as in SDES); optional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub srtp_crypto: Option<String>,
+}
+
+#[derive(Serialize, Default)]
+pub struct VideoRoomRtpForwardStream {
+    /// mid of publisher stream to forward
+    pub mid: String,
+
+    /// host address to forward the packets to; optional, will use global one if missing
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub host: Option<String>,
+
+    /// optional, will use global one if missing
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub host_family: Option<String>,
+
+    /// port to forward the packets to
+    pub port: u16,
+
+    /// SSRC to use when forwarding; optional, and only for RTP streams, not data
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ssrc: Option<String>,
+
+    /// payload type to use when forwarding; optional, and only for RTP streams, not data
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pt: Option<String>,
+
+    /// port to contact to receive RTCP feedback from the recipient; optional, and only for RTP streams, not data
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rtcp_port: Option<u16>,
+
+    /// set to true if the source is simulcast and you want the forwarder to act as a regular viewer
+    /// (single stream being forwarded) or false otherwise (substreams forwarded separately); optional, default=false
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub simulcast: Option<bool>,
+
+    /// if video and simulcasting, port to forward the packets from the second substream/layer to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub port_2: Option<u16>,
+
+    /// if video and simulcasting, SSRC to use the second substream/layer; optional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ssrc_2: Option<String>,
+
+    /// if video and simulcasting, payload type to use the second substream/layer; optional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pt_2: Option<String>,
+
+    /// if video and simulcasting, port to forward the packets from the third substream/layer to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub port_3: Option<u16>,
+
+    /// if video and simulcasting, SSRC to use the third substream/layer; optional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ssrc_3: Option<String>,
+
+    /// if video and simulcasting, payload type to use the third substream/layer; optional
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pt_3: Option<String>,
 }
