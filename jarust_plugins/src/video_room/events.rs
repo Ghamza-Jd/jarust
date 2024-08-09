@@ -68,18 +68,6 @@ enum VideoRoomEventDto {
         streams: Vec<AttachedStream>,
     },
 
-    #[serde(rename = "event")]
-    Error {
-        error_code: u16,
-        error: Option<String>,
-    },
-
-    #[serde(rename = "event")]
-    Configured {
-        #[serde(rename = "configured")]
-        status: String,
-    },
-
     #[serde(rename = "talking")]
     Talking {
         room: Identifier,
@@ -165,7 +153,20 @@ pub enum VideoRoomEvent {
 
     /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
     /// [configure_publisher](super::handle::VideoRoomHandle::configure_publisher) request
-    Configured { status: String },
+    Configured {
+        room: Identifier,
+        audio_codec: Option<String>,
+        video_codec: Option<String>,
+    },
+
+    /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
+    /// [configure_publisher](super::handle::VideoRoomHandle::configure_publisher) request
+    ConfiguredWithEstablishment {
+        room: Identifier,
+        audio_codec: Option<String>,
+        video_codec: Option<String>,
+        establishment_protocol: EstablishmentProtocol,
+    },
 
     /// When configuring the room to request the ssrc-audio-level RTP extension,
     /// ad-hoc events might be sent to all publishers if audiolevel_event is set to true
@@ -200,6 +201,62 @@ impl TryFrom<JaResponse> for PluginEvent {
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
             ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => {
+                if plugin_data.data["videoroom"].as_str() == Some("event") {
+                    if plugin_data.data.as_object().unwrap().contains_key("error") {
+                        return Err(JaError::JanusError {
+                            code: plugin_data.data["error_code"].as_u64().unwrap() as u16,
+                            reason: plugin_data.data["error"].as_str().unwrap().to_string(),
+                        });
+                    } else if plugin_data
+                        .data
+                        .as_object()
+                        .unwrap()
+                        .contains_key("configured")
+                    {
+                        return if let Some(establishment_protocol) = value.establishment_protocol {
+                            Ok(PluginEvent::VideoRoomEvent(
+                                VideoRoomEvent::ConfiguredWithEstablishment {
+                                    room: from_value::<Identifier>(
+                                        plugin_data.data["room"].clone(),
+                                    )?,
+                                    audio_codec: plugin_data
+                                        .data
+                                        .get("audio_codec")
+                                        .map(move |t| t.as_str().unwrap().to_string()),
+                                    video_codec: plugin_data
+                                        .data
+                                        .get("video_codec")
+                                        .map(move |t| t.as_str().unwrap().to_string()),
+                                    establishment_protocol,
+                                },
+                            ))
+                        } else {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::Configured {
+                                room: from_value::<Identifier>(plugin_data.data["room"].clone())?,
+                                audio_codec: plugin_data
+                                    .data
+                                    .get("audio_codec")
+                                    .map(move |t| t.as_str().unwrap().to_string()),
+                                video_codec: plugin_data
+                                    .data
+                                    .get("video_codec")
+                                    .map(move |t| t.as_str().unwrap().to_string()),
+                            }))
+                        };
+                    } else if plugin_data
+                        .data
+                        .as_object()
+                        .unwrap()
+                        .contains_key("leaving")
+                    {
+                        return Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
+                            room: from_value::<Identifier>(plugin_data.data["room"].clone())?,
+                            participant: from_value::<Identifier>(
+                                plugin_data.data["leaving"].clone(),
+                            )?,
+                        }));
+                    }
+                };
                 let videoroom_event = from_value::<VideoRoomEventDto>(plugin_data.data)?;
                 match videoroom_event {
                     VideoRoomEventDto::DestroyRoom { room } => {
@@ -280,17 +337,6 @@ impl TryFrom<JaResponse> for PluginEvent {
                             streams,
                         },
                     )),
-
-                    VideoRoomEventDto::Error { error_code, error } => Err(JaError::JanusError {
-                        code: error_code,
-                        reason: error.unwrap_or("No error description".to_string()),
-                    }),
-
-                    VideoRoomEventDto::Configured { status } => {
-                        Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::Configured {
-                            status,
-                        }))
-                    }
 
                     VideoRoomEventDto::Talking {
                         room,
@@ -547,7 +593,62 @@ mod tests {
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
                 room: Identifier::Uint(8146468481724441u64),
-                participant: Identifier::Uint(0)
+                participant: Identifier::String("ok".to_string())
+            })
+        )
+    }
+
+    #[test]
+    fn it_parse_configured_with_jsep() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.videoroom".to_string(),
+                    data: json!({
+                       "videoroom": "event",
+                       "room": 1657434645789453u64,
+                       "configured": "ok",
+                       "audio_codec": "opus",
+                       "video_codec": "h264",
+                       "streams": [
+                          {
+                             "type": "audio",
+                             "mindex": 0,
+                             "mid": "0",
+                             "codec": "opus",
+                             "stereo": true,
+                             "fec": true
+                          },
+                          {
+                             "type": "video",
+                             "mindex": 1,
+                             "mid": "1",
+                             "codec": "h264",
+                             "h264_profile": "42e01f"
+                          }
+                       ]
+                    }),
+                },
+            }),
+            transaction: None,
+            session_id: None,
+            sender: None,
+            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+                jsep_type: JsepType::Answer,
+                sdp: "test_sdp".to_string(),
+            })),
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEstablishment {
+                room: Identifier::Uint(1657434645789453u64),
+                audio_codec: Some("opus".to_string()),
+                video_codec: Some("h264".to_string()),
+                establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
+                    jsep_type: JsepType::Answer,
+                    sdp: "test_sdp".to_string(),
+                })
             })
         )
     }
