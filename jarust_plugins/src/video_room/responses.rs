@@ -128,7 +128,13 @@ pub struct Attendee {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RtpForwarder {
+pub struct RtpForwarderPublisher {
+    pub publisher_id: Identifier,
+    pub forwarders: Vec<RtpForwarderStream>,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+pub struct RtpForwarderStream {
     /// unique numeric ID assigned to this forwarder
     pub stream_id: u64,
     /// type of media (audio|video|data)
@@ -149,13 +155,65 @@ pub struct RtpForwarder {
     /// video substream this video forwarder is relaying
     pub substream: Option<u64>,
     /// whether the RTP stream is encrypted (not used for data)
-    pub strp: bool,
+    pub strp: Option<bool>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RtpForwarderPublisher {
-    pub publisher_id: Identifier,
-    pub forwarders: Vec<RtpForwarder>,
+pub struct AttachedStream {
+    /// unique mindex of published stream
+    pub mindex: u64,
+
+    /// unique mid of published stream
+    pub mid: u64,
+
+    /// type of published stream (audio|video|data)
+    #[serde(rename = "type")]
+    pub media_type: String,
+
+    /// whether this stream is currently active
+    pub active: bool,
+
+    /// unique ID of the publisher originating this stream
+    pub feed_id: Identifier,
+
+    /// unique mid of this publisher's stream
+    pub feed_mid: u64,
+
+    /// display name of this publisher, if any
+    pub feed_display: Option<String>,
+
+    /// whether we configured the stream to relay media
+    pub send: bool,
+
+    /// codec used by this stream
+    pub codec: String,
+
+    /// in case H.264 is used by the stream, the negotiated profile
+    #[serde(rename = "h264-profile")]
+    pub h264_profile: Option<String>,
+
+    /// in case VP9 is used by the stream, the negotiated profile
+    #[serde(rename = "vp9-profile")]
+    pub vp9_profile: Option<String>,
+
+    /// whether this stream is ready to start sending media (will be false at the beginning)
+    pub ready: bool,
+
+    /// optional object containing simulcast info, if simulcast is used by this stream
+    // pub simulcast: Option<?>, TODO: figure out undocumented object
+
+    /// optional object containing SVC info, if SVC is used by this stream
+    // pub svc: Option<?>, TODO: figure out undocumented object
+
+    /// optional object containing info on the playout-delay extension configuration, if in use
+    // #[serde(rename = "playout-delay")]
+    // pub playout_delay: Option<?>, TODO: figure out undocumented object
+
+    /// if this is a data channel stream, the number of data channel subscriptions
+    pub sources: Option<i64>,
+
+    /// if this is a data channel stream, an array containing the IDs of participants we've subscribed to
+    pub source_ids: Vec<Identifier>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
@@ -201,6 +259,32 @@ pub struct AccessRsp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ListForwardersRsp {
+    /// unique ID of the room
     pub room: Identifier,
+
+    /// Array of publishers with RTP forwarders
     pub publisher: Vec<RtpForwarderPublisher>,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+pub struct RtpForwardRsp {
+    /// unique ID, same as request
+    pub room: Identifier,
+
+    /// unique ID, same as request
+    pub publisher_id: Identifier,
+
+    pub forwarders: Vec<RtpForwarderStream>,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+pub struct StopRtpForwardRsp {
+    /// unique ID, same as request
+    pub room: Identifier,
+
+    /// unique ID, same as request
+    pub publisher_id: Identifier,
+
+    /// unique numeric ID, same as request
+    pub stream_id: u64,
 }
