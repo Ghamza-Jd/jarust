@@ -5,10 +5,10 @@ use jarust_transport::trans::TransportProtocol;
 use jarust_transport_next::japrotocol::JaResponse;
 use jarust_transport_next::japrotocol::JaSuccessProtocol;
 use jarust_transport_next::japrotocol::ResponseType;
-use jarust_transport_next::jatransport::ConnectionParams;
 use jarust_transport_next::jatransport::JaTransport;
 use jarust_transport_next::respones::ServerInfoRsp;
 use jarust_transport_next::transaction_gen::GenerateTransaction;
+use jarust_transport_next::transport::ConnectionParams;
 use jarust_transport_next::transport::JanusTransport;
 use std::sync::Arc;
 use std::time::Duration;
@@ -44,10 +44,10 @@ impl JaConnection {
     ) -> JaResult<Self> {
         let transport = JaTransport::new(
             ConnectionParams {
-                url: &config.url,
+                url: config.url,
                 capacity: config.capacity,
                 apisecret: config.apisecret,
-                namespace: &config.namespace,
+                namespace: config.namespace,
             },
             transport,
             transaction_generator,

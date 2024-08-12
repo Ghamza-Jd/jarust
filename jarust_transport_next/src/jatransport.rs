@@ -15,6 +15,7 @@ use super::transaction_gen::TransactionGenerator;
 use super::transaction_manager::TransactionManager;
 use crate::error::JaTransportError;
 use crate::prelude::JaTransportResult;
+use crate::transport::ConnectionParams;
 use crate::transport::JanusTransport;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
@@ -55,21 +56,14 @@ pub struct JaTransport {
     inner: Arc<InnerJaTransport>,
 }
 
-pub struct ConnectionParams<'a> {
-    pub url: &'a str,
-    pub capacity: usize,
-    pub apisecret: Option<String>,
-    pub namespace: &'a str,
-}
-
 impl JaTransport {
     pub async fn new(
-        conn_params: ConnectionParams<'_>,
+        conn_params: ConnectionParams,
         transport: impl TransportProtocol,
         transaction_generator: impl GenerateTransaction,
     ) -> JaTransportResult<Self> {
-        let (router, _) = Router::new(conn_params.namespace).await;
-        let (transport, receiver) = TransportSession::connect(transport, conn_params.url).await?;
+        let (router, _) = Router::new(&conn_params.namespace).await;
+        let (transport, receiver) = TransportSession::connect(transport, &conn_params.url).await?;
         let transaction_manager = TransactionManager::new(conn_params.capacity);
         let transaction_generator = TransactionGenerator::new(transaction_generator);
 
@@ -116,7 +110,7 @@ impl JaTransport {
 
         let shared = Shared {
             tasks: vec![demux_task, rsp_task, ack_task],
-            namespace: conn_params.namespace.into(),
+            namespace: conn_params.namespace,
             apisecret: conn_params.apisecret,
             transaction_generator,
             ack_map,
@@ -246,6 +240,13 @@ impl JaTransport {
 
 #[async_trait::async_trait]
 impl JanusTransport for JaTransport {
+    async fn create_transport(conn_params: ConnectionParams) -> JaTransportResult<Self>
+    where
+        Self: Sized,
+    {
+        todo!("Implement this method")
+    }
+
     async fn create(&self, timeout: Duration) -> JaTransportResult<JaResponse> {
         let request = json!({
             "janus": "create"
