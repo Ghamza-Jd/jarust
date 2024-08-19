@@ -1,3 +1,6 @@
+#[macro_use]
+mod from;
+
 pub use common::AttachPluginParams;
 pub use common::Identifier;
 

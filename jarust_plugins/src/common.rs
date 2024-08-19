@@ -8,6 +8,8 @@ pub struct AttachPluginParams {
     pub timeout: std::time::Duration,
 }
 
+tryfrom_serde_value!(Identifier);
+
 /// Rooms and Participants Identifier.
 ///
 /// Identifier should be by default unsigned integer, unless configured otherwise in the plugin config.

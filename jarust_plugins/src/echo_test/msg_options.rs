@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+tryfrom_serde_value!(StartOptions);
+
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct StartOptions {
     pub audio: bool,
