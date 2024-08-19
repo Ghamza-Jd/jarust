@@ -3,10 +3,7 @@ use crate::japlugin::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
-use jarust_transport_next::japrotocol::JaSuccessProtocol;
-use jarust_transport_next::japrotocol::ResponseType;
 use jarust_transport_next::jatransport::JaTransport;
-use jarust_transport_next::transport::JanusTransport;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -111,30 +108,14 @@ impl Attach for JaSession {
         tracing::info!("Attaching new handle");
 
         let session_id = self.inner.shared.id;
-        let response = self
+        let (handle_id, event_receiver) = self
             .inner
             .shared
             .transport
             .attach(session_id, params.plugin_id, params.timeout)
             .await?;
 
-        let handle_id = match response.janus {
-            ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
-            ResponseType::Error { error } => {
-                let what = JaError::JanusError {
-                    code: error.code,
-                    reason: error.reason,
-                };
-                tracing::error!("{what}");
-                return Err(what);
-            }
-            _ => {
-                tracing::error!("Unexpected response");
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
-        let (handle, event_receiver) = JaHandle::new(
+        let handle = JaHandle::new(
             handle_id,
             self.inner.shared.id,
             self.inner.shared.transport.clone(),

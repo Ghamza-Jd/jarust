@@ -7,7 +7,6 @@ use jarust_transport_next::japrotocol::Candidate;
 use jarust_transport_next::japrotocol::EstablishmentProtocol;
 use jarust_transport_next::japrotocol::JaResponse;
 use jarust_transport_next::jatransport::JaTransport;
-use jarust_transport_next::transport::JanusTransport;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
@@ -26,29 +25,20 @@ pub struct JaHandle {
 }
 
 impl JaHandle {
-    pub(crate) async fn new(
-        id: u64,
-        session_id: u64,
-        transport: JaTransport,
-    ) -> (Self, JaResponseStream) {
-        let receiver = transport.add_handle_subroute(session_id, id).await;
-
-        let jahandle = Self {
+    pub(crate) async fn new(id: u64, session_id: u64, transport: JaTransport) -> Self {
+        Self {
             inner: Arc::new(InnerHandle {
                 id,
                 session_id,
                 transport,
             }),
-        };
-
-        (jahandle, receiver)
+        }
     }
 
     /// Send a one-shot message
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
         self.inner
             .transport
-            // .fire_and_forget_msg(self.inner.session_id, self.inner.id, body)
             .fire_and_forget_msg(HandleMessage {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,

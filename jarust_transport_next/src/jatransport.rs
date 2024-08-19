@@ -15,8 +15,6 @@ use super::transaction_gen::TransactionGenerator;
 use super::transaction_manager::TransactionManager;
 use crate::error::JaTransportError;
 use crate::prelude::JaTransportResult;
-use crate::transport::ConnectionParams;
-use crate::transport::JanusTransport;
 use jarust_rt::JaTask;
 use jarust_transport::trans::TransportProtocol;
 use jarust_transport::trans::TransportSession;
@@ -54,6 +52,13 @@ struct InnerJaTransport {
 #[derive(Debug, Clone)]
 pub struct JaTransport {
     inner: Arc<InnerJaTransport>,
+}
+
+pub struct ConnectionParams {
+    pub url: String,
+    pub capacity: usize,
+    pub apisecret: Option<String>,
+    pub namespace: String,
 }
 
 impl JaTransport {
@@ -210,20 +215,6 @@ impl JaTransport {
         }
     }
 
-    pub async fn add_handle_subroute(
-        &self,
-        session_id: u64,
-        handle_id: u64,
-    ) -> mpsc::UnboundedReceiver<JaResponse> {
-        self.inner
-            .exclusive
-            .lock()
-            .await
-            .router
-            .add_subroute(&format!("{session_id}/{handle_id}"))
-            .await
-    }
-
     fn decorate_request(&self, mut request: Value) -> (Value, String) {
         let transaction = self
             .inner
@@ -238,16 +229,8 @@ impl JaTransport {
     }
 }
 
-#[async_trait::async_trait]
-impl JanusTransport for JaTransport {
-    async fn create_transport(conn_params: ConnectionParams) -> JaTransportResult<Self>
-    where
-        Self: Sized,
-    {
-        todo!("Implement this method")
-    }
-
-    async fn create(&self, timeout: Duration) -> JaTransportResult<JaResponse> {
+impl JaTransport {
+    pub async fn create(&self, timeout: Duration) -> JaTransportResult<JaResponse> {
         let request = json!({
             "janus": "create"
         });
@@ -256,7 +239,7 @@ impl JanusTransport for JaTransport {
         self.poll_response(&transaction, timeout).await
     }
 
-    async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
+    pub async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
         let request = json!({
             "janus": "info"
         });
@@ -272,22 +255,46 @@ impl JanusTransport for JaTransport {
         }
     }
 
-    async fn attach(
+    pub async fn attach(
         &self,
         session_id: u64,
         plugin_id: String,
         timeout: Duration,
-    ) -> JaTransportResult<JaResponse> {
+    ) -> JaTransportResult<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
         let request = json!({
             "janus": "attach",
             "session_id": session_id,
             "plugin": plugin_id
         });
         let transaction = self.send(request).await?;
-        self.poll_response(&transaction, timeout).await
+        let response = self.poll_response(&transaction, timeout).await?;
+        let handle_id = match response.janus {
+            ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
+            ResponseType::Error { error } => {
+                let what = JaTransportError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                };
+                tracing::error!("{what}");
+                return Err(what);
+            }
+            _ => {
+                tracing::error!("Unexpected response");
+                return Err(JaTransportError::UnexpectedResponse);
+            }
+        };
+        let receiver = self
+            .inner
+            .exclusive
+            .lock()
+            .await
+            .router
+            .add_subroute(&format!("{session_id}/{handle_id}"))
+            .await;
+        Ok((handle_id, receiver))
     }
 
-    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
+    pub async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let request = json!({
             "janus": "keepalive",
             "session_id": session_id
@@ -297,7 +304,7 @@ impl JanusTransport for JaTransport {
         Ok(())
     }
 
-    async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
+    pub async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let request = json!({
             "janus": "destroy",
             "session_id": session_id
@@ -307,7 +314,7 @@ impl JanusTransport for JaTransport {
         Ok(())
     }
 
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
+    pub async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -318,7 +325,7 @@ impl JanusTransport for JaTransport {
         Ok(())
     }
 
-    async fn send_msg_waiton_ack(
+    pub async fn send_msg_waiton_ack(
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse> {
@@ -332,7 +339,7 @@ impl JanusTransport for JaTransport {
         self.poll_ack(&transaction, message.timeout).await
     }
 
-    async fn send_msg_waiton_rsp<R>(
+    pub async fn send_msg_waiton_rsp<R>(
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<R>
@@ -366,7 +373,7 @@ impl JanusTransport for JaTransport {
         Ok(result)
     }
 
-    async fn fire_and_forget_msg_with_establishment(
+    pub async fn fire_and_forget_msg_with_establishment(
         &self,
         message: HandleMessageWithEstablishment,
     ) -> JaTransportResult<()> {
@@ -388,7 +395,7 @@ impl JanusTransport for JaTransport {
         Ok(())
     }
 
-    async fn send_msg_waiton_ack_with_establishment(
+    pub async fn send_msg_waiton_ack_with_establishment(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse> {
