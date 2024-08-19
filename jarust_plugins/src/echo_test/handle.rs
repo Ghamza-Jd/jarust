@@ -12,9 +12,7 @@ pub struct EchoTestHandle {
 
 impl EchoTestHandle {
     pub async fn start(&self, options: StartOptions) -> JaResult<()> {
-        self.handle
-            .fire_and_forget(serde_json::to_value(options)?)
-            .await
+        self.handle.fire_and_forget(options.try_into()?).await
     }
 
     pub async fn start_with_establishment(
@@ -23,12 +21,8 @@ impl EchoTestHandle {
         establishment: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<()> {
-        self.send_waiton_ack_with_establishment(
-            serde_json::to_value(options)?,
-            establishment,
-            timeout,
-        )
-        .await?;
+        self.send_waiton_ack_with_establishment(options.try_into()?, establishment, timeout)
+            .await?;
         Ok(())
     }
 }
