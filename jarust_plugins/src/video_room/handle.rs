@@ -1,11 +1,14 @@
+use std::ops::Deref;
+use std::time::Duration;
+
+use serde_json::json;
+
+use jarust::prelude::*;
+use jarust_rt::JaTask;
+
 use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
 use crate::Identifier;
-use jarust::prelude::*;
-use jarust_rt::JaTask;
-use serde_json::json;
-use std::ops::Deref;
-use std::time::Duration;
 
 pub struct VideoRoomHandle {
     handle: JaHandle,
