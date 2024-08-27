@@ -2,6 +2,7 @@ pub mod error;
 pub mod handle_msg;
 pub mod japrotocol;
 pub mod jatransport;
+pub mod legacy;
 pub mod prelude;
 pub mod respones;
 pub mod transaction_gen;
