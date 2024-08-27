@@ -230,13 +230,29 @@ impl JaTransport {
 }
 
 impl JaTransport {
-    pub async fn create(&self, timeout: Duration) -> JaTransportResult<JaResponse> {
+    pub async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
         let request = json!({
             "janus": "create"
         });
 
         let transaction = self.send(request).await?;
-        self.poll_response(&transaction, timeout).await
+        let response = self.poll_response(&transaction, timeout).await?;
+        let session_id = match response.janus {
+            ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
+            ResponseType::Error { error } => {
+                let what = JaTransportError::JanusError {
+                    code: error.code,
+                    reason: error.reason,
+                };
+                tracing::error!("{what}");
+                return Err(what);
+            }
+            _ => {
+                tracing::error!("Unexpected response");
+                return Err(JaTransportError::UnexpectedResponse);
+            }
+        };
+        Ok(session_id)
     }
 
     pub async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {

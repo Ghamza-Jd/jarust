@@ -2,8 +2,6 @@ use crate::jaconfig::JaConfig;
 use crate::jasession::JaSession;
 use crate::prelude::*;
 use jarust_transport::japrotocol::JaResponse;
-use jarust_transport::japrotocol::JaSuccessProtocol;
-use jarust_transport::japrotocol::ResponseType;
 use jarust_transport::jatransport::ConnectionParams;
 use jarust_transport::jatransport::JaTransport;
 use jarust_transport::legacy::trans::TransportProtocol;
@@ -61,23 +59,7 @@ impl JaConnection {
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
-        let response = self.inner.transport.create(params.timeout).await?;
-        let session_id = match response.janus {
-            ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
-            ResponseType::Error { error } => {
-                let what = JaError::JanusError {
-                    code: error.code,
-                    reason: error.reason,
-                };
-                tracing::error!("{what}");
-                return Err(what);
-            }
-            _ => {
-                tracing::error!("Unexpected response");
-                return Err(JaError::UnexpectedResponse);
-            }
-        };
-
+        let session_id = self.inner.transport.create(params.timeout).await?;
         let session =
             JaSession::new(session_id, params.ka_interval, self.inner.transport.clone()).await;
 

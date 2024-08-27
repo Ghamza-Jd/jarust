@@ -11,16 +11,6 @@ pub enum JaError {
     /* Custom Errors */
     #[error("Error while parsing an incomplete packet")]
     IncompletePacket,
-    #[error("Transport is not opened")]
-    TransportNotOpened,
     #[error("Invalid Janus request, reason: {reason}")]
     InvalidJanusRequest { reason: String },
-    #[error("Can't send data in closed channel")]
-    SendError,
-    #[error("Received an unnexpected response")]
-    UnexpectedResponse,
-    #[error("Janus error {{ code: {code}, reason: {reason}}}")]
-    JanusError { code: u16, reason: String },
-    #[error("Request timeout")]
-    RequestTimeout,
 }
