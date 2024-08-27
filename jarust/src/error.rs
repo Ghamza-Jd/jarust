@@ -1,7 +1,7 @@
 #[derive(Debug, thiserror::Error)]
 pub enum JaError {
     /* Transformed Errors */
-    #[error("TransportNext: {0}")]
+    #[error("Transport: {0}")]
     JanusTransport(#[from] jarust_transport::error::JaTransportError),
     #[error("Failed to parse json: {0}")]
     JsonParsingFailure(#[from] serde_json::Error),
