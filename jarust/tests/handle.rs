@@ -48,7 +48,6 @@ mod tests {
             MockSessionConfig {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             },
             "mock-session-transaction",

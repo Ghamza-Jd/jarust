@@ -28,7 +28,6 @@ async fn main() -> anyhow::Result<()> {
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
-            capacity,
             timeout,
         })
         .await?;

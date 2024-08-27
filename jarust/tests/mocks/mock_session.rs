@@ -10,7 +10,6 @@ use std::time::Duration;
 pub struct MockSessionConfig {
     pub session_id: u64,
     pub ka_interval: u32,
-    pub capacity: usize,
     pub timeout: Duration,
 }
 
@@ -37,7 +36,6 @@ pub async fn mock_session(
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: config.ka_interval,
-            capacity: config.capacity,
             timeout: config.timeout,
         })
         .await?;
