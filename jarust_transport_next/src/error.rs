@@ -1,8 +1,6 @@
 #[derive(thiserror::Error, Debug)]
 pub enum JaTransportError {
     /* Transformed Errors */
-    #[error("Transport: {0}")]
-    Transport(#[from] jarust_transport::error::JaTransportError),
     #[cfg(not(target_family = "wasm"))]
     #[error("Websocket error: {0}")]
     WebSocket(#[from] tokio_tungstenite::tungstenite::Error),

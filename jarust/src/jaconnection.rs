@@ -1,12 +1,12 @@
 use crate::jaconfig::JaConfig;
 use crate::jasession::JaSession;
 use crate::prelude::*;
-use jarust_transport::trans::TransportProtocol;
 use jarust_transport_next::japrotocol::JaResponse;
 use jarust_transport_next::japrotocol::JaSuccessProtocol;
 use jarust_transport_next::japrotocol::ResponseType;
 use jarust_transport_next::jatransport::ConnectionParams;
 use jarust_transport_next::jatransport::JaTransport;
+use jarust_transport_next::legacy::trans::TransportProtocol;
 use jarust_transport_next::respones::ServerInfoRsp;
 use jarust_transport_next::transaction_gen::GenerateTransaction;
 use std::sync::Arc;
