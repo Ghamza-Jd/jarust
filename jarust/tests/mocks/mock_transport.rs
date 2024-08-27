@@ -5,8 +5,8 @@ use bytes::BytesMut;
 use jarust::error::JaError;
 use jarust::prelude::JaResult;
 use jarust_rt::JaTask;
-use jarust_transport_next::legacy::trans::TransportProtocol;
-use jarust_transport_next::prelude::JaTransportResult;
+use jarust_transport::legacy::trans::TransportProtocol;
+use jarust_transport::prelude::JaTransportResult;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 

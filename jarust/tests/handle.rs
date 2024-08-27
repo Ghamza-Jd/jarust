@@ -19,10 +19,10 @@ mod tests {
     use crate::mocks::mock_session::mock_session;
     use crate::mocks::mock_session::MockSessionConfig;
     use crate::mocks::mock_transport::MockTransport;
-    use jarust_transport_next::japrotocol::GenericEvent;
-    use jarust_transport_next::japrotocol::JaHandleEvent;
-    use jarust_transport_next::japrotocol::JaResponse;
-    use jarust_transport_next::japrotocol::ResponseType;
+    use jarust_transport::japrotocol::GenericEvent;
+    use jarust_transport::japrotocol::JaHandleEvent;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn it_receives_incoming_handle_events() {

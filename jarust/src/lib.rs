@@ -6,13 +6,13 @@ pub mod japlugin;
 pub mod jasession;
 pub mod prelude;
 
-pub use jarust_transport_next::transaction_gen::GenerateTransaction;
-pub use jarust_transport_next::transaction_gen::TransactionGenerationStrategy;
+pub use jarust_transport::transaction_gen::GenerateTransaction;
+pub use jarust_transport::transaction_gen::TransactionGenerationStrategy;
 
 use jaconfig::JaConfig;
 use jaconfig::TransportType;
 use jaconnection::JaConnection;
-use jarust_transport_next::legacy::trans::TransportProtocol;
+use jarust_transport::legacy::trans::TransportProtocol;
 use prelude::JaResult;
 use tracing::Level;
 
@@ -37,7 +37,7 @@ pub async fn connect(
 ) -> JaResult<JaConnection> {
     let transport = match transport_type {
         jaconfig::TransportType::Ws => {
-            jarust_transport_next::legacy::web_socket::WebsocketTransport::create_transport()
+            jarust_transport::legacy::web_socket::WebsocketTransport::create_transport()
         }
     };
     custom_connect(

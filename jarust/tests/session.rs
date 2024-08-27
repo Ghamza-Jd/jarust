@@ -18,11 +18,12 @@ mod tests {
     use jarust::error::JaError;
     use jarust::japlugin::Attach;
     use jarust::japlugin::AttachHandleParams;
-    use jarust_transport_next::japrotocol::ErrorResponse;
-    use jarust_transport_next::japrotocol::JaData;
-    use jarust_transport_next::japrotocol::JaResponse;
-    use jarust_transport_next::japrotocol::JaSuccessProtocol;
-    use jarust_transport_next::japrotocol::ResponseType;
+    use jarust_transport::error::JaTransportError;
+    use jarust_transport::japrotocol::ErrorResponse;
+    use jarust_transport::japrotocol::JaData;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::JaSuccessProtocol;
+    use jarust_transport::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn it_successfully_attach_to_handle() {
@@ -131,7 +132,7 @@ mod tests {
             .await;
         assert!(matches!(
             result,
-            Err(JaError::JanusError { code: _, reason: _ })
+            Err(JaError::JanusTransport(JaTransportError::JanusError { .. }))
         ));
     }
 }

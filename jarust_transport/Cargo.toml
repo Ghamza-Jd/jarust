@@ -1,5 +1,5 @@
 [package]
-name = "jarust_transport_next"
+name = "jarust_transport"
 version.workspace = true
 authors.workspace = true
 description.workspace = true

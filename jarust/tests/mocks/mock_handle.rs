@@ -1,9 +1,9 @@
 use super::mock_transport::MockServer;
 use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
-use jarust_transport_next::japrotocol::JaData;
-use jarust_transport_next::japrotocol::JaSuccessProtocol;
-use jarust_transport_next::japrotocol::ResponseType;
+use jarust_transport::japrotocol::JaData;
+use jarust_transport::japrotocol::JaSuccessProtocol;
+use jarust_transport::japrotocol::ResponseType;
 use std::time::Duration;
 use tokio::sync::mpsc;
 

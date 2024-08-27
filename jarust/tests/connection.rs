@@ -13,12 +13,13 @@ mod tests {
     use jarust::error::JaError;
     use jarust::jaconfig::JaConfig;
     use jarust::jaconnection::CreateConnectionParams;
-    use jarust_transport_next::japrotocol::ErrorResponse;
-    use jarust_transport_next::japrotocol::JaData;
-    use jarust_transport_next::japrotocol::JaResponse;
-    use jarust_transport_next::japrotocol::JaSuccessProtocol;
-    use jarust_transport_next::japrotocol::ResponseType;
-    use jarust_transport_next::legacy::trans::TransportProtocol;
+    use jarust_transport::error::JaTransportError;
+    use jarust_transport::japrotocol::ErrorResponse;
+    use jarust_transport::japrotocol::JaData;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::JaSuccessProtocol;
+    use jarust_transport::japrotocol::ResponseType;
+    use jarust_transport::legacy::trans::TransportProtocol;
     use std::time::Duration;
 
     #[tokio::test]
@@ -114,6 +115,9 @@ mod tests {
             })
             .await;
 
-        assert!(matches!(session.unwrap_err(), JaError::JanusError { .. }))
+        assert!(matches!(
+            session.unwrap_err(),
+            JaError::JanusTransport(JaTransportError::JanusError { .. })
+        ))
     }
 }
