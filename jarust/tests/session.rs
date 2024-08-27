@@ -48,7 +48,6 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
                 timeout: FIXTURE_TIMEOUT,
-                capacity: FIXTURE_CAPACITY,
             },
             "mock-transaction",
         )
@@ -101,7 +100,6 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
                 timeout: FIXTURE_TIMEOUT,
-                capacity: FIXTURE_CAPACITY,
             },
             "mock-transaction",
         )

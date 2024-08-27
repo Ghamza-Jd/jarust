@@ -67,7 +67,6 @@ mod tests {
         let session = connection
             .create(CreateConnectionParams {
                 ka_interval: 10,
-                capacity: 32,
                 timeout: Duration::from_secs(10),
             })
             .await;
@@ -110,7 +109,6 @@ mod tests {
         let session = connection
             .create(CreateConnectionParams {
                 ka_interval: 10,
-                capacity: 32,
                 timeout: Duration::from_secs(10),
             })
             .await;
