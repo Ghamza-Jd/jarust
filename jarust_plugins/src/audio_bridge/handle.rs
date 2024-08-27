@@ -20,7 +20,7 @@ use super::responses::RoomEditedRsp;
 use crate::Identifier;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
-use jarust_transport_next::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::EstablishmentProtocol;
 use serde_json::json;
 use serde_json::Value;
 use std::ops::Deref;

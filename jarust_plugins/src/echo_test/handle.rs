@@ -1,7 +1,7 @@
 use super::msg_options::StartOptions;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
-use jarust_transport_next::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::EstablishmentProtocol;
 use std::ops::Deref;
 use std::time::Duration;
 

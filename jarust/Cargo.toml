@@ -19,7 +19,7 @@ bytes.workspace = true
 futures-util = "0.3.29"
 indexmap = "2.2.6"
 jarust_rt = { version = "0.4.0", path = "../jarust_rt" }
-jarust_transport_next = { version = "0.4.0", path = "../jarust_transport_next" }
+jarust_transport = { version = "0.4.0", path = "../jarust_transport" }
 rand = "0.8.5"
 serde_json.workspace = true
 serde.workspace = true
