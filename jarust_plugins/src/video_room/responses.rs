@@ -158,7 +158,7 @@ pub struct RtpForwarderStream {
     pub strp: Option<bool>,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Deserialize)]
 pub struct AttachedStream {
     /// unique mindex of published stream
     pub mindex: u64,
@@ -214,6 +214,57 @@ pub struct AttachedStream {
 
     /// if this is a data channel stream, an array containing the IDs of participants we've subscribed to
     pub source_ids: Vec<Identifier>,
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Deserialize)]
+pub struct ConfiguredStream {
+    /// type of published stream (audio|video|data)
+    #[serde(rename = "type")]
+    pub media_type: String,
+
+    /// unique mindex of published stream
+    pub mindex: u64,
+
+    /// unique mid of published stream
+    pub mid: String,
+
+    /// if the stream is disabled, all fields below will be missing
+    #[serde(default)]
+    pub disabled: bool,
+
+    /// codec used by this stream
+    #[serde(default)]
+    pub codec: String,
+
+    /// audio: opus codec: whether the stream has stereo
+    #[serde(default)]
+    pub stereo: bool,
+
+    /// audio: opus codec: whether OPUS forward error correction is enabled
+    #[serde(default)]
+    pub fec: bool,
+
+    /// audio: opus codec: whether OPUS discontinuous transmission is enabled
+    #[serde(default)]
+    pub dtx: bool,
+
+    /// video: in case H.264 is used by the stream, the negotiated profile
+    pub h264_profile: Option<String>,
+
+    /// video: in case VP9 is used by the stream, the negotiated profile
+    pub vp9_profile: Option<String>,
+
+    /// video: true if this stream audio has been moderated for this participant
+    #[serde(default)]
+    pub moderated: bool,
+
+    /// video: true if stream uses simulcast
+    #[serde(default)]
+    pub simulcast: bool,
+
+    /// video: true if published stream #1 uses SVC (VP9 and AV1 only)
+    #[serde(default)]
+    pub svc: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]

@@ -1,11 +1,10 @@
-use serde::Deserialize;
-use serde_json::from_value;
-
 use jarust::error::JaError;
 use jarust::japrotocol::JaResponse;
 use jarust::japrotocol::{EstablishmentProtocol, GenericEvent, JaHandleEvent, ResponseType};
+use serde::Deserialize;
+use serde_json::from_value;
 
-use crate::video_room::responses::{AttachedStream, Attendee, Publisher};
+use crate::video_room::responses::{AttachedStream, Attendee, ConfiguredStream, Publisher};
 use crate::Identifier;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -18,18 +17,18 @@ pub enum PluginEvent {
 #[serde(tag = "videoroom")]
 enum VideoRoomEventDto {
     #[serde(rename = "destroyed")]
-    DestroyRoom { room: u64 },
+    DestroyRoom { room: Identifier },
 
     #[serde(rename = "joining")]
     JoinedRoom {
-        id: u64,
-        room: u64,
+        id: Identifier,
+        room: Identifier,
         display: Option<String>,
     },
 
     #[serde(rename = "publishers")]
     NewPublisher {
-        room: u64,
+        room: Identifier,
         publishers: Vec<Publisher>,
     },
 
@@ -43,12 +42,6 @@ enum VideoRoomEventDto {
         attendees: Vec<Attendee>,
     },
 
-    #[serde(rename = "leaving")]
-    LeftRoom {
-        room: Identifier,
-        leaving: Identifier,
-    },
-
     #[serde(rename = "attached")]
     SubscriberAttached {
         room: Identifier,
@@ -58,13 +51,6 @@ enum VideoRoomEventDto {
     #[serde(rename = "updated")]
     SubscriberUpdated {
         room: Identifier,
-        streams: Vec<AttachedStream>,
-    },
-
-    #[serde(rename = "switched")]
-    SubscriberSwitched {
-        room: Identifier,
-        changes: i64,
         streams: Vec<AttachedStream>,
     },
 
@@ -83,20 +69,75 @@ enum VideoRoomEventDto {
         #[serde(rename = "audio-level-dBov-avg")]
         audio_level: i16,
     },
+
+    #[serde(rename = "event")]
+    Event(VideoRoomEventEventType),
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+#[serde(untagged)]
+enum VideoRoomEventEventType {
+    #[serde(rename = "error")]
+    ErrorEvent { error_code: u16, error: String },
+
+    #[serde(rename = "publishers")]
+    PublishersEvent {
+        room: Identifier,
+        publishers: Vec<Publisher>,
+    },
+
+    #[serde(rename = "unpublished")]
+    UnpublishedRsp,
+
+    #[serde(rename = "unpublished")]
+    UnpublishedEvent {
+        room: Identifier,
+        unpublished: Identifier,
+    },
+
+    #[serde(rename = "configured")]
+    ConfiguredRsp {
+        room: Identifier,
+        audio_codec: Option<String>,
+        video_codec: Option<String>,
+        streams: Vec<ConfiguredStream>,
+    },
+
+    #[serde(rename = "leaving")]
+    LeavingEvent {
+        room: Identifier,
+        leaving: Identifier,
+    },
+
+    #[serde(rename = "started")]
+    StartedRsp,
+
+    #[serde(rename = "paused")]
+    PausedRsp,
+
+    #[serde(rename = "switched")]
+    SwitchedRsp {
+        room: Identifier,
+        changes: i64,
+        streams: Vec<AttachedStream>,
+    },
+
+    #[serde(rename = "left")]
+    LeftRsp,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum VideoRoomEvent {
     /// Sent to all participants in the video room when the room is destroyed
-    RoomDestroyed { room: u64 },
+    RoomDestroyed { room: Identifier },
 
     /// Sent to all participants if a new participant joins
     RoomJoined {
         /// unique ID of the new participant
-        id: u64,
+        id: Identifier,
 
         /// ID of the room the participant joined into
-        room: u64,
+        room: Identifier,
 
         /// display name of the new participant
         display: Option<String>,
@@ -105,7 +146,7 @@ pub enum VideoRoomEvent {
     /// Sent to all participants if a new participant joins
     RoomJoinedWithEstablishment {
         /// unique ID of the new participant
-        id: u64,
+        id: Identifier,
 
         /// display name of the new participant
         display: Option<String>,
@@ -115,7 +156,7 @@ pub enum VideoRoomEvent {
 
     /// Sent to all participants if a participant started publishing
     NewPublisher {
-        room: u64,
+        room: Identifier,
         publishers: Vec<Publisher>,
     },
 
@@ -157,6 +198,7 @@ pub enum VideoRoomEvent {
         room: Identifier,
         audio_codec: Option<String>,
         video_codec: Option<String>,
+        streams: Vec<ConfiguredStream>,
     },
 
     /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
@@ -165,6 +207,7 @@ pub enum VideoRoomEvent {
         room: Identifier,
         audio_codec: Option<String>,
         video_codec: Option<String>,
+        streams: Vec<ConfiguredStream>,
         establishment_protocol: EstablishmentProtocol,
     },
 
@@ -193,6 +236,28 @@ pub enum VideoRoomEvent {
         /// average value of audio level, 127=muted, 0='too loud'
         audio_level: i16,
     },
+
+    /// As soon as the PeerConnection is gone, all the other participants will
+    /// also be notified about the fact that the stream is no longer available
+    Unpublished {
+        /// unique ID of the room the publisher is in
+        room: Identifier,
+
+        /// unique ID of the publisher
+        id: Identifier,
+    },
+
+    /// Sent back to a publisher after a successful [unpublish](super::handle::VideoRoomHandle::unpublish) request
+    UnpublishedAsyncRsp,
+
+    /// Sent back to a subscriber after a successful [start](super::handle::VideoRoomHandle::start) request
+    StartedAsyncRsp,
+
+    /// Sent back to a subscriber after a successful [pause](super::handle::VideoRoomHandle::pause) request
+    PausedAsyncRsp,
+
+    /// Sent back to a subscriber after a successful [leave](super::handle::VideoRoomHandle::leave) request
+    LeftAsyncRsp,
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -201,62 +266,6 @@ impl TryFrom<JaResponse> for PluginEvent {
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
             ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => {
-                if plugin_data.data["videoroom"].as_str() == Some("event") {
-                    if plugin_data.data.as_object().unwrap().contains_key("error") {
-                        return Err(JaError::JanusError {
-                            code: plugin_data.data["error_code"].as_u64().unwrap() as u16,
-                            reason: plugin_data.data["error"].as_str().unwrap().to_string(),
-                        });
-                    } else if plugin_data
-                        .data
-                        .as_object()
-                        .unwrap()
-                        .contains_key("configured")
-                    {
-                        return if let Some(establishment_protocol) = value.establishment_protocol {
-                            Ok(PluginEvent::VideoRoomEvent(
-                                VideoRoomEvent::ConfiguredWithEstablishment {
-                                    room: from_value::<Identifier>(
-                                        plugin_data.data["room"].clone(),
-                                    )?,
-                                    audio_codec: plugin_data
-                                        .data
-                                        .get("audio_codec")
-                                        .map(move |t| t.as_str().unwrap().to_string()),
-                                    video_codec: plugin_data
-                                        .data
-                                        .get("video_codec")
-                                        .map(move |t| t.as_str().unwrap().to_string()),
-                                    establishment_protocol,
-                                },
-                            ))
-                        } else {
-                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::Configured {
-                                room: from_value::<Identifier>(plugin_data.data["room"].clone())?,
-                                audio_codec: plugin_data
-                                    .data
-                                    .get("audio_codec")
-                                    .map(move |t| t.as_str().unwrap().to_string()),
-                                video_codec: plugin_data
-                                    .data
-                                    .get("video_codec")
-                                    .map(move |t| t.as_str().unwrap().to_string()),
-                            }))
-                        };
-                    } else if plugin_data
-                        .data
-                        .as_object()
-                        .unwrap()
-                        .contains_key("leaving")
-                    {
-                        return Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
-                            room: from_value::<Identifier>(plugin_data.data["room"].clone())?,
-                            participant: from_value::<Identifier>(
-                                plugin_data.data["leaving"].clone(),
-                            )?,
-                        }));
-                    }
-                };
                 let videoroom_event = from_value::<VideoRoomEventDto>(plugin_data.data)?;
                 match videoroom_event {
                     VideoRoomEventDto::DestroyRoom { room } => {
@@ -307,13 +316,6 @@ impl TryFrom<JaResponse> for PluginEvent {
                         },
                     )),
 
-                    VideoRoomEventDto::LeftRoom { room, leaving } => {
-                        Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
-                            room,
-                            participant: leaving,
-                        }))
-                    }
-
                     VideoRoomEventDto::SubscriberAttached { room, streams } => {
                         Ok(PluginEvent::VideoRoomEvent(
                             VideoRoomEvent::SubscriberAttached { room, streams },
@@ -325,18 +327,6 @@ impl TryFrom<JaResponse> for PluginEvent {
                             VideoRoomEvent::SubscriberUpdated { room, streams },
                         ))
                     }
-
-                    VideoRoomEventDto::SubscriberSwitched {
-                        room,
-                        changes,
-                        streams,
-                    } => Ok(PluginEvent::VideoRoomEvent(
-                        VideoRoomEvent::SubscriberSwitched {
-                            room,
-                            changes,
-                            streams,
-                        },
-                    )),
 
                     VideoRoomEventDto::Talking {
                         room,
@@ -359,6 +349,81 @@ impl TryFrom<JaResponse> for PluginEvent {
                             audio_level,
                         },
                     )),
+
+                    VideoRoomEventDto::Event(e) => match e {
+                        VideoRoomEventEventType::ErrorEvent { error_code, error } => {
+                            Err(JaError::JanusError {
+                                code: error_code,
+                                reason: error,
+                            })
+                        }
+                        VideoRoomEventEventType::PublishersEvent { room, publishers } => {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
+                                room,
+                                publishers,
+                            }))
+                        }
+                        VideoRoomEventEventType::UnpublishedRsp {} => Ok(
+                            PluginEvent::VideoRoomEvent(VideoRoomEvent::UnpublishedAsyncRsp),
+                        ),
+                        VideoRoomEventEventType::UnpublishedEvent { room, unpublished } => {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::Unpublished {
+                                room,
+                                id: unpublished,
+                            }))
+                        }
+                        VideoRoomEventEventType::ConfiguredRsp {
+                            room,
+                            audio_codec,
+                            video_codec,
+                            streams,
+                        } => {
+                            if let Some(establishment_protocol) = value.establishment_protocol {
+                                Ok(PluginEvent::VideoRoomEvent(
+                                    VideoRoomEvent::ConfiguredWithEstablishment {
+                                        room,
+                                        audio_codec,
+                                        video_codec,
+                                        streams,
+                                        establishment_protocol,
+                                    },
+                                ))
+                            } else {
+                                Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::Configured {
+                                    room,
+                                    audio_codec,
+                                    video_codec,
+                                    streams,
+                                }))
+                            }
+                        }
+                        VideoRoomEventEventType::LeavingEvent { room, leaving } => {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
+                                room,
+                                participant: leaving,
+                            }))
+                        }
+                        VideoRoomEventEventType::StartedRsp => {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::StartedAsyncRsp))
+                        }
+                        VideoRoomEventEventType::PausedRsp => {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::PausedAsyncRsp))
+                        }
+                        VideoRoomEventEventType::SwitchedRsp {
+                            room,
+                            changes,
+                            streams,
+                        } => Ok(PluginEvent::VideoRoomEvent(
+                            VideoRoomEvent::SubscriberSwitched {
+                                room,
+                                changes,
+                                streams,
+                            },
+                        )),
+                        VideoRoomEventEventType::LeftRsp => {
+                            Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftAsyncRsp))
+                        }
+                    },
                 }
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
@@ -378,10 +443,10 @@ mod tests {
         EstablishmentProtocol, JaHandleEvent, JaResponse, Jsep, JsepType, PluginData, ResponseType,
     };
 
-    use crate::video_room::events::VideoRoomEvent;
-    use crate::Identifier;
-
     use super::PluginEvent;
+    use crate::video_room::events::VideoRoomEvent;
+    use crate::video_room::responses::ConfiguredStream;
+    use crate::Identifier;
 
     #[test]
     fn it_parse_joined_room() {
@@ -406,8 +471,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoined {
-                id: 6380744183070564,
-                room: 8812066423493633u64,
+                id: Identifier::Uint(6380744183070564),
+                room: Identifier::Uint(8812066423493633u64),
                 display: Some("Joiner McJoinface".to_string()),
             })
         );
@@ -439,7 +504,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEstablishment {
-                id: 6380744183070564u64,
+                id: Identifier::Uint(6380744183070564u64),
                 display: Some("Joiner McJoinface".to_string()),
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
@@ -470,7 +535,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomDestroyed {
-                room: 8812066423493633u64,
+                room: Identifier::Uint(8812066423493633u64),
             })
         )
     }
@@ -497,7 +562,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
-                room: 8812066423493633u64,
+                room: Identifier::Uint(8812066423493633u64),
                 publishers: vec![]
             })
         );
@@ -574,13 +639,11 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.videoroom".to_string(),
-                    data: json!(
-                                      {
+                    data: json!({
                        "videoroom": "event",
                        "room": 8146468481724441u64,
                        "leaving": "ok"
-                    }
-                                  ),
+                    }),
                 },
             }),
             establishment_protocol: None,
@@ -645,6 +708,25 @@ mod tests {
                 room: Identifier::Uint(1657434645789453u64),
                 audio_codec: Some("opus".to_string()),
                 video_codec: Some("h264".to_string()),
+                streams: vec![
+                    ConfiguredStream {
+                        media_type: "audio".to_string(),
+                        mindex: 0,
+                        mid: "0".to_string(),
+                        codec: "opus".to_string(),
+                        stereo: true,
+                        fec: true,
+                        ..Default::default()
+                    },
+                    ConfiguredStream {
+                        media_type: "video".to_string(),
+                        mindex: 1,
+                        mid: "1".to_string(),
+                        codec: "h264".to_string(),
+                        h264_profile: Some("42e01f".to_string()),
+                        ..Default::default()
+                    }
+                ],
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
                     sdp: "test_sdp".to_string(),
