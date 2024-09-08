@@ -1,4 +1,4 @@
-use crate::respones::ServerInfoRsp;
+use super::respones::ServerInfoRsp;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -131,18 +131,27 @@ pub enum EstablishmentProtocol {
     RTP(RTP),
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+pub struct Candidate {
+    #[serde(rename = "sdpMid")]
+    pub sdp_mid: String,
+    #[serde(rename = "sdpMLineIndex")]
+    pub sdp_mline_index: String,
+    pub candidate: String,
+}
+
 #[cfg(test)]
 mod tests {
+    use super::EstablishmentProtocol;
+    use super::GenericEvent;
     use super::JaData;
+    use super::JaHandleEvent;
     use super::JaResponse;
     use super::JaSuccessProtocol;
+    use super::Jsep;
+    use super::JsepType;
+    use super::PluginData;
     use super::ResponseType;
-    use crate::japrotocol::EstablishmentProtocol;
-    use crate::japrotocol::GenericEvent;
-    use crate::japrotocol::JaHandleEvent;
-    use crate::japrotocol::Jsep;
-    use crate::japrotocol::JsepType;
-    use crate::japrotocol::PluginData;
     use serde_json::json;
 
     #[test]

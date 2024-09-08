@@ -1,6 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::params::CreateConnectionParams;
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
@@ -34,7 +34,6 @@ async fn main() -> anyhow::Result<()> {
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
-            capacity,
             timeout,
         })
         .await?;

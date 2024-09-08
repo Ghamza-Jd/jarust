@@ -3,13 +3,13 @@ use std::time::Duration;
 
 use serde_json::json;
 
-use jarust::japrotocol::EstablishmentProtocol;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
+use jarust_transport::japrotocol::EstablishmentProtocol;
 
-use crate::Identifier;
 use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
+use crate::Identifier;
 
 pub struct VideoRoomHandle {
     handle: JaHandle,

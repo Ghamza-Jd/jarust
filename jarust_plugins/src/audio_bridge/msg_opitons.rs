@@ -1,6 +1,11 @@
+use crate::Identifier;
 use serde::Serialize;
 
-use crate::Identifier;
+tryfrom_serde_value!(
+    ChangeRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions
+    AllowedOptions AllowAction ConfigureOptions MuteOptions MuteRoomOptions
+    KickOptions KickAllOptions CreateRoomOptions
+);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct CreateRoomOptions {

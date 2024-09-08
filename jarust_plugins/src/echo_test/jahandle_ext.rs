@@ -1,7 +1,7 @@
 use super::events::PluginEvent;
 use super::handle::EchoTestHandle;
 use crate::AttachPluginParams;
-use jarust::params::AttachHandleParams;
+use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use std::ops::Deref;
 use tokio::sync::mpsc;
@@ -18,7 +18,6 @@ pub trait EchoTest: Attach {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.echotest".to_string(),
-                capacity: params.capacity,
                 timeout: params.timeout,
             })
             .await?;

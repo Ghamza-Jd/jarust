@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-
 use crate::Identifier::Uint;
+use serde::Deserialize;
+use serde::Serialize;
 
 pub struct AttachPluginParams {
     /// Circular buffer capacity
@@ -8,6 +8,8 @@ pub struct AttachPluginParams {
     // Request timeout
     pub timeout: std::time::Duration,
 }
+
+tryfrom_serde_value!(Identifier);
 
 /// Rooms and Participants Identifier.
 ///

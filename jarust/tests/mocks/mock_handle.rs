@@ -1,9 +1,9 @@
 use super::mock_transport::MockServer;
-use jarust::japrotocol::JaData;
-use jarust::japrotocol::JaSuccessProtocol;
-use jarust::japrotocol::ResponseType;
-use jarust::params::AttachHandleParams;
+use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
+use jarust_transport::japrotocol::JaData;
+use jarust_transport::japrotocol::JaSuccessProtocol;
+use jarust_transport::japrotocol::ResponseType;
 use std::time::Duration;
 use tokio::sync::mpsc;
 
@@ -11,7 +11,6 @@ pub struct MockHandleConfig {
     pub session_id: u64,
     pub handle_id: u64,
     pub plugin_id: String,
-    pub capacity: usize,
     pub timeout: Duration,
 }
 
@@ -38,7 +37,6 @@ pub async fn mock_handle(
     let (handle, stream) = session
         .attach(AttachHandleParams {
             plugin_id: config.plugin_id,
-            capacity: config.capacity,
             timeout: config.timeout,
         })
         .await?;

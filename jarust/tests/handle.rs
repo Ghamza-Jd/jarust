@@ -19,10 +19,10 @@ mod tests {
     use crate::mocks::mock_session::mock_session;
     use crate::mocks::mock_session::MockSessionConfig;
     use crate::mocks::mock_transport::MockTransport;
-    use jarust::japrotocol::GenericEvent;
-    use jarust::japrotocol::JaHandleEvent;
-    use jarust::japrotocol::JaResponse;
-    use jarust::japrotocol::ResponseType;
+    use jarust_transport::japrotocol::GenericEvent;
+    use jarust_transport::japrotocol::JaHandleEvent;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn it_receives_incoming_handle_events() {
@@ -48,7 +48,6 @@ mod tests {
             MockSessionConfig {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             },
             "mock-session-transaction",
@@ -64,7 +63,6 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 handle_id: FIXTURE_HANDLE_ID,
                 plugin_id: FIXTURE_PLUGIN_ID.to_string(),
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             },
             "mock-handle-transaction",

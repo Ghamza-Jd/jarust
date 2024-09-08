@@ -1,14 +1,13 @@
-use std::path::Path;
-
-use tracing_subscriber::EnvFilter;
-
-use jarust::jaconfig::{JaConfig, TransportType};
-use jarust::japrotocol::{EstablishmentProtocol, Jsep, JsepType};
-use jarust::params::CreateConnectionParams;
+use jarust::jaconfig::JaConfig;
+use jarust::jaconfig::TransportType;
+use jarust_transport::japrotocol::{EstablishmentProtocol, Jsep, JsepType};
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::msg_options::*;
 use jarust_plugins::{AttachPluginParams, Identifier};
+use std::path::Path;
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
@@ -33,7 +32,6 @@ async fn main() -> anyhow::Result<()> {
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
-            capacity,
             timeout,
         })
         .await?;

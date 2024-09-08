@@ -1,15 +1,15 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::Jsep;
-use jarust::japrotocol::JsepType;
-use jarust::params::CreateConnectionParams;
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::StartOptions;
 use jarust_plugins::AttachPluginParams;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::Jsep;
+use jarust_transport::japrotocol::JsepType;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -37,7 +37,6 @@ async fn main() -> anyhow::Result<()> {
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
-            capacity,
             timeout,
         })
         .await?;

@@ -1,11 +1,13 @@
-use jarust::error::JaError;
-use jarust::japrotocol::JaResponse;
-use jarust::japrotocol::{EstablishmentProtocol, GenericEvent, JaHandleEvent, ResponseType};
-use serde::Deserialize;
-use serde_json::from_value;
-
 use crate::video_room::responses::{AttachedStream, Attendee, ConfiguredStream, Publisher};
 use crate::Identifier;
+use jarust::error::JaError;
+use jarust::prelude::JaResponse;
+use jarust_transport::error::JaTransportError;
+use jarust_transport::japrotocol::{
+    EstablishmentProtocol, GenericEvent, JaHandleEvent, ResponseType,
+};
+use serde::Deserialize;
+use serde_json::from_value;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum PluginEvent {
@@ -352,10 +354,10 @@ impl TryFrom<JaResponse> for PluginEvent {
 
                     VideoRoomEventDto::Event(e) => match e {
                         VideoRoomEventEventType::ErrorEvent { error_code, error } => {
-                            Err(JaError::JanusError {
+                            Err(JaError::JanusTransport(JaTransportError::JanusError {
                                 code: error_code,
                                 reason: error,
-                            })
+                            }))
                         }
                         VideoRoomEventEventType::PublishersEvent { room, publishers } => {
                             Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
@@ -439,7 +441,7 @@ mod tests {
     use serde_json::json;
 
     use jarust::error::JaError;
-    use jarust::japrotocol::{
+    use jarust_transport::japrotocol::{
         EstablishmentProtocol, JaHandleEvent, JaResponse, Jsep, JsepType, PluginData, ResponseType,
     };
 
@@ -629,7 +631,7 @@ mod tests {
         assert!(ja_error.is_some());
         assert_eq!(
             ja_error.unwrap().to_string(),
-            "Janus error { code: 429, reason: Missing mandatory element (feed)}"
+            "Transport: Janus error { code: 429, reason: Missing mandatory element (feed)}"
         );
     }
 

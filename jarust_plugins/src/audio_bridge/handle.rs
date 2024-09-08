@@ -1,14 +1,3 @@
-use std::ops::Deref;
-use std::time::Duration;
-
-use serde_json::json;
-
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::prelude::*;
-use jarust_rt::JaTask;
-
-use crate::Identifier;
-
 use super::msg_opitons::AllowedOptions;
 use super::msg_opitons::ChangeRoomOptions;
 use super::msg_opitons::ConfigureOptions;
@@ -28,6 +17,14 @@ use super::responses::Room;
 use super::responses::RoomCreatedRsp;
 use super::responses::RoomDestroyedRsp;
 use super::responses::RoomEditedRsp;
+use crate::Identifier;
+use jarust::prelude::*;
+use jarust_rt::JaTask;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use serde_json::json;
+use serde_json::Value;
+use std::ops::Deref;
+use std::time::Duration;
 
 pub struct AudioBridgeHandle {
     handle: JaHandle,
@@ -51,7 +48,7 @@ impl AudioBridgeHandle {
             },
             timeout,
         )
-            .await
+        .await
     }
 
     /// Create a new audio room dynamically with the given configuration,
@@ -63,7 +60,7 @@ impl AudioBridgeHandle {
         options: CreateRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
         self.handle
             .send_waiton_rsp::<RoomCreatedRsp>(message, timeout)
@@ -77,9 +74,9 @@ impl AudioBridgeHandle {
         options: EditRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = room.try_into()?;
         self.handle
             .send_waiton_rsp::<RoomEditedRsp>(message, timeout)
             .await
@@ -93,9 +90,9 @@ impl AudioBridgeHandle {
         options: DestroyRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = room.try_into()?;
         self.handle
             .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
             .await
@@ -109,9 +106,9 @@ impl AudioBridgeHandle {
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = room.try_into()?;
         match protocol {
             Some(protocol) => {
                 self.handle
@@ -142,9 +139,9 @@ impl AudioBridgeHandle {
         options: AllowedOptions,
         timeout: Duration,
     ) -> JaResult<AllowedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "allowed".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = room.try_into()?;
         self.handle
             .send_waiton_rsp::<AllowedRsp>(message, timeout)
             .await
@@ -181,7 +178,7 @@ impl AudioBridgeHandle {
 
     /// Configure the media related settings of the participant
     pub async fn configure(&self, options: ConfigureOptions, timeout: Duration) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
@@ -189,42 +186,42 @@ impl AudioBridgeHandle {
 
     /// Mute a participant
     pub async fn mute(&self, options: MuteOptions) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "mute".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Unmute a participant
     pub async fn unmute(&self, options: MuteOptions) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "unmute".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Mute a room
     pub async fn mute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "mute_room".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Unmute a room
     pub async fn unmute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "unmute_room".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Kicks a participants out of a room
     pub async fn kick(&self, options: KickOptions) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "kick".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Kicks all pariticpants out of a room
     pub async fn kick_all(&self, options: KickAllOptions) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "kick_all".into();
         self.handle.fire_and_forget(message).await
     }
@@ -245,9 +242,9 @@ impl AudioBridgeHandle {
         options: ChangeRoomOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "changeroom".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = room.try_into()?;
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
     }

@@ -1,5 +1,6 @@
-use crate::japrotocol::JaResponse;
-use crate::prelude::*;
+use super::japrotocol::JaResponse;
+use crate::error::JaTransportError;
+use crate::prelude::JaTransportResult;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -29,7 +30,7 @@ pub(crate) struct Router {
 
 impl Router {
     #[tracing::instrument(level = tracing::Level::TRACE)]
-    pub(crate) async fn new(root_path: &str) -> (Self, JaResponseStream) {
+    pub(crate) async fn new(root_path: &str) -> (Self, mpsc::UnboundedReceiver<JaResponse>) {
         let shared = Shared {
             root_path: root_path.to_string(),
         };
@@ -47,7 +48,7 @@ impl Router {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    async fn make_route(&mut self, path: &str) -> JaResponseStream {
+    async fn make_route(&mut self, path: &str) -> mpsc::UnboundedReceiver<JaResponse> {
         let (tx, rx) = mpsc::unbounded_channel();
         {
             self.inner
@@ -61,37 +62,41 @@ impl Router {
         rx
     }
 
-    async fn make_root_route(&mut self) -> JaResponseStream {
+    async fn make_root_route(&mut self) -> mpsc::UnboundedReceiver<JaResponse> {
         let path = self.inner.shared.root_path.clone();
         self.make_route(&path).await
     }
 
-    pub(crate) async fn add_subroute(&mut self, end: &str) -> JaResponseStream {
+    pub(crate) async fn add_subroute(&mut self, end: &str) -> mpsc::UnboundedReceiver<JaResponse> {
         let path = &format!("{}/{}", self.inner.shared.root_path, end);
         self.make_route(path).await
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, message))]
-    async fn publish(&self, path: &str, message: JaResponse) -> JaResult<()> {
+    async fn publish(&self, path: &str, message: JaResponse) -> JaTransportResult<()> {
         let channel = {
             let guard = self.inner.exclusive.read().await;
             guard.routes.get(path).cloned()
         };
         if let Some(channel) = channel {
             if channel.send(message.clone()).is_err() {
-                return Err(JaError::SendError);
+                return Err(JaTransportError::SendError);
             }
         }
         tracing::trace!("Published");
         Ok(())
     }
 
-    pub(crate) async fn pub_root(&self, message: JaResponse) -> JaResult<()> {
+    pub(crate) async fn pub_root(&self, message: JaResponse) -> JaTransportResult<()> {
         let path = self.inner.shared.root_path.clone();
         self.publish(&path, message).await
     }
 
-    pub(crate) async fn pub_subroute(&self, subroute: &str, message: JaResponse) -> JaResult<()> {
+    pub(crate) async fn pub_subroute(
+        &self,
+        subroute: &str,
+        message: JaResponse,
+    ) -> JaTransportResult<()> {
         let path = &format!("{}/{}", self.inner.shared.root_path, subroute);
         self.publish(path, message).await
     }
@@ -126,9 +131,9 @@ impl Router {
 
 #[cfg(test)]
 mod tests {
+    use super::super::japrotocol::JaResponse;
+    use super::super::japrotocol::ResponseType;
     use super::Router;
-    use crate::japrotocol::JaResponse;
-    use crate::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn test_basic_usage() {

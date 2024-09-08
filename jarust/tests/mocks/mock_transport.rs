@@ -5,8 +5,9 @@ use bytes::BytesMut;
 use jarust::error::JaError;
 use jarust::prelude::JaResult;
 use jarust_rt::JaTask;
+use jarust_transport::error::JaTransportError;
+use jarust_transport::legacy::trans::TransportProtocol;
 use jarust_transport::prelude::JaTransportResult;
-use jarust_transport::trans::TransportProtocol;
 use std::fmt::Debug;
 use tokio::sync::mpsc;
 
@@ -37,7 +38,9 @@ impl MockTransport {
         let mut transport = Self::create_transport();
         match transport.get_mock_server() {
             Some(server) => Ok((transport, server)),
-            None => Err(JaError::TransportNotOpened),
+            None => Err(JaError::JanusTransport(
+                JaTransportError::TransportNotOpened,
+            )),
         }
     }
 }

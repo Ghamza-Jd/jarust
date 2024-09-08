@@ -12,13 +12,14 @@ mod tests {
     use crate::mocks::mock_transport::MockTransport;
     use jarust::error::JaError;
     use jarust::jaconfig::JaConfig;
-    use jarust::japrotocol::ErrorResponse;
-    use jarust::japrotocol::JaData;
-    use jarust::japrotocol::JaResponse;
-    use jarust::japrotocol::JaSuccessProtocol;
-    use jarust::japrotocol::ResponseType;
-    use jarust::params::CreateConnectionParams;
-    use jarust_transport::trans::TransportProtocol;
+    use jarust::jaconnection::CreateConnectionParams;
+    use jarust_transport::error::JaTransportError;
+    use jarust_transport::japrotocol::ErrorResponse;
+    use jarust_transport::japrotocol::JaData;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::JaSuccessProtocol;
+    use jarust_transport::japrotocol::ResponseType;
+    use jarust_transport::legacy::trans::TransportProtocol;
     use std::time::Duration;
 
     #[tokio::test]
@@ -66,7 +67,6 @@ mod tests {
         let session = connection
             .create(CreateConnectionParams {
                 ka_interval: 10,
-                capacity: 32,
                 timeout: Duration::from_secs(10),
             })
             .await;
@@ -109,11 +109,13 @@ mod tests {
         let session = connection
             .create(CreateConnectionParams {
                 ka_interval: 10,
-                capacity: 32,
                 timeout: Duration::from_secs(10),
             })
             .await;
 
-        assert!(matches!(session.unwrap_err(), JaError::JanusError { .. }))
+        assert!(matches!(
+            session.unwrap_err(),
+            JaError::JanusTransport(JaTransportError::JanusError { .. })
+        ))
     }
 }

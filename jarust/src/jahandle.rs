@@ -1,28 +1,22 @@
-use crate::japrotocol::EstablishmentProtocol;
-use crate::japrotocol::JaResponse;
-use crate::japrotocol::JaSuccessProtocol;
-use crate::japrotocol::ResponseType;
-use crate::napmap::NapMap;
-use crate::nw::jatransport::JaTransport;
 use crate::prelude::*;
-use jarust_rt::JaTask;
+use jarust_transport::handle_msg::HandleMessage;
+use jarust_transport::handle_msg::HandleMessageWithEstablishment;
+use jarust_transport::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use jarust_transport::handle_msg::HandleMessageWithTimeout;
+use jarust_transport::japrotocol::Candidate;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::JaResponse;
+use jarust_transport::jatransport::JaTransport;
 use serde::de::DeserializeOwned;
-use serde::Serialize;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::mpsc;
-
-struct Shared {
-    id: u64,
-    session_id: u64,
-    task: JaTask,
-    transport: JaTransport,
-}
 
 struct InnerHandle {
-    shared: Shared,
+    id: u64,
+    session_id: u64,
+    transport: JaTransport,
 }
 
 #[derive(Clone)]
@@ -31,79 +25,25 @@ pub struct JaHandle {
 }
 
 impl JaHandle {
-    async fn demux_recv_stream(
-        inbound_stream: JaResponseStream,
-        ack_map: Arc<NapMap<String, JaResponse>>,
-        rsp_map: Arc<NapMap<String, JaResponse>>,
-        event_sender: mpsc::UnboundedSender<JaResponse>,
-    ) {
-        let mut stream = inbound_stream;
-        while let Some(item) = stream.recv().await {
-            match item.janus {
-                ResponseType::Ack => {
-                    if let Some(transaction) = item.transaction.clone() {
-                        ack_map.insert(transaction, item).await;
-                    }
-                }
-                ResponseType::Event { .. } => {
-                    _ = event_sender.send(item);
-                }
-                ResponseType::Success(JaSuccessProtocol::Plugin { .. }) => {
-                    if let Some(transaction) = item.transaction.clone() {
-                        rsp_map.insert(transaction, item).await;
-                    }
-                }
-                ResponseType::Error { .. } => {
-                    if let Some(transaction) = item.transaction.clone() {
-                        rsp_map.insert(transaction.clone(), item.clone()).await;
-                        ack_map.insert(transaction, item).await;
-                    }
-                }
-                _ => {}
-            }
+    pub(crate) async fn new(id: u64, session_id: u64, transport: JaTransport) -> Self {
+        Self {
+            inner: Arc::new(InnerHandle {
+                id,
+                session_id,
+                transport,
+            }),
         }
-    }
-
-    pub(crate) async fn new(
-        id: u64,
-        session_id: u64,
-        capacity: usize,
-        transport: JaTransport,
-    ) -> (Self, JaResponseStream) {
-        let (event_sender, event_receiver) = mpsc::unbounded_channel();
-
-        let ack_map = Arc::new(NapMap::<String, JaResponse>::new(capacity));
-        let rsp_map = Arc::new(NapMap::<String, JaResponse>::new(capacity));
-
-        let receiver = transport.add_handle_subroute(session_id, id).await;
-
-        let task = jarust_rt::spawn(JaHandle::demux_recv_stream(
-            receiver,
-            ack_map.clone(),
-            rsp_map.clone(),
-            event_sender,
-        ));
-
-        let shared = Shared {
-            id,
-            session_id,
-            task,
-            transport,
-        };
-
-        let jahandle = Self {
-            inner: Arc::new(InnerHandle { shared }),
-        };
-
-        (jahandle, event_receiver)
     }
 
     /// Send a one-shot message
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
         self.inner
-            .shared
             .transport
-            .fire_and_forget_msg(self.inner.shared.session_id, self.inner.shared.id, body)
+            .fire_and_forget_msg(HandleMessage {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
+                body,
+            })
             .await?;
         Ok(())
     }
@@ -113,30 +53,32 @@ impl JaHandle {
     where
         R: DeserializeOwned,
     {
-        self.inner
-            .shared
+        let res = self
+            .inner
             .transport
-            .send_msg_waiton_rsp(
-                self.inner.shared.session_id,
-                self.inner.shared.id,
+            .send_msg_waiton_rsp(HandleMessageWithTimeout {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
                 body,
                 timeout,
-            )
-            .await
+            })
+            .await?;
+        Ok(res)
     }
 
     /// Send a message and wait for the ack
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
-        self.inner
-            .shared
+        let ack = self
+            .inner
             .transport
-            .send_msg_waiton_ack(
-                self.inner.shared.session_id,
-                self.inner.shared.id,
+            .send_msg_waiton_ack(HandleMessageWithTimeout {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
                 body,
                 timeout,
-            )
-            .await
+            })
+            .await?;
+        Ok(ack)
     }
 
     /// Send a message with a specific establishment protocol and wait for the ack
@@ -146,17 +88,18 @@ impl JaHandle {
         protocol: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<JaResponse> {
-        self.inner
-            .shared
+        let ack = self
+            .inner
             .transport
-            .send_msg_waiton_ack_with_establishment(
-                self.inner.shared.session_id,
-                self.inner.shared.id,
+            .send_msg_waiton_ack_with_establishment(HandleMessageWithEstablishmentAndTimeout {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
                 body,
                 protocol,
                 timeout,
-            )
-            .await
+            })
+            .await?;
+        Ok(ack)
     }
 
     /// Send a one-shot message with a specific establishment protocol
@@ -166,25 +109,16 @@ impl JaHandle {
         protocol: EstablishmentProtocol,
     ) -> JaResult<()> {
         self.inner
-            .shared
             .transport
-            .fire_and_forget_msg_with_establishment(
-                self.inner.shared.session_id,
-                self.inner.shared.id,
+            .fire_and_forget_msg_with_establishment(HandleMessageWithEstablishment {
+                session_id: self.inner.session_id,
+                handle_id: self.inner.id,
                 body,
                 protocol,
-            )
-            .await
+            })
+            .await?;
+        Ok(())
     }
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct Candidate {
-    #[serde(rename = "sdpMid")]
-    pub sdp_mid: String,
-    #[serde(rename = "sdpMLineIndex")]
-    pub sdp_mline_index: String,
-    pub candidate: String,
 }
 
 impl JaHandle {
@@ -239,13 +173,5 @@ impl JaHandle {
         });
         self.send_waiton_ack(request, timeout).await?;
         Ok(())
-    }
-}
-
-impl Drop for InnerHandle {
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self), fields(id = self.shared.id))]
-    fn drop(&mut self) {
-        tracing::debug!("Handle Dropped");
-        self.shared.task.cancel();
     }
 }

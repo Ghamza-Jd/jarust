@@ -1,7 +1,8 @@
+use super::japrotocol::JaResponse;
+use super::japrotocol::ResponseType;
 use super::router::Router;
 use super::transaction_manager::TransactionManager;
-use crate::japrotocol::ResponseType;
-use crate::prelude::*;
+use crate::prelude::JaTransportResult;
 use bytes::Bytes;
 use tokio::sync::mpsc;
 
@@ -16,7 +17,7 @@ pub(crate) struct Demuxer {
 impl Demuxer {
     /// Async task to handle demultiplexing of the inbound stream
     #[tracing::instrument(name = "incoming_message", level = tracing::Level::TRACE, skip_all)]
-    pub(crate) async fn start(self) -> JaResult<()> {
+    pub(crate) async fn start(self) -> JaTransportResult<()> {
         let mut stream = self.inbound_stream;
         while let Some(next) = stream.recv().await {
             let Ok(incoming_event) = std::str::from_utf8(&next) else {
@@ -62,7 +63,7 @@ impl Demuxer {
         message: JaResponse,
         router: &Router,
         transaction_manager: &TransactionManager,
-    ) -> JaResult<()> {
+    ) -> JaTransportResult<()> {
         // Check if we have a pending transaction and demux to the proper route
         if let Some(transaction) = message.transaction.clone() {
             if let Some(path) = transaction_manager.get(&transaction).await {

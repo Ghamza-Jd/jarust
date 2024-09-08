@@ -1,12 +1,12 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
+use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::Jsep;
-use jarust::japrotocol::JsepType;
-use jarust::params::AttachHandleParams;
-use jarust::params::CreateConnectionParams;
+use jarust::japlugin::AttachHandleParams;
 use jarust::TransactionGenerationStrategy;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::Jsep;
+use jarust_transport::japrotocol::JsepType;
 use serde_json::json;
 use std::path::Path;
 use std::time::Duration;
@@ -39,14 +39,12 @@ async fn main() -> anyhow::Result<()> {
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
-            capacity,
             timeout,
         })
         .await?;
     let (handle, mut event_receiver) = session
         .attach(AttachHandleParams {
             plugin_id: "janus.plugin.echotest".to_string(),
-            capacity,
             timeout,
         })
         .await?;

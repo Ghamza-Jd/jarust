@@ -10,17 +10,18 @@ categories.workspace = true
 edition.workspace = true
 repository.workspace = true
 
-[lib]
-doctest = false
-
 [dependencies]
 async-trait.workspace = true
 bytes.workspace = true
 futures-util = "0.3.29"
+indexmap = "2.2.6"
+jarust_rt = { version = "0.4.0", path = "../jarust_rt" }
+rand = "0.8.5"
+serde_json.workspace = true
+serde.workspace = true
 thiserror = "1.0.51"
 tokio = { workspace = true, features = ["sync", "time", "rt"] }
 tracing.workspace = true
-jarust_rt = { version = "0.4.0", path = "../jarust_rt" }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rustls = { version = "0.22.2", optional = true }

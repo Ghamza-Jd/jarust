@@ -279,7 +279,7 @@ pub struct VideoRoomSubscriberJoinOptions {
     pub streams: Vec<VideoRoomSubscriberJoinStream>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomSubscriberJoinStream {
     /// unique ID of publisher owning the stream to subscribe to
     pub feed: Identifier,
@@ -566,7 +566,7 @@ pub struct VideoRoomConfigureSubscriberStream {
 // Switch Message
 //
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomSwitchStream {
     /// unique ID of the publisher the new source is from
     pub feed: Identifier,

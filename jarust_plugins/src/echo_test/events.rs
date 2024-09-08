@@ -1,9 +1,9 @@
 use jarust::error::JaError;
-use jarust::japrotocol::EstablishmentProtocol;
-use jarust::japrotocol::GenericEvent;
-use jarust::japrotocol::JaHandleEvent;
-use jarust::japrotocol::JaResponse;
-use jarust::japrotocol::ResponseType;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::GenericEvent;
+use jarust_transport::japrotocol::JaHandleEvent;
+use jarust_transport::japrotocol::JaResponse;
+use jarust_transport::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
@@ -66,13 +66,13 @@ impl TryFrom<JaResponse> for PluginEvent {
 mod tests {
     use super::PluginEvent;
     use crate::echo_test::events::EchoTestEvent;
-    use jarust::japrotocol::EstablishmentProtocol;
-    use jarust::japrotocol::JaHandleEvent;
-    use jarust::japrotocol::JaResponse;
-    use jarust::japrotocol::Jsep;
-    use jarust::japrotocol::JsepType;
-    use jarust::japrotocol::PluginData;
-    use jarust::japrotocol::ResponseType;
+    use jarust_transport::japrotocol::EstablishmentProtocol;
+    use jarust_transport::japrotocol::JaHandleEvent;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::Jsep;
+    use jarust_transport::japrotocol::JsepType;
+    use jarust_transport::japrotocol::PluginData;
+    use jarust_transport::japrotocol::ResponseType;
     use serde_json::json;
 
     #[test]

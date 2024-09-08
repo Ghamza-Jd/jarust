@@ -1,8 +1,8 @@
 use std::ops::Deref;
 
+use jarust::japlugin::AttachHandleParams;
 use tokio::sync::mpsc;
 
-use jarust::params::AttachHandleParams;
 use jarust::prelude::*;
 
 use crate::AttachPluginParams;
@@ -22,7 +22,6 @@ pub trait VideoRoom: Attach {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.videoroom".to_string(),
-                capacity: params.capacity,
                 timeout: params.timeout,
             })
             .await?;

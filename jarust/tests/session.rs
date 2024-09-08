@@ -17,12 +17,13 @@ mod tests {
     use crate::mocks::mock_transport::MockTransport;
     use jarust::error::JaError;
     use jarust::japlugin::Attach;
-    use jarust::japrotocol::ErrorResponse;
-    use jarust::japrotocol::JaData;
-    use jarust::japrotocol::JaResponse;
-    use jarust::japrotocol::JaSuccessProtocol;
-    use jarust::japrotocol::ResponseType;
-    use jarust::params::AttachHandleParams;
+    use jarust::japlugin::AttachHandleParams;
+    use jarust_transport::error::JaTransportError;
+    use jarust_transport::japrotocol::ErrorResponse;
+    use jarust_transport::japrotocol::JaData;
+    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::JaSuccessProtocol;
+    use jarust_transport::japrotocol::ResponseType;
 
     #[tokio::test]
     async fn it_successfully_attach_to_handle() {
@@ -47,7 +48,6 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
                 timeout: FIXTURE_TIMEOUT,
-                capacity: FIXTURE_CAPACITY,
             },
             "mock-transaction",
         )
@@ -71,7 +71,6 @@ mod tests {
         let _ = session
             .attach(AttachHandleParams {
                 plugin_id: "mock.plugin.test".to_string(),
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             })
             .await
@@ -101,7 +100,6 @@ mod tests {
                 session_id: FIXTURE_SESSION_ID,
                 ka_interval: FIXTURE_KA_INTERVAL,
                 timeout: FIXTURE_TIMEOUT,
-                capacity: FIXTURE_CAPACITY,
             },
             "mock-transaction",
         )
@@ -127,13 +125,12 @@ mod tests {
         let result = session
             .attach(AttachHandleParams {
                 plugin_id: "mock.plugin.test".to_string(),
-                capacity: FIXTURE_CAPACITY,
                 timeout: FIXTURE_TIMEOUT,
             })
             .await;
         assert!(matches!(
             result,
-            Err(JaError::JanusError { code: _, reason: _ })
+            Err(JaError::JanusTransport(JaTransportError::JanusError { .. }))
         ));
     }
 }
