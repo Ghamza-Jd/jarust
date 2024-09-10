@@ -1,14 +1,10 @@
-use std::ops::Deref;
-
-use jarust::japlugin::AttachHandleParams;
-use tokio::sync::mpsc;
-
-use jarust::prelude::*;
-
-use crate::AttachPluginParams;
-
 use super::events::PluginEvent;
 use super::handle::VideoRoomHandle;
+use crate::AttachPluginParams;
+use jarust::japlugin::AttachHandleParams;
+use jarust::prelude::*;
+use std::ops::Deref;
+use tokio::sync::mpsc;
 
 #[async_trait::async_trait]
 pub trait VideoRoom: Attach {

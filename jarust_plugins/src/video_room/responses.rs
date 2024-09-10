@@ -1,6 +1,5 @@
-use serde::Deserialize;
-
 use crate::Identifier;
+use serde::Deserialize;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Room {

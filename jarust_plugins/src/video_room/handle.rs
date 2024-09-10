@@ -1,15 +1,12 @@
-use std::ops::Deref;
-use std::time::Duration;
-
-use serde_json::json;
-
-use jarust::prelude::*;
-use jarust_rt::JaTask;
-use jarust_transport::japrotocol::EstablishmentProtocol;
-
 use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
 use crate::Identifier;
+use jarust::prelude::*;
+use jarust_rt::JaTask;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use serde_json::json;
+use std::ops::Deref;
+use std::time::Duration;
 
 pub struct VideoRoomHandle {
     handle: JaHandle,
@@ -148,6 +145,7 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn moderate(
         &self,
         room: Identifier,
@@ -194,6 +192,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn list_forwarders(
         &self,
         room: Identifier,
@@ -209,6 +208,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn rtp_forward(
         &self,
         room: Identifier,
@@ -224,6 +224,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn stop_rtp_forward(
         &self,
         room: Identifier,
@@ -352,7 +353,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
-    /// A combination of [join_as_publisher()] and [configure_publisher()]
+    /// A combination of [VideoRoomHandle::join_as_publisher()] and [VideoRoomHandle::configure_publisher()]
     pub async fn join_and_configure(
         &self,
         join_options: VideoRoomPublisherJoinOptions,
@@ -447,6 +448,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn update(
         &self,
         subscribe: Vec<VideoRoomSubscriberJoinStream>,
@@ -464,6 +466,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn pause(&self, timeout: Duration) -> JaResult<()> {
         self.handle
             .send_waiton_ack(json!({"request": "pause"}), timeout)
@@ -471,6 +474,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn switch(
         &self,
         streams: Vec<VideoRoomSwitchStream>,

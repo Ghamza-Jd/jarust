@@ -2,9 +2,9 @@ use crate::Identifier;
 use serde::Serialize;
 
 tryfrom_serde_value!(
-    ChangeRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions
+    CreateRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions
     AllowedOptions AllowAction ConfigureOptions MuteOptions MuteRoomOptions
-    KickOptions KickAllOptions CreateRoomOptions
+    KickOptions KickAllOptions ChangeRoomOptions
 );
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]

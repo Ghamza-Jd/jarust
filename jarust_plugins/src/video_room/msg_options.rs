@@ -1,6 +1,5 @@
-use serde::Serialize;
-
 use crate::Identifier;
+use serde::Serialize;
 
 //
 // Create Message
