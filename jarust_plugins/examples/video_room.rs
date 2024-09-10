@@ -1,11 +1,14 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::TransportType;
-use jarust_transport::japrotocol::{EstablishmentProtocol, Jsep, JsepType};
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::msg_options::*;
-use jarust_plugins::{AttachPluginParams, Identifier};
+use jarust_plugins::AttachPluginParams;
+use jarust_plugins::Identifier;
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::Jsep;
+use jarust_transport::japrotocol::JsepType;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -39,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
         .attach_video_room(AttachPluginParams { capacity, timeout })
         .await?;
 
-    let event_logger = tokio::spawn(async move {
+    tokio::spawn(async move {
         while let Some(e) = events.recv().await {
             tracing::info!("{e:#?}");
         }
@@ -62,18 +65,8 @@ async fn main() -> anyhow::Result<()> {
         .edit_room(
             room_id.clone(),
             VideoRoomEditOptions {
-                secret: None,
                 new_description: Some("A brand new description!".to_string()),
-                new_secret: None,
-                new_pin: None,
-                new_is_private: None,
-                new_require_pvtid: None,
-                new_bitrate: None,
-                new_fir_freq: None,
-                new_publishers: None,
-                new_lock_record: None,
-                new_rec_dir: None,
-                permanent: None,
+                ..Default::default()
             },
             timeout,
         )
@@ -152,14 +145,11 @@ async fn main() -> anyhow::Result<()> {
                 videocodec: Some("h264".to_string()),
                 bitrate: Some(3500),
                 record: Some(false),
-                filename: None,
-                display: None,
-                audio_level_average: None,
-                audio_active_packets: None,
                 descriptions: vec![VideoRoomPublishDescription {
                     mid: "stream-0".to_string(),
                     description: "The ultimate stream!!".to_string(),
                 }],
+                ..Default::default()
             },
             timeout,
         )

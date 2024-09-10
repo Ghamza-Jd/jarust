@@ -28,6 +28,7 @@ default = ["echo_test", "audio_bridge", "video_room"]
 echo_test = []
 audio_bridge = []
 video_room = []
+__experimental = []
 
 [dev-dependencies]
 anyhow = "1.0.79"

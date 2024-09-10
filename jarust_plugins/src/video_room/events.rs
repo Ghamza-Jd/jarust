@@ -1,11 +1,15 @@
-use crate::video_room::responses::{AttachedStream, Attendee, ConfiguredStream, Publisher};
+use crate::video_room::responses::AttachedStream;
+use crate::video_room::responses::Attendee;
+use crate::video_room::responses::ConfiguredStream;
+use crate::video_room::responses::Publisher;
 use crate::Identifier;
 use jarust::error::JaError;
 use jarust::prelude::JaResponse;
 use jarust_transport::error::JaTransportError;
-use jarust_transport::japrotocol::{
-    EstablishmentProtocol, GenericEvent, JaHandleEvent, ResponseType,
-};
+use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_transport::japrotocol::GenericEvent;
+use jarust_transport::japrotocol::JaHandleEvent;
+use jarust_transport::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
