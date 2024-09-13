@@ -29,7 +29,6 @@ async fn main() -> anyhow::Result<()> {
         TransactionGenerationStrategy::Random,
     )
     .await?;
-    let capacity = 10;
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
@@ -37,7 +36,7 @@ async fn main() -> anyhow::Result<()> {
         })
         .await?;
     let (handle, mut events) = session
-        .attach_audio_bridge(AttachPluginParams { capacity, timeout })
+        .attach_audio_bridge(AttachPluginParams { timeout })
         .await?;
 
     let create_room_rsp = handle.create_room(None, timeout).await?;
