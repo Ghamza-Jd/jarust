@@ -31,7 +31,6 @@ async fn main() -> anyhow::Result<()> {
         TransactionGenerationStrategy::Random,
     )
     .await?;
-    let capacity = 10;
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
@@ -39,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
         })
         .await?;
     let (handle, mut events) = session
-        .attach_video_room(AttachPluginParams { capacity, timeout })
+        .attach_video_room(AttachPluginParams { timeout })
         .await?;
 
     tokio::spawn(async move {

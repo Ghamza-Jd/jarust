@@ -41,7 +41,7 @@ async fn main() -> anyhow::Result<()> {
         })
         .await?;
     let (handle, mut event_receiver) = session
-        .attach_echo_test(AttachPluginParams { capacity, timeout })
+        .attach_echo_test(AttachPluginParams { timeout })
         .await?;
 
     let rsp = handle
