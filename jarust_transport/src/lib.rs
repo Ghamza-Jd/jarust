@@ -1,5 +1,6 @@
 pub mod error;
 pub mod handle_msg;
+pub mod interface;
 pub mod japrotocol;
 pub mod jatransport;
 pub mod legacy;
