@@ -109,7 +109,7 @@ impl JaConfigBuilder<WithUrlTypeState, WithCapacityTypeState> {
             url,
             capacity,
         } = self;
-        let namespace = namespace.unwrap_or(String::from("jarust"));
+        let namespace = namespace.unwrap_or(String::from("janus"));
         JaConfig {
             namespace,
             apisecret,
