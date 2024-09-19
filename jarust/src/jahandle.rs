@@ -3,10 +3,10 @@ use jarust_transport::handle_msg::HandleMessage;
 use jarust_transport::handle_msg::HandleMessageWithEstablishment;
 use jarust_transport::handle_msg::HandleMessageWithEstablishmentAndTimeout;
 use jarust_transport::handle_msg::HandleMessageWithTimeout;
+use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
 use jarust_transport::japrotocol::Candidate;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::JaResponse;
-use jarust_transport::jatransport::JaTransport;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
@@ -16,7 +16,7 @@ use std::time::Duration;
 struct InnerHandle {
     id: u64,
     session_id: u64,
-    transport: JaTransport,
+    interface: JanusInterfaceImpl,
 }
 
 #[derive(Clone)]
@@ -25,12 +25,12 @@ pub struct JaHandle {
 }
 
 impl JaHandle {
-    pub(crate) async fn new(id: u64, session_id: u64, transport: JaTransport) -> Self {
+    pub(crate) async fn new(id: u64, session_id: u64, interface: JanusInterfaceImpl) -> Self {
         Self {
             inner: Arc::new(InnerHandle {
                 id,
                 session_id,
-                transport,
+                interface,
             }),
         }
     }
@@ -38,7 +38,7 @@ impl JaHandle {
     /// Send a one-shot message
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
         self.inner
-            .transport
+            .interface
             .fire_and_forget_msg(HandleMessage {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
@@ -55,7 +55,7 @@ impl JaHandle {
     {
         let res = self
             .inner
-            .transport
+            .interface
             .send_msg_waiton_rsp(HandleMessageWithTimeout {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
@@ -70,7 +70,7 @@ impl JaHandle {
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
         let ack = self
             .inner
-            .transport
+            .interface
             .send_msg_waiton_ack(HandleMessageWithTimeout {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
@@ -90,8 +90,8 @@ impl JaHandle {
     ) -> JaResult<JaResponse> {
         let ack = self
             .inner
-            .transport
-            .send_msg_waiton_ack_with_establishment(HandleMessageWithEstablishmentAndTimeout {
+            .interface
+            .send_msg_waiton_ack_with_est(HandleMessageWithEstablishmentAndTimeout {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
                 body,
@@ -109,8 +109,8 @@ impl JaHandle {
         protocol: EstablishmentProtocol,
     ) -> JaResult<()> {
         self.inner
-            .transport
-            .fire_and_forget_msg_with_establishment(HandleMessageWithEstablishment {
+            .interface
+            .fire_and_forget_msg_with_est(HandleMessageWithEstablishment {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
                 body,

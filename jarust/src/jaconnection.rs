@@ -1,12 +1,9 @@
-use crate::jaconfig::JaConfig;
 use crate::jasession::JaSession;
 use crate::prelude::*;
+use jarust_transport::interface::janus_interface::JanusInterface;
+use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
 use jarust_transport::japrotocol::JaResponse;
-use jarust_transport::jatransport::ConnectionParams;
-use jarust_transport::jatransport::JaTransport;
-use jarust_transport::legacy::trans::TransportProtocol;
 use jarust_transport::respones::ServerInfoRsp;
-use jarust_transport::transaction_gen::GenerateTransaction;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -15,7 +12,7 @@ pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
 #[derive(Debug)]
 struct InnerConnection {
-    transport: JaTransport,
+    interface: JanusInterfaceImpl,
 }
 
 #[derive(Clone, Debug)]
@@ -32,24 +29,9 @@ pub struct CreateConnectionParams {
 }
 
 impl JaConnection {
-    pub(crate) async fn open(
-        config: JaConfig,
-        transport: impl TransportProtocol,
-        transaction_generator: impl GenerateTransaction,
-    ) -> JaResult<Self> {
-        let transport = JaTransport::new(
-            ConnectionParams {
-                url: config.url,
-                capacity: config.capacity,
-                apisecret: config.apisecret,
-                namespace: config.namespace,
-            },
-            transport,
-            transaction_generator,
-        )
-        .await?;
-
-        let connection = Arc::new(InnerConnection { transport });
+    pub(crate) async fn open(interface: impl JanusInterface) -> JaResult<Self> {
+        let interface = JanusInterfaceImpl::new(interface);
+        let connection = Arc::new(InnerConnection { interface });
         Ok(Self { inner: connection })
     }
 
@@ -57,9 +39,9 @@ impl JaConnection {
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
-        let session_id = self.inner.transport.create(params.timeout).await?;
+        let session_id = self.inner.interface.create(params.timeout).await?;
         let session =
-            JaSession::new(session_id, params.ka_interval, self.inner.transport.clone()).await;
+            JaSession::new(session_id, params.ka_interval, self.inner.interface.clone()).await;
 
         tracing::info!("Session created {{ session_id: {session_id} }}");
 
@@ -71,7 +53,7 @@ impl JaConnection {
     /// Returns janus server info
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
-        let res = self.inner.transport.server_info(timeout).await?;
+        let res = self.inner.interface.server_info(timeout).await?;
         Ok(res)
     }
 }

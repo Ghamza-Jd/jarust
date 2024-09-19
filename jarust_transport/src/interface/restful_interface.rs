@@ -3,6 +3,7 @@ use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEstablishment;
 use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
 use crate::handle_msg::HandleMessageWithTimeout;
+use crate::interface::janus_interface::ConnectionParams;
 use crate::interface::janus_interface::JanusInterface;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
@@ -48,15 +49,9 @@ pub struct RestfulInterface {
     inner: Arc<InnerResultfulInterface>,
 }
 
-pub struct ConnectionParams {
-    pub url: String,
-    pub capacity: usize,
-    pub apisecret: Option<String>,
-    pub namespace: String,
-}
-
-impl RestfulInterface {
-    pub async fn new(
+#[async_trait::async_trait]
+impl JanusInterface for RestfulInterface {
+    async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
     ) -> JaTransportResult<Self> {
@@ -85,10 +80,7 @@ impl RestfulInterface {
             inner: Arc::new(inner),
         })
     }
-}
 
-#[async_trait::async_trait]
-impl JanusInterface for RestfulInterface {
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
         let response = self
             .inner
