@@ -3,7 +3,7 @@ use crate::japlugin::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
-use jarust_transport::jatransport::JaTransport;
+use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
@@ -12,7 +12,7 @@ use tokio::time;
 #[derive(Debug)]
 pub struct Shared {
     id: u64,
-    transport: JaTransport,
+    interface: JanusInterfaceImpl,
 }
 
 #[derive(Debug)]
@@ -32,8 +32,8 @@ pub struct JaSession {
 }
 
 impl JaSession {
-    pub(crate) async fn new(id: u64, ka_interval: u32, transport: JaTransport) -> Self {
-        let shared = Shared { id, transport };
+    pub(crate) async fn new(id: u64, ka_interval: u32, interface: JanusInterfaceImpl) -> Self {
+        let shared = Shared { id, interface };
         let safe = Exclusive { tasks: vec![] };
 
         let session = Self {
@@ -70,7 +70,7 @@ impl JaSession {
             let _ = self
                 .inner
                 .shared
-                .transport
+                .interface
                 .keep_alive(id, Duration::from_secs(ka_interval.into()))
                 .await;
             tracing::debug!("OK");
@@ -84,7 +84,7 @@ impl JaSession {
         let session_id = self.inner.shared.id;
         self.inner
             .shared
-            .transport
+            .interface
             .destory(session_id, timeout)
             .await?;
         Ok(())
@@ -111,14 +111,14 @@ impl Attach for JaSession {
         let (handle_id, event_receiver) = self
             .inner
             .shared
-            .transport
+            .interface
             .attach(session_id, params.plugin_id, params.timeout)
             .await?;
 
         let handle = JaHandle::new(
             handle_id,
             self.inner.shared.id,
-            self.inner.shared.transport.clone(),
+            self.inner.shared.interface.clone(),
         )
         .await;
 

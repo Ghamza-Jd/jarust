@@ -1,3 +1,4 @@
+use super::janus_interface::ConnectionParams;
 use super::janus_interface::JanusInterface;
 use super::websocket_client::WebSocketClient;
 use crate::demuxer::Demuxer;
@@ -53,88 +54,7 @@ pub struct WebSocketInterface {
     inner: Arc<InnerWebSocketInterface>,
 }
 
-pub struct ConnectionParams {
-    pub url: String,
-    pub capacity: usize,
-    pub apisecret: Option<String>,
-    pub namespace: String,
-}
-
 impl WebSocketInterface {
-    pub async fn new(
-        conn_params: ConnectionParams,
-        transaction_generator: impl GenerateTransaction,
-    ) -> JaTransportResult<Self> {
-        let (router, _) = Router::new(&conn_params.namespace).await;
-        let mut websocket = WebSocketClient::new();
-        let receiver = websocket.connect(&conn_params.url).await?;
-        let transaction_manager = TransactionManager::new(conn_params.capacity);
-        let transaction_generator = TransactionGenerator::new(transaction_generator);
-
-        let ack_map = Arc::new(NapMap::<String, JaResponse>::new(conn_params.capacity));
-        let rsp_map = Arc::new(NapMap::<String, JaResponse>::new(conn_params.capacity));
-
-        let (rsp_sender, mut rsp_receiver) = mpsc::unbounded_channel::<JaResponse>();
-        let (ack_sender, mut ack_receiver) = mpsc::unbounded_channel::<JaResponse>();
-
-        let rsp_task = jarust_rt::spawn({
-            let rsp_map = rsp_map.clone();
-            async move {
-                while let Some(rsp) = rsp_receiver.recv().await {
-                    if let Some(transaction) = rsp.transaction.clone() {
-                        rsp_map.insert(transaction, rsp).await;
-                    }
-                }
-            }
-        });
-
-        let ack_task = jarust_rt::spawn({
-            let ack_map = ack_map.clone();
-            async move {
-                while let Some(rsp) = ack_receiver.recv().await {
-                    if let Some(transaction) = rsp.transaction.clone() {
-                        ack_map.insert(transaction, rsp).await;
-                    }
-                }
-            }
-        });
-
-        let demux_task = jarust_rt::spawn({
-            let router = router.clone();
-            let transaction_manager = transaction_manager.clone();
-            let demuxer = Demuxer {
-                inbound_stream: receiver,
-                router,
-                rsp_sender,
-                ack_sender,
-                transaction_manager,
-            };
-            async move { demuxer.start().await }
-        });
-
-        let shared = Shared {
-            tasks: vec![demux_task, rsp_task, ack_task],
-            namespace: conn_params.namespace,
-            apisecret: conn_params.apisecret,
-            transaction_generator,
-            ack_map,
-            rsp_map,
-        };
-        let exclusive = Exclusive {
-            router,
-            ws: websocket,
-            transaction_manager,
-        };
-        let inner = InnerWebSocketInterface {
-            shared,
-            exclusive: Mutex::new(exclusive),
-        };
-        let this = Self {
-            inner: Arc::new(inner),
-        };
-        Ok(this)
-    }
-
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn send(&self, message: Value) -> JaTransportResult<String> {
         let (message, transaction) = self.decorate_request(message);
@@ -227,6 +147,80 @@ impl WebSocketInterface {
 
 #[async_trait::async_trait]
 impl JanusInterface for WebSocketInterface {
+    async fn make_interface(
+        conn_params: ConnectionParams,
+        transaction_generator: impl GenerateTransaction,
+    ) -> JaTransportResult<Self> {
+        let (router, _) = Router::new(&conn_params.namespace).await;
+        let mut websocket = WebSocketClient::new();
+        let receiver = websocket.connect(&conn_params.url).await?;
+        let transaction_manager = TransactionManager::new(conn_params.capacity);
+        let transaction_generator = TransactionGenerator::new(transaction_generator);
+
+        let ack_map = Arc::new(NapMap::<String, JaResponse>::new(conn_params.capacity));
+        let rsp_map = Arc::new(NapMap::<String, JaResponse>::new(conn_params.capacity));
+
+        let (rsp_sender, mut rsp_receiver) = mpsc::unbounded_channel::<JaResponse>();
+        let (ack_sender, mut ack_receiver) = mpsc::unbounded_channel::<JaResponse>();
+
+        let rsp_task = jarust_rt::spawn({
+            let rsp_map = rsp_map.clone();
+            async move {
+                while let Some(rsp) = rsp_receiver.recv().await {
+                    if let Some(transaction) = rsp.transaction.clone() {
+                        rsp_map.insert(transaction, rsp).await;
+                    }
+                }
+            }
+        });
+
+        let ack_task = jarust_rt::spawn({
+            let ack_map = ack_map.clone();
+            async move {
+                while let Some(rsp) = ack_receiver.recv().await {
+                    if let Some(transaction) = rsp.transaction.clone() {
+                        ack_map.insert(transaction, rsp).await;
+                    }
+                }
+            }
+        });
+
+        let demux_task = jarust_rt::spawn({
+            let router = router.clone();
+            let transaction_manager = transaction_manager.clone();
+            let demuxer = Demuxer {
+                inbound_stream: receiver,
+                router,
+                rsp_sender,
+                ack_sender,
+                transaction_manager,
+            };
+            async move { demuxer.start().await }
+        });
+
+        let shared = Shared {
+            tasks: vec![demux_task, rsp_task, ack_task],
+            namespace: conn_params.namespace,
+            apisecret: conn_params.apisecret,
+            transaction_generator,
+            ack_map,
+            rsp_map,
+        };
+        let exclusive = Exclusive {
+            router,
+            ws: websocket,
+            transaction_manager,
+        };
+        let inner = InnerWebSocketInterface {
+            shared,
+            exclusive: Mutex::new(exclusive),
+        };
+        let this = Self {
+            inner: Arc::new(inner),
+        };
+        Ok(this)
+    }
+
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
         let request = json!({
             "janus": "create"
