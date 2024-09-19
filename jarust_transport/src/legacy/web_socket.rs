@@ -89,9 +89,9 @@ impl TransportProtocol for WebsocketTransport {
 
 impl WebsocketTransport {
     #[cfg(feature = "use-rustls")]
-    fn make_tls_client_config() -> JaResult<Arc<rustls::ClientConfig>> {
+    fn make_tls_client_config() -> JaTransportResult<Arc<rustls::ClientConfig>> {
         let mut root_store = RootCertStore::empty();
-        let platform_certs = rustls_native_certs::load_native_certs()?;
+        let platform_certs = rustls_native_certs::load_native_certs().certs;
         root_store.add_parsable_certificates(platform_certs);
         let client_config = rustls::ClientConfig::builder()
             .with_root_certificates(root_store)
