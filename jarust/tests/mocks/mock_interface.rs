@@ -7,7 +7,6 @@ use jarust::error::JaError;
 use jarust::prelude::JaResponse;
 use jarust::prelude::JaResult;
 use jarust::GenerateTransaction;
-use jarust_rt::JaTask;
 use jarust_transport::error::JaTransportError;
 use jarust_transport::handle_msg::HandleMessage;
 use jarust_transport::handle_msg::HandleMessageWithEstablishment;
@@ -36,9 +35,7 @@ impl MockServer {
 
 #[derive(Debug)]
 pub struct MockInterface {
-    rx: Option<mpsc::UnboundedReceiver<Bytes>>,
     server: Option<MockServer>,
-    task: Option<JaTask>,
 }
 
 impl MockInterface {
@@ -68,69 +65,73 @@ impl MockInterface {
 #[async_trait]
 impl JanusInterface for MockInterface {
     async fn make_interface(
-        conn_params: ConnectionParams,
-        transaction_generator: impl GenerateTransaction,
+        _: ConnectionParams,
+        _: impl GenerateTransaction,
     ) -> JaTransportResult<Self>
     where
         Self: Sized,
     {
-        todo!()
+        Ok(Self {
+            server: Some(MockServer {
+                tx: mpsc::unbounded_channel().0,
+            }),
+        })
     }
 
-    async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
-        todo!()
+    async fn create(&self, _timeout: Duration) -> JaTransportResult<u64> {
+        todo!("Create is not implemented");
     }
 
-    async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
-        todo!()
+    async fn server_info(&self, _timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
+        todo!("Server info is not implemented");
     }
 
     async fn attach(
         &self,
-        session_id: u64,
-        plugin_id: String,
-        timeout: Duration,
+        _session_id: u64,
+        _plugin_id: String,
+        _timeout: Duration,
     ) -> JaTransportResult<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
-        todo!()
+        todo!("Attach is not implemented");
     }
 
-    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
-        todo!()
+    async fn keep_alive(&self, _session_id: u64, _timeout: Duration) -> JaTransportResult<()> {
+        todo!("Keep alive is not implemented");
     }
 
-    async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
-        todo!()
+    async fn destory(&self, _session_id: u64, _timeout: Duration) -> JaTransportResult<()> {
+        todo!("Destroy is not implemented");
     }
 
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
-        todo!()
+    async fn fire_and_forget_msg(&self, _message: HandleMessage) -> JaTransportResult<()> {
+        todo!("Fire and forget is not implemented");
     }
 
     async fn send_msg_waiton_ack(
         &self,
-        message: HandleMessageWithTimeout,
+        _message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse> {
-        todo!()
+        todo!("Send message wait on ack is not implemented");
     }
 
     async fn internal_send_msg_waiton_rsp(
         &self,
-        message: HandleMessageWithTimeout,
+        _message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse> {
-        todo!()
+        todo!("Internal send message wait on response is not implemented");
     }
 
     async fn fire_and_forget_msg_with_est(
         &self,
-        message: HandleMessageWithEstablishment,
+        _message: HandleMessageWithEstablishment,
     ) -> JaTransportResult<()> {
-        todo!()
+        todo!("Fire and forget with establishment is not implemented");
     }
 
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEstablishmentAndTimeout,
+        _message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse> {
-        todo!()
+        todo!("Send message wait on ack with establishment is not implemented");
     }
 }

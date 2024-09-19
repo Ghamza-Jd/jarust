@@ -38,6 +38,12 @@ pub struct WebSocketClient {
     task: Option<JaTask>,
 }
 
+impl Default for WebSocketClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WebSocketClient {
     pub fn new() -> Self {
         Self {
