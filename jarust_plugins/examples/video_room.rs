@@ -25,7 +25,12 @@ async fn main() -> anyhow::Result<()> {
         .url("ws://localhost:8188/ws")
         .capacity(32)
         .build();
-    let mut connection = jarust::connect(config, TransactionGenerationStrategy::Random).await?;
+    let mut connection = jarust::connect(
+        config,
+        TransportType::Ws,
+        TransactionGenerationStrategy::Random,
+    )
+    .await?;
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,

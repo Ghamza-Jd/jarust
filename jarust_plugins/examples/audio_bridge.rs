@@ -23,7 +23,12 @@ async fn main() -> anyhow::Result<()> {
             32, /* Buffer size on the entire connection with janus */
         )
         .build();
-    let mut connection = jarust::connect(config, TransactionGenerationStrategy::Random).await?;
+    let mut connection = jarust::connect(
+        config,
+        TransportType::Ws,
+        TransactionGenerationStrategy::Random,
+    )
+    .await?;
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
