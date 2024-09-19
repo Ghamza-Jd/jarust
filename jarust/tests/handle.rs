@@ -3,22 +3,18 @@ mod mocks;
 
 #[cfg(test)]
 mod tests {
-    use crate::fixtures::FIXTURE_CAPACITY;
     use crate::fixtures::FIXTURE_HANDLE_ID;
     use crate::fixtures::FIXTURE_KA_INTERVAL;
-    use crate::fixtures::FIXTURE_NAMESPACE;
     use crate::fixtures::FIXTURE_PLUGIN_ID;
     use crate::fixtures::FIXTURE_SESSION_ID;
     use crate::fixtures::FIXTURE_TIMEOUT;
-    use crate::fixtures::FIXTURE_URL;
     use crate::mocks::mock_connection::mock_connection;
-    use crate::mocks::mock_connection::MockConnectionConfig;
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_handle::mock_handle;
     use crate::mocks::mock_handle::MockHandleConfig;
+    use crate::mocks::mock_interface::MockInterface;
     use crate::mocks::mock_session::mock_session;
     use crate::mocks::mock_session::MockSessionConfig;
-    use crate::mocks::mock_transport::MockTransport;
     use jarust_transport::japrotocol::GenericEvent;
     use jarust_transport::japrotocol::JaHandleEvent;
     use jarust_transport::japrotocol::JaResponse;
@@ -26,20 +22,10 @@ mod tests {
 
     #[tokio::test]
     async fn it_receives_incoming_handle_events() {
-        let (transport, server) = MockTransport::transport_server_pair().unwrap();
+        let (interface, server) = MockInterface::interface_server_pair().await.unwrap();
         let mut generator = MockGenerateTransaction::new();
         generator.next_transaction("mock-connection-transaction");
-        let connection = mock_connection(
-            transport,
-            MockConnectionConfig {
-                url: FIXTURE_URL.to_string(),
-                namespace: FIXTURE_NAMESPACE.to_string(),
-                capacity: FIXTURE_CAPACITY,
-            },
-            generator.clone(),
-        )
-        .await
-        .unwrap();
+        let connection = mock_connection(interface).await.unwrap();
 
         generator.next_transaction("mock-session-transaction");
         let session = mock_session(

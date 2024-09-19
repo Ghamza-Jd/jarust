@@ -3,54 +3,43 @@ mod mocks;
 
 #[cfg(test)]
 mod tests {
-    use crate::fixtures::FIXTURE_CAPACITY;
-    use crate::fixtures::FIXTURE_NAMESPACE;
-    use crate::fixtures::FIXTURE_URL;
     use crate::mocks::mock_connection::mock_connection;
-    use crate::mocks::mock_connection::MockConnectionConfig;
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
-    use crate::mocks::mock_transport::MockTransport;
+    use crate::mocks::mock_interface::MockInterface;
     use jarust::error::JaError;
-    use jarust::jaconfig::JaConfig;
     use jarust::jaconnection::CreateConnectionParams;
     use jarust_transport::error::JaTransportError;
+    use jarust_transport::interface::janus_interface::ConnectionParams;
+    use jarust_transport::interface::janus_interface::JanusInterface;
     use jarust_transport::japrotocol::ErrorResponse;
     use jarust_transport::japrotocol::JaData;
     use jarust_transport::japrotocol::JaResponse;
     use jarust_transport::japrotocol::JaSuccessProtocol;
     use jarust_transport::japrotocol::ResponseType;
-    use jarust_transport::legacy::trans::TransportProtocol;
     use std::time::Duration;
 
     #[tokio::test]
     async fn it_successfully_connects() {
-        let config = JaConfig::builder()
-            .url("mock://some.janus.com")
-            .namespace("mock")
-            .capacity(10)
-            .build();
-        let transport = MockTransport::create_transport();
-        let generator = MockGenerateTransaction::new();
-        let connection = jarust::custom_connect(config, transport, generator).await;
+        let conn_params = ConnectionParams {
+            url: "mock://some.janus.com".to_string(),
+            capacity: 10,
+            apisecret: None,
+            namespace: "mock".to_string(),
+        };
+        let transaction_generator = MockGenerateTransaction::new();
+        let interface = MockInterface::make_interface(conn_params, transaction_generator)
+            .await
+            .unwrap();
+        let connection = jarust::custom_connect(interface).await;
         assert!(connection.is_ok());
     }
 
     #[tokio::test]
     async fn it_successfully_creates_session() {
-        let (transport, server) = MockTransport::transport_server_pair().unwrap();
+        let (interface, server) = MockInterface::interface_server_pair().await.unwrap();
         let mut generator = MockGenerateTransaction::new();
         generator.next_transaction("abc123");
-        let mut connection = mock_connection(
-            transport,
-            MockConnectionConfig {
-                url: FIXTURE_URL.to_string(),
-                namespace: FIXTURE_NAMESPACE.to_string(),
-                capacity: FIXTURE_CAPACITY,
-            },
-            generator,
-        )
-        .await
-        .unwrap();
+        let mut connection = mock_connection(interface).await.unwrap();
 
         let msg = serde_json::to_string(&JaResponse {
             janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -76,20 +65,10 @@ mod tests {
 
     #[tokio::test]
     async fn it_fails_to_create_session_with_janus_error() {
-        let (transport, server) = MockTransport::transport_server_pair().unwrap();
+        let (interface, server) = MockInterface::interface_server_pair().await.unwrap();
         let mut generator = MockGenerateTransaction::new();
         generator.next_transaction("abc123");
-        let mut connection = mock_connection(
-            transport,
-            MockConnectionConfig {
-                url: FIXTURE_URL.to_string(),
-                namespace: FIXTURE_NAMESPACE.to_string(),
-                capacity: FIXTURE_CAPACITY,
-            },
-            generator,
-        )
-        .await
-        .unwrap();
+        let mut connection = mock_connection(interface).await.unwrap();
 
         let msg = serde_json::to_string(&JaResponse {
             janus: ResponseType::Error {

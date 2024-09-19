@@ -1,4 +1,4 @@
-use super::mock_transport::MockServer;
+use super::mock_interface::MockServer;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::jaconnection::JaConnection;
 use jarust::prelude::*;

@@ -1,4 +1,4 @@
-use super::mock_transport::MockServer;
+use super::mock_interface::MockServer;
 use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use jarust_transport::japrotocol::JaData;
