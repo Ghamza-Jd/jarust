@@ -9,13 +9,10 @@ use crate::japrotocol::EstablishmentProtocol;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::napmap::NapMap;
 use crate::prelude::JaTransportResult;
 use crate::respones::ServerInfoRsp;
-use crate::router::Router;
 use crate::transaction_gen::GenerateTransaction;
 use crate::transaction_gen::TransactionGenerator;
-use crate::transaction_manager::TransactionManager;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
@@ -26,19 +23,15 @@ use tokio::sync::Mutex;
 
 #[derive(Debug)]
 struct Shared {
-    namespace: String,
     apisecret: Option<String>,
     transaction_generator: TransactionGenerator,
-    rsp_map: Arc<NapMap<String, JaResponse>>,
     client: reqwest::Client,
-    baseurl: String,
+    url: String,
 }
 
 #[derive(Debug)]
 struct Exclusive {
     tasks: Vec<JaTask>,
-    router: Router,
-    transaction_manager: TransactionManager,
 }
 
 #[derive(Debug)]
@@ -75,21 +68,13 @@ impl JanusInterface for RestfulInterface {
     ) -> JaTransportResult<Self> {
         let client = reqwest::Client::new();
         let transaction_generator = TransactionGenerator::new(transaction_generator);
-        let transaction_manager = TransactionManager::new(conn_params.capacity);
-        let (router, _) = Router::new(&conn_params.namespace).await;
         let shared = Shared {
-            namespace: conn_params.namespace,
             apisecret: conn_params.apisecret,
             transaction_generator,
-            rsp_map: Arc::new(NapMap::new(conn_params.capacity)),
             client,
-            baseurl: conn_params.url,
+            url: format!("{}/{}", conn_params.url, conn_params.namespace),
         };
-        let exclusive = Exclusive {
-            tasks: Vec::new(),
-            router,
-            transaction_manager,
-        };
+        let exclusive = Exclusive { tasks: Vec::new() };
         let inner = InnerResultfulInterface {
             shared,
             exclusive: Mutex::new(exclusive),
@@ -100,7 +85,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let request = json!({"janus": "create"});
         let (request, _) = self.decorate_request(request);
 
@@ -108,7 +93,7 @@ impl JanusInterface for RestfulInterface {
             .inner
             .shared
             .client
-            .post(format!("{baseurl}/janus"))
+            .post(format!("{url}"))
             .json(&request)
             .timeout(timeout)
             .send()
@@ -135,12 +120,12 @@ impl JanusInterface for RestfulInterface {
     }
 
     async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let response = self
             .inner
             .shared
             .client
-            .get(format!("{baseurl}/janus/info"))
+            .get(format!("{url}/info"))
             .timeout(timeout)
             .send()
             .await?
@@ -162,7 +147,7 @@ impl JanusInterface for RestfulInterface {
         plugin_id: String,
         timeout: Duration,
     ) -> JaTransportResult<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let request = json!({
             "janus": "attach",
             "plugin": plugin_id
@@ -173,7 +158,7 @@ impl JanusInterface for RestfulInterface {
             .inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}"))
+            .post(format!("{url}/{session_id}"))
             .json(&request)
             .timeout(timeout)
             .send()
@@ -199,12 +184,12 @@ impl JanusInterface for RestfulInterface {
 
         let handle = jarust_rt::spawn({
             let client = self.inner.shared.client.clone();
-            let baseurl = baseurl.clone();
+            let url = url.clone();
 
             async move {
                 loop {
                     if let Ok(response) = client
-                        .get(format!("{baseurl}/janus/{session_id}?maxev=5"))
+                        .get(format!("{url}/{session_id}?maxev=5"))
                         .send()
                         .await
                     {
@@ -228,7 +213,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let request = json!({
             "janus": "destroy"
         });
@@ -237,7 +222,7 @@ impl JanusInterface for RestfulInterface {
         self.inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}"))
+            .post(format!("{url}/{session_id}"))
             .json(&request)
             .timeout(timeout)
             .send()
@@ -246,7 +231,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
@@ -258,7 +243,7 @@ impl JanusInterface for RestfulInterface {
         self.inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}/{handle_id}"))
+            .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
             .send()
             .await?;
@@ -269,7 +254,7 @@ impl JanusInterface for RestfulInterface {
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
@@ -282,7 +267,7 @@ impl JanusInterface for RestfulInterface {
             .inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}/{handle_id}"))
+            .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
             .timeout(message.timeout)
             .send()
@@ -296,7 +281,7 @@ impl JanusInterface for RestfulInterface {
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
@@ -309,7 +294,7 @@ impl JanusInterface for RestfulInterface {
             .inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}/{handle_id}"))
+            .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
             .timeout(message.timeout)
             .send()
@@ -323,7 +308,7 @@ impl JanusInterface for RestfulInterface {
         &self,
         message: HandleMessageWithEstablishment,
     ) -> JaTransportResult<()> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
@@ -343,7 +328,7 @@ impl JanusInterface for RestfulInterface {
         self.inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}/{handle_id}"))
+            .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
             .send()
             .await?;
@@ -354,7 +339,7 @@ impl JanusInterface for RestfulInterface {
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse> {
-        let baseurl = &self.inner.shared.baseurl;
+        let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
@@ -375,7 +360,7 @@ impl JanusInterface for RestfulInterface {
             .inner
             .shared
             .client
-            .post(format!("{baseurl}/janus/{session_id}/{handle_id}"))
+            .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
             .send()
             .await?
