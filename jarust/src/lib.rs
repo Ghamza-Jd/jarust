@@ -14,6 +14,7 @@ use jaconfig::TransportType;
 use jaconnection::JaConnection;
 use jarust_transport::interface::janus_interface::ConnectionParams;
 use jarust_transport::interface::janus_interface::JanusInterface;
+use jarust_transport::interface::restful_interface::RestfulInterface;
 use jarust_transport::interface::websocket_interface::WebSocketInterface;
 use prelude::JaResult;
 use tracing::Level;
@@ -37,21 +38,27 @@ pub async fn connect(
     transport_type: TransportType,
     transaction_generation_strategy: TransactionGenerationStrategy,
 ) -> JaResult<JaConnection> {
-    let interface = match transport_type {
-        TransportType::Ws => {
-            WebSocketInterface::make_interface(
-                ConnectionParams {
-                    url: jaconfig.url,
-                    capacity: jaconfig.capacity,
-                    apisecret: jaconfig.apisecret,
-                    namespace: jaconfig.namespace,
-                },
-                transaction_generation_strategy.generator(),
-            )
-            .await?
-        }
+    let conn_params = ConnectionParams {
+        url: jaconfig.url,
+        capacity: jaconfig.capacity,
+        apisecret: jaconfig.apisecret,
+        namespace: jaconfig.namespace,
     };
-    custom_connect(interface).await
+    let transaction_generator = transaction_generation_strategy.generator();
+    match transport_type {
+        TransportType::Ws => {
+            custom_connect(
+                WebSocketInterface::make_interface(conn_params, transaction_generator).await?,
+            )
+            .await
+        }
+        TransportType::Http => {
+            custom_connect(
+                RestfulInterface::make_interface(conn_params, transaction_generator).await?,
+            )
+            .await
+        }
+    }
 }
 
 /// Creates a new connection with janus server from the provided configs
