@@ -14,7 +14,7 @@ repository.workspace = true
 doctest = false
 
 [dependencies]
-futures-util = "0.3.29"
+futures-util.workspace = true
 tokio = { workspace = true, features = ["rt"] }
 
 [features]
