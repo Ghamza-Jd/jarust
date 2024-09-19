@@ -93,7 +93,7 @@ impl JanusInterface for RestfulInterface {
             .inner
             .shared
             .client
-            .post(format!("{url}"))
+            .post(url.to_string())
             .json(&request)
             .timeout(timeout)
             .send()
