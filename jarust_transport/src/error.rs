@@ -2,7 +2,7 @@
 pub enum JaTransportError {
     /* Transformed Errors */
     #[cfg(not(target_family = "wasm"))]
-    #[error("Websocket error: {0}")]
+    #[error("WebSocket error: {0}")]
     WebSocket(#[from] tokio_tungstenite::tungstenite::Error),
 
     #[cfg(not(target_family = "wasm"))]
@@ -13,6 +13,8 @@ pub enum JaTransportError {
     JsonParsingFailure(#[from] serde_json::Error),
     #[error("IO: {0}")]
     IO(#[from] std::io::Error),
+    #[error("Reqwest error: {0}")]
+    Reqwest(#[from] reqwest::Error),
 
     /* Custom Errors */
     #[error("Error while parsing an incomplete packet")]

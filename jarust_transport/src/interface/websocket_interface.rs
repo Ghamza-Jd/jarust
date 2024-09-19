@@ -18,7 +18,6 @@ use crate::transaction_gen::GenerateTransaction;
 use crate::transaction_gen::TransactionGenerator;
 use crate::transaction_manager::TransactionManager;
 use jarust_rt::JaTask;
-use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
 use std::sync::Arc;
@@ -44,14 +43,14 @@ struct Exclusive {
 }
 
 #[derive(Debug)]
-struct InnerJaTransport {
+struct InnerWebSocketInterface {
     shared: Shared,
     exclusive: Mutex<Exclusive>,
 }
 
 #[derive(Debug, Clone)]
-pub struct JaTransport {
-    inner: Arc<InnerJaTransport>,
+pub struct WebSocketInterface {
+    inner: Arc<InnerWebSocketInterface>,
 }
 
 pub struct ConnectionParams {
@@ -61,7 +60,7 @@ pub struct ConnectionParams {
     pub namespace: String,
 }
 
-impl JaTransport {
+impl WebSocketInterface {
     pub async fn new(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
@@ -126,7 +125,7 @@ impl JaTransport {
             ws: websocket,
             transaction_manager,
         };
-        let inner = InnerJaTransport {
+        let inner = InnerWebSocketInterface {
             shared,
             exclusive: Mutex::new(exclusive),
         };
@@ -227,7 +226,7 @@ impl JaTransport {
 }
 
 #[async_trait::async_trait]
-impl JanusInterface for JaTransport {
+impl JanusInterface for WebSocketInterface {
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
         let request = json!({
             "janus": "create"
@@ -353,13 +352,10 @@ impl JanusInterface for JaTransport {
         self.poll_ack(&transaction, message.timeout).await
     }
 
-    async fn send_msg_waiton_rsp<R>(
+    async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,
-    ) -> JaTransportResult<R>
-    where
-        R: DeserializeOwned,
-    {
+    ) -> JaTransportResult<JaResponse> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -367,27 +363,10 @@ impl JanusInterface for JaTransport {
             "body": message.body
         });
         let transaction = self.send(request).await?;
-        let response = self.poll_response(&transaction, message.timeout).await?;
-
-        let result = match response.janus {
-            ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
-                match serde_json::from_value::<R>(plugin_data.data) {
-                    Ok(result) => result,
-                    Err(error) => {
-                        tracing::error!("Failed to parse with error {error:#?}");
-                        return Err(JaTransportError::UnexpectedResponse);
-                    }
-                }
-            }
-            _ => {
-                tracing::error!("Request failed");
-                return Err(JaTransportError::UnexpectedResponse);
-            }
-        };
-        Ok(result)
+        self.poll_response(&transaction, message.timeout).await
     }
 
-    async fn fire_and_forget_msg_with_establishment(
+    async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
     ) -> JaTransportResult<()> {
@@ -409,7 +388,7 @@ impl JanusInterface for JaTransport {
         Ok(())
     }
 
-    async fn send_msg_waiton_ack_with_establishment(
+    async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse> {
@@ -432,7 +411,7 @@ impl JanusInterface for JaTransport {
     }
 }
 
-impl Drop for InnerJaTransport {
+impl Drop for InnerWebSocketInterface {
     fn drop(&mut self) {
         self.shared.tasks.iter().for_each(|task| {
             task.cancel();
