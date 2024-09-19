@@ -3,71 +3,89 @@ mod mocks;
 
 #[cfg(test)]
 mod tests {
-    use crate::fixtures::FIXTURE_HANDLE_ID;
-    use crate::fixtures::FIXTURE_KA_INTERVAL;
-    use crate::fixtures::FIXTURE_PLUGIN_ID;
-    use crate::fixtures::FIXTURE_SESSION_ID;
-    use crate::fixtures::FIXTURE_TIMEOUT;
-    use crate::mocks::mock_connection::mock_connection;
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
-    use crate::mocks::mock_handle::mock_handle;
-    use crate::mocks::mock_handle::MockHandleConfig;
     use crate::mocks::mock_interface::MockInterface;
-    use crate::mocks::mock_session::mock_session;
-    use crate::mocks::mock_session::MockSessionConfig;
+    use jarust::jaconnection::CreateConnectionParams;
+    use jarust::japlugin::AttachHandleParams;
+    use jarust::prelude::Attach;
+    use jarust::prelude::JaResponse;
+    use jarust_transport::interface::janus_interface::ConnectionParams;
+    use jarust_transport::interface::janus_interface::JanusInterface;
     use jarust_transport::japrotocol::GenericEvent;
+    use jarust_transport::japrotocol::JaData;
     use jarust_transport::japrotocol::JaHandleEvent;
-    use jarust_transport::japrotocol::JaResponse;
+    use jarust_transport::japrotocol::JaSuccessProtocol;
     use jarust_transport::japrotocol::ResponseType;
+    use std::time::Duration;
 
     #[tokio::test]
     async fn it_receives_incoming_handle_events() {
-        let (interface, server) = MockInterface::interface_server_pair().await.unwrap();
-        let mut generator = MockGenerateTransaction::new();
-        generator.next_transaction("mock-connection-transaction");
-        let connection = mock_connection(interface).await.unwrap();
+        let conn_params = ConnectionParams {
+            url: "mock://some.janus.com".to_string(),
+            capacity: 10,
+            apisecret: None,
+            namespace: "mock".to_string(),
+        };
+        let transaction_generator = MockGenerateTransaction::new();
+        let interface = MockInterface::make_interface(conn_params, transaction_generator)
+            .await
+            .unwrap();
+        let mut connection = jarust::custom_connect(interface.clone()).await.unwrap();
 
-        generator.next_transaction("mock-session-transaction");
-        let session = mock_session(
-            connection,
-            &server,
-            MockSessionConfig {
-                session_id: FIXTURE_SESSION_ID,
-                ka_interval: FIXTURE_KA_INTERVAL,
-                timeout: FIXTURE_TIMEOUT,
-            },
-            "mock-session-transaction",
-        )
-        .await
-        .unwrap();
+        let session_id = 73;
+        let handle_id = 77;
 
-        generator.next_transaction("mock-handle-transaction");
-        let (_handle, mut stream) = mock_handle(
-            session,
-            &server,
-            MockHandleConfig {
-                session_id: FIXTURE_SESSION_ID,
-                handle_id: FIXTURE_HANDLE_ID,
-                plugin_id: FIXTURE_PLUGIN_ID.to_string(),
-                timeout: FIXTURE_TIMEOUT,
-            },
-            "mock-handle-transaction",
-        )
-        .await
-        .unwrap();
-
-        let event = serde_json::to_string(&JaResponse {
-            janus: ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),
-            transaction: Some("mock-event-transaction".to_string()),
-            session_id: Some(FIXTURE_SESSION_ID),
-            sender: Some(FIXTURE_HANDLE_ID),
+        let response = JaResponse {
+            janus: ResponseType::Success(JaSuccessProtocol::Data {
+                data: JaData { id: session_id },
+            }),
+            transaction: Some("abc123".to_string()),
+            session_id: None,
+            sender: None,
             establishment_protocol: None,
-        })
-        .unwrap();
-        server.mock_send_to_client(&event).await;
+        };
+        interface.mock_create_rsp(response).await;
+
+        let session = connection
+            .create(CreateConnectionParams {
+                ka_interval: 10,
+                timeout: Duration::from_secs(10),
+            })
+            .await
+            .unwrap();
+
+        let response = JaResponse {
+            janus: ResponseType::Success(JaSuccessProtocol::Data {
+                data: JaData { id: 77 },
+            }),
+            transaction: Some("mock-attach-plugin-transaction".to_string()),
+            session_id: Some(session_id),
+            sender: None,
+            establishment_protocol: None,
+        };
+        interface.mock_attach_rsp(response).await;
+
+        let (_handle, mut stream) = session
+            .attach(AttachHandleParams {
+                plugin_id: "mock.plugin.test".to_string(),
+                timeout: Duration::from_secs(5),
+            })
+            .await
+            .unwrap();
+        interface
+            .mock_event(
+                77,
+                JaResponse {
+                    janus: ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),
+                    transaction: Some("mock-event-transaction".to_string()),
+                    session_id: Some(session_id),
+                    sender: Some(handle_id),
+                    establishment_protocol: None,
+                },
+            )
+            .await;
 
         let incoming_event = stream.recv().await.unwrap();
-
         assert_eq!(
             incoming_event.janus,
             ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached))
