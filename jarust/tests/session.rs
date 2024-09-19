@@ -3,18 +3,14 @@ mod mocks;
 
 #[cfg(test)]
 mod tests {
-    use crate::fixtures::FIXTURE_CAPACITY;
     use crate::fixtures::FIXTURE_KA_INTERVAL;
-    use crate::fixtures::FIXTURE_NAMESPACE;
     use crate::fixtures::FIXTURE_SESSION_ID;
     use crate::fixtures::FIXTURE_TIMEOUT;
-    use crate::fixtures::FIXTURE_URL;
     use crate::mocks::mock_connection::mock_connection;
-    use crate::mocks::mock_connection::MockConnectionConfig;
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
+    use crate::mocks::mock_interface::MockInterface;
     use crate::mocks::mock_session::mock_session;
     use crate::mocks::mock_session::MockSessionConfig;
-    use crate::mocks::mock_transport::MockTransport;
     use jarust::error::JaError;
     use jarust::japlugin::Attach;
     use jarust::japlugin::AttachHandleParams;
@@ -27,20 +23,10 @@ mod tests {
 
     #[tokio::test]
     async fn it_successfully_attach_to_handle() {
-        let (transport, server) = MockTransport::transport_server_pair().unwrap();
+        let (interface, server) = MockInterface::interface_server_pair().await.unwrap();
         let mut generator = MockGenerateTransaction::new();
-        generator.next_transaction("mock-transaction");
-        let connection = mock_connection(
-            transport,
-            MockConnectionConfig {
-                url: FIXTURE_URL.to_string(),
-                namespace: FIXTURE_NAMESPACE.to_string(),
-                capacity: FIXTURE_CAPACITY,
-            },
-            generator.clone(),
-        )
-        .await
-        .unwrap();
+        generator.next_transaction("mock-connection-transaction");
+        let connection = mock_connection(interface).await.unwrap();
         let session = mock_session(
             connection,
             &server,
@@ -79,20 +65,10 @@ mod tests {
 
     #[tokio::test]
     async fn it_fails_to_attach_session() {
-        let (transport, server) = MockTransport::transport_server_pair().unwrap();
+        let (interface, server) = MockInterface::interface_server_pair().await.unwrap();
         let mut generator = MockGenerateTransaction::new();
-        generator.next_transaction("mock-transaction");
-        let connection = mock_connection(
-            transport,
-            MockConnectionConfig {
-                url: FIXTURE_URL.to_string(),
-                namespace: FIXTURE_NAMESPACE.to_string(),
-                capacity: FIXTURE_CAPACITY,
-            },
-            generator.clone(),
-        )
-        .await
-        .unwrap();
+        generator.next_transaction("mock-connection-transaction");
+        let connection = mock_connection(interface).await.unwrap();
         let session = mock_session(
             connection,
             &server,
