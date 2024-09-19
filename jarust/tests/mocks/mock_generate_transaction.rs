@@ -21,6 +21,7 @@ impl MockGenerateTransaction {
         }
     }
 
+    #[allow(dead_code)]
     pub fn next_transaction(&mut self, transaction: &str) {
         self.inner.lock().unwrap().next_transaction = Some(transaction.to_string());
     }
