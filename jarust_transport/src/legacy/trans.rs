@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use async_trait::async_trait;
 use bytes::Bytes;
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref};
 use tokio::sync::mpsc;
 
 #[async_trait]
@@ -25,6 +25,14 @@ pub trait TransportProtocol: Debug + Send + Sync + 'static {
 
 pub struct TransportSession {
     inner: Box<dyn TransportProtocol>,
+}
+
+impl Deref for TransportSession {
+    type Target = Box<dyn TransportProtocol>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 impl TransportSession {
