@@ -1,10 +1,15 @@
 use crate::Identifier;
 use serde::Serialize;
 
+tryfrom_serde_value!(
+    VideoRoomCreateOptions VideoRoomDestroyOptions VideoRoomEditOptions VideoRoomAllowedOptions VideoRoomAllowedAction
+    VideoRoomKickOptions VideoRoomEnableRecordingOptions VideoRoomPublisherJoinOptions VideoRoomSubscriberJoinOptions
+    VideoRoomConfigurePublisherOptions VideoRoomConfigureSubscriberOptions JoinAndConfigureOptions VideoRoomPublishOptions
+);
+
 //
 // Create Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomCreateOptions {
     /// unique numeric ID, chosen by plugin if missing
@@ -172,7 +177,6 @@ pub enum VideoRoomVideoCodec {
 //
 // Edit message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomEditOptions {
     /// room secret, mandatory if configured
@@ -227,7 +231,6 @@ pub struct VideoRoomEditOptions {
 //
 // Destroy Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomDestroyOptions {
     /// room secret, mandatory if configured
@@ -242,7 +245,6 @@ pub struct VideoRoomDestroyOptions {
 //
 // Join Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublisherJoinOptions {
     /// unique ID to register for the publisher;
@@ -310,7 +312,6 @@ pub struct VideoRoomSubscriberUnsubscribeStream {
 //
 // Allowed Message
 //
-
 #[derive(PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomAllowedAction {
@@ -330,7 +331,6 @@ pub struct VideoRoomAllowedOptions {
 //
 // Kick Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomKickOptions {
     /// room secret, mandatory if configured
@@ -341,7 +341,6 @@ pub struct VideoRoomKickOptions {
 //
 // Moderate Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomModerateOptions {
     /// room secret, mandatory if configured
@@ -352,7 +351,6 @@ pub struct VideoRoomModerateOptions {
 //
 // Enable Recording Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomEnableRecordingOptions {
     /// whether participants in this room should be automatically recorded or not
@@ -365,7 +363,6 @@ pub struct VideoRoomEnableRecordingOptions {
 //
 // List Forwarders Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomListForwardersOptions {
     /// room secret, mandatory if configured
@@ -376,7 +373,6 @@ pub struct VideoRoomListForwardersOptions {
 //
 // Configure Publisher Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigurePublisherOptions {
     /// bitrate cap to return via REMB;
@@ -440,7 +436,6 @@ pub struct VideoRoomConfigurePublisherStream {
 //
 // Join and configure wrapper
 //
-
 #[derive(Serialize, Default)]
 pub struct JoinAndConfigureOptions {
     #[serde(flatten)]
@@ -452,7 +447,6 @@ pub struct JoinAndConfigureOptions {
 //
 // Publish Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublishOptions {
     /// audio codec to prefer among the negotiated ones
@@ -505,7 +499,6 @@ pub struct VideoRoomPublishDescription {
 //
 // Configure Subscriber Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigureSubscriberOptions {
     /// list of streams to configure
@@ -564,7 +557,6 @@ pub struct VideoRoomConfigureSubscriberStream {
 //
 // Switch Message
 //
-
 #[derive(Serialize)]
 pub struct VideoRoomSwitchStream {
     /// unique ID of the publisher the new source is from
@@ -580,7 +572,6 @@ pub struct VideoRoomSwitchStream {
 //
 // RTP Forward Message
 //
-
 #[derive(Serialize, Default)]
 pub struct VideoRoomRtpForwardOptions {
     /// unique numeric ID of the publisher to relay externally
