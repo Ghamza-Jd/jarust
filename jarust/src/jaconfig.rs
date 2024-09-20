@@ -7,9 +7,9 @@ pub struct JaConfig {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum TransportType {
-    Ws,
-    Http,
+pub enum ApiInterface {
+    WebSocket,
+    Restful,
 }
 
 impl JaConfig {

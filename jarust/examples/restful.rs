@@ -1,5 +1,5 @@
+use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::TransportType;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
 use jarust::japlugin::AttachHandleParams;
@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
     let mut connection = jarust::connect(
         config,
-        TransportType::Http,
+        ApiInterface::Restful,
         TransactionGenerationStrategy::Random,
     )
     .await?;
