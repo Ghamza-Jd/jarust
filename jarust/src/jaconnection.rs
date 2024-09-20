@@ -27,13 +27,14 @@ pub struct CreateConnectionParams {
 
 impl JaConnection {
     pub(crate) async fn open(interface: impl JanusInterface) -> JaResult<Self> {
+        tracing::info!("Creating new connection");
         let interface = JanusInterfaceImpl::new(interface);
         let connection = Arc::new(InnerConnection { interface });
         Ok(Self { inner: connection })
     }
 
     /// Creates a new session with janus server.
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
         let session_id = self.inner.interface.create(params.timeout).await?;
@@ -43,14 +44,12 @@ impl JaConnection {
             interface: self.inner.interface.clone(),
         })
         .await;
-
-        tracing::info!("Session created {{ session_id: {session_id} }}");
-
+        tracing::info!(id = session_id, "Session created");
         Ok(session)
     }
 
     /// Returns janus server info
-    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
         let res = self.inner.interface.server_info(timeout).await?;
         Ok(res)

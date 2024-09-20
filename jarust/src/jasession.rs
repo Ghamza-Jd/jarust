@@ -67,21 +67,22 @@ impl JaSession {
         session
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     async fn keep_alive(self, ka_interval: u32) -> JaResult<()> {
         let duration = Duration::from_secs(ka_interval.into());
         let mut interval = time::interval(duration);
         let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
-            tracing::debug!("Sending {{ id: {id} }}");
+            tracing::debug!("Sending keep-alive");
             let _ = self.inner.shared.interface.keep_alive(id, duration).await;
-            tracing::debug!("OK");
+            tracing::debug!("Kept alive");
         }
     }
 }
 
 impl JaSession {
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
         tracing::info!("Destroying session");
         let session_id = self.inner.shared.id;
@@ -97,13 +98,12 @@ impl JaSession {
 #[async_trait]
 impl Attach for JaSession {
     /// Attach a plugin to the current session
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     async fn attach(
         &self,
         params: AttachHandleParams,
     ) -> JaResult<(JaHandle, mpsc::UnboundedReceiver<JaResponse>)> {
-        tracing::info!("Attaching new handle");
-
+        tracing::info!(plugin = &params.plugin_id, "Attaching new handle");
         let session_id = self.inner.shared.id;
         let (handle_id, event_receiver) = self
             .inner
@@ -118,9 +118,7 @@ impl Attach for JaSession {
             interface: self.inner.shared.interface.clone(),
         })
         .await;
-
-        tracing::info!("Handle created {{ handle_id: {handle_id} }}");
-
+        tracing::info!(id = handle_id, "Handle created");
         Ok((handle, event_receiver))
     }
 }

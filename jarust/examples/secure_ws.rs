@@ -17,8 +17,8 @@ use tracing_subscriber::EnvFilter;
 async fn main() -> anyhow::Result<()> {
     let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
     let env_filter = EnvFilter::from_default_env()
-        .add_directive("jarust=trace".parse()?)
-        .add_directive(format!("{filename}=trace").parse()?);
+        .add_directive("jarust=debug".parse()?)
+        .add_directive(format!("{filename}=info").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let capacity = 32;
@@ -29,8 +29,6 @@ async fn main() -> anyhow::Result<()> {
     let mut connection =
         jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
-
-    tracing::info!("server info: {:#?}", connection.server_info(timeout).await?);
 
     let session = connection
         .create(CreateConnectionParams {
@@ -50,6 +48,14 @@ async fn main() -> anyhow::Result<()> {
 
         loop {
             handle
+                .fire_and_forget(json!({
+                    "video": true,
+                    "audio": true,
+                }))
+                .await
+                .unwrap();
+
+            handle
                 .send_waiton_ack(
                     json!({
                         "video": true,
@@ -61,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
                 .unwrap();
 
             handle
-                .fire_and_forget_with_establishment(
+                .fire_and_forget_with_est(
                     json!({
                         "video": true,
                         "audio": true,
