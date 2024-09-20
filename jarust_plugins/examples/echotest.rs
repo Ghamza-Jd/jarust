@@ -5,7 +5,7 @@ use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::StartOptions;
-use jarust_transport::transaction_gen::RandomTransactionGenerator;
+use jarust_transport::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;

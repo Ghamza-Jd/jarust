@@ -6,15 +6,15 @@ pub mod japlugin;
 pub mod jasession;
 pub mod prelude;
 
-pub use jarust_transport::transaction_gen::GenerateTransaction;
+pub use jarust_transport::tgenerator::GenerateTransaction;
 
 use jaconfig::ApiInterface;
 use jaconfig::JaConfig;
 use jaconnection::JaConnection;
-use jarust_transport::interface::janus_interface::ConnectionParams;
-use jarust_transport::interface::janus_interface::JanusInterface;
-use jarust_transport::interface::restful_interface::RestfulInterface;
-use jarust_transport::interface::websocket_interface::WebSocketInterface;
+use jarust_transport::janus_interface::ConnectionParams;
+use jarust_transport::janus_interface::JanusInterface;
+use jarust_transport::restful::RestfulInterface;
+use jarust_transport::websocket::WebSocketInterface;
 use prelude::JaResult;
 use tracing::Level;
 

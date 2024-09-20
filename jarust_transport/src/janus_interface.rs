@@ -8,7 +8,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::prelude::JaTransportResult;
 use crate::respones::ServerInfoRsp;
-use crate::transaction_gen::GenerateTransaction;
+use crate::tgenerator::GenerateTransaction;
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
 use std::ops::Deref;
