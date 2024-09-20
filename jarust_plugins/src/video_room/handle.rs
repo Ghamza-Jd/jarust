@@ -5,6 +5,7 @@ use jarust::prelude::*;
 use jarust_rt::JaTask;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use serde_json::json;
+use serde_json::Value;
 use std::ops::Deref;
 use std::time::Duration;
 
@@ -37,7 +38,7 @@ impl VideoRoomHandle {
         options: VideoRoomCreateOptions,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
 
         self.handle
@@ -51,9 +52,9 @@ impl VideoRoomHandle {
         options: VideoRoomDestroyOptions,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
-        message["room"] = serde_json::to_value(room)?;
+        message["room"] = room.try_into()?;
 
         self.handle
             .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
@@ -66,9 +67,9 @@ impl VideoRoomHandle {
         options: VideoRoomEditOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
-        message["room"] = serde_json::to_value(&room)?;
+        message["room"] = room.try_into()?;
 
         self.handle
             .send_waiton_rsp::<RoomEditedRsp>(message, timeout)
@@ -117,10 +118,10 @@ impl VideoRoomHandle {
             });
         }
 
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "allowed".into();
-        message["room"] = serde_json::to_value(room)?;
-        message["action"] = serde_json::to_value(action)?;
+        message["room"] = room.try_into()?;
+        message["action"] = action.try_into()?;
         if !allowed.is_empty() {
             message["allowed"] = serde_json::to_value(allowed)?;
         }
@@ -137,10 +138,10 @@ impl VideoRoomHandle {
         options: VideoRoomKickOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "kick".into();
-        message["room"] = serde_json::to_value(room)?;
-        message["participant"] = serde_json::to_value(participant)?;
+        message["room"] = room.try_into()?;
+        message["participant"] = participant.try_into()?;
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
@@ -169,9 +170,9 @@ impl VideoRoomHandle {
         options: VideoRoomEnableRecordingOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "enable_recording".into();
-        message["room"] = serde_json::to_value(room)?;
+        message["room"] = room.try_into()?;
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
@@ -267,10 +268,10 @@ impl VideoRoomHandle {
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "publisher".into();
-        message["room"] = serde_json::to_value(room)?;
+        message["room"] = room.try_into()?;
 
         match protocol {
             None => self.handle.send_waiton_ack(message, timeout).await?,
@@ -280,7 +281,6 @@ impl VideoRoomHandle {
                     .await?
             }
         };
-
         Ok(())
     }
 
@@ -303,10 +303,10 @@ impl VideoRoomHandle {
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "subscriber".into();
-        message["room"] = serde_json::to_value(room)?;
+        message["room"] = room.try_into()?;
 
         match protocol {
             None => self.handle.send_waiton_ack(message, timeout).await?,
@@ -316,7 +316,6 @@ impl VideoRoomHandle {
                     .await?
             }
         };
-
         Ok(())
     }
 
@@ -330,11 +329,9 @@ impl VideoRoomHandle {
         options: VideoRoomConfigurePublisherOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
-
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
@@ -345,11 +342,9 @@ impl VideoRoomHandle {
         options: VideoRoomConfigureSubscriberOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
-
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
@@ -360,14 +355,13 @@ impl VideoRoomHandle {
         configure_options: VideoRoomConfigurePublisherOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(JoinAndConfigureOptions {
+        let mut message: Value = JoinAndConfigureOptions {
             join_options,
             configure_options,
-        })?;
+        }
+        .try_into()?;
         message["request"] = "joinandconfigure".into();
-
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
@@ -383,13 +377,11 @@ impl VideoRoomHandle {
         options: VideoRoomPublishOptions,
         timeout: Duration,
     ) -> JaResult<()> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message: Value = options.try_into()?;
         message["request"] = "publish".into();
-
         self.handle
             .send_waiton_ack_with_establishment(message, establishment_protocol, timeout)
             .await?;
-
         Ok(())
     }
 
