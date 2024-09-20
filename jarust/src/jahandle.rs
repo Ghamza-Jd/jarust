@@ -41,6 +41,16 @@ impl JaHandle {
         }
     }
 
+    #[inline]
+    pub fn id(&self) -> u64 {
+        self.inner.id
+    }
+
+    #[inline]
+    pub fn session_id(&self) -> u64 {
+        self.inner.session_id
+    }
+
     /// Send a one-shot message
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {

@@ -36,6 +36,7 @@ impl AudioBridgeHandle {
     /// as an alternative to using the configuration file
     ///
     /// Random room number will be used if `room` is `None`
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn create_room(
         &self,
         room: Option<Identifier>,
@@ -55,11 +56,13 @@ impl AudioBridgeHandle {
     /// as an alternative to using the configuration file
     ///
     /// Random room number will be used if `room` is `None`
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn create_room_with_config(
         &self,
         options: CreateRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
+        tracing::info!(plugin = "audiobridge", "Sending create room");
         let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
         self.handle
@@ -68,12 +71,14 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to dynamically edit some room properties (e.g., the PIN)
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn edit_room(
         &self,
         room: Identifier,
         options: EditRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
+        tracing::info!(plugin = "audiobridge", "Sending edit room");
         let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
         message["room"] = room.try_into()?;
@@ -84,12 +89,14 @@ impl AudioBridgeHandle {
 
     /// Removes an audio conference bridge and destroys it,
     /// kicking all the users out as part of the process
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn destroy_room(
         &self,
         room: Identifier,
         options: DestroyRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
+        tracing::info!(plugin = "audiobridge", "Sending destory room");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
         message["room"] = room.try_into()?;
@@ -99,6 +106,7 @@ impl AudioBridgeHandle {
     }
 
     /// Join an audio room with the given room number and options.
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn join_room(
         &self,
         room: Identifier,
@@ -106,6 +114,7 @@ impl AudioBridgeHandle {
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
     ) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending join room");
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["room"] = room.try_into()?;
@@ -121,7 +130,9 @@ impl AudioBridgeHandle {
     }
 
     /// Lists all the available rooms.
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<Room>> {
+        tracing::info!(plugin = "audiobridge", "Sending list rooms");
         let message = json!({
             "request": "list"
         });
@@ -133,12 +144,14 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to edit who's allowed to join a room via ad-hoc tokens
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn allowed(
         &self,
         room: Identifier,
         options: AllowedOptions,
         timeout: Duration,
     ) -> JaResult<AllowedRsp> {
+        tracing::info!(plugin = "audiobridge", "Sending allowed");
         let mut message: Value = options.try_into()?;
         message["request"] = "allowed".into();
         message["room"] = room.try_into()?;
@@ -148,7 +161,9 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to check whether a specific audio conference room exists
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<bool> {
+        tracing::info!(plugin = "audiobridge", "Sending exists");
         let message = json!({
             "request": "exists",
             "room": room
@@ -162,11 +177,13 @@ impl AudioBridgeHandle {
     }
 
     /// Lists all the participants of a specific room and their details
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn list_participants(
         &self,
         room: Identifier,
         timeout: Duration,
     ) -> JaResult<ListParticipantsRsp> {
+        tracing::info!(plugin = "audiobridge", "Sending list participants");
         let message = json!({
             "request": "listparticipants",
             "room": room
@@ -177,7 +194,9 @@ impl AudioBridgeHandle {
     }
 
     /// Configure the media related settings of the participant
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn configure(&self, options: ConfigureOptions, timeout: Duration) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending configure");
         let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
@@ -185,49 +204,63 @@ impl AudioBridgeHandle {
     }
 
     /// Mute a participant
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn mute(&self, options: MuteOptions) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending mute");
         let mut message: Value = options.try_into()?;
         message["request"] = "mute".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Unmute a participant
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn unmute(&self, options: MuteOptions) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending unmute");
         let mut message: Value = options.try_into()?;
         message["request"] = "unmute".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Mute a room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn mute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending mute room");
         let mut message: Value = options.try_into()?;
         message["request"] = "mute_room".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Unmute a room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn unmute_room(&self, options: MuteRoomOptions) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending unmute room");
         let mut message: Value = options.try_into()?;
         message["request"] = "unmute_room".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Kicks a participants out of a room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn kick(&self, options: KickOptions) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending kick");
         let mut message: Value = options.try_into()?;
         message["request"] = "kick".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Kicks all pariticpants out of a room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn kick_all(&self, options: KickAllOptions) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending kick all");
         let mut message: Value = options.try_into()?;
         message["request"] = "kick_all".into();
         self.handle.fire_and_forget(message).await
     }
 
     /// Leave an audio room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn leave(&self, timeout: Duration) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending leave");
         let message = json!({
             "request" : "leave"
         });
@@ -236,12 +269,14 @@ impl AudioBridgeHandle {
     }
 
     /// Change the room you are in, instead of leaving and joining a new room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn change_room(
         &self,
         room: Identifier,
         options: ChangeRoomOptions,
         timeout: Duration,
     ) -> JaResult<()> {
+        tracing::info!(plugin = "audiobridge", "Sending change room");
         let mut message: Value = options.try_into()?;
         message["request"] = "changeroom".into();
         message["room"] = room.try_into()?;
