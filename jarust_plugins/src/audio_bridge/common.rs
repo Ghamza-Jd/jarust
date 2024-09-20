@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::common::Identifier;
+use crate::Identifier;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Participant {

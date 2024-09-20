@@ -8,12 +8,12 @@ use tokio::sync::mpsc;
 use tokio::sync::RwLock;
 
 #[derive(Debug)]
-pub struct Shared {
+struct Shared {
     root_path: String,
 }
 
 #[derive(Debug)]
-pub struct Exclusive {
+struct Exclusive {
     routes: HashMap<String, mpsc::UnboundedSender<JaResponse>>,
 }
 

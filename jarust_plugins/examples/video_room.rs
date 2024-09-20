@@ -1,14 +1,13 @@
 use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::CreateConnectionParams;
-use jarust::TransactionGenerationStrategy;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::msg_options::*;
-use jarust_plugins::AttachPluginParams;
 use jarust_plugins::Identifier;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
+use jarust_transport::transaction_gen::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -25,21 +24,15 @@ async fn main() -> anyhow::Result<()> {
         .url("ws://localhost:8188/ws")
         .capacity(32)
         .build();
-    let mut connection = jarust::connect(
-        config,
-        ApiInterface::WebSocket,
-        TransactionGenerationStrategy::Random,
-    )
-    .await?;
+    let mut connection =
+        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
             timeout,
         })
         .await?;
-    let (handle, mut events) = session
-        .attach_video_room(AttachPluginParams { timeout })
-        .await?;
+    let (handle, mut events) = session.attach_video_room(timeout).await?;
 
     tokio::spawn(async move {
         while let Some(e) = events.recv().await {

@@ -24,13 +24,19 @@ pub struct JaHandle {
     inner: Arc<InnerHandle>,
 }
 
+pub struct NewHandleParams {
+    pub handle_id: u64,
+    pub session_id: u64,
+    pub interface: JanusInterfaceImpl,
+}
+
 impl JaHandle {
-    pub(crate) async fn new(id: u64, session_id: u64, interface: JanusInterfaceImpl) -> Self {
+    pub(crate) async fn new(params: NewHandleParams) -> Self {
         Self {
             inner: Arc::new(InnerHandle {
-                id,
-                session_id,
-                interface,
+                id: params.handle_id,
+                session_id: params.session_id,
+                interface: params.interface,
             }),
         }
     }

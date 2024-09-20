@@ -1,9 +1,6 @@
 #[macro_use]
 mod from;
 
-pub use common::AttachPluginParams;
-pub use common::Identifier;
-
 #[cfg(feature = "echo_test")]
 pub mod echo_test;
 
@@ -14,3 +11,4 @@ pub mod audio_bridge;
 pub mod video_room;
 
 pub mod common;
+pub use common::Identifier;

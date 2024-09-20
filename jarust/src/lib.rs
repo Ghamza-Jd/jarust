@@ -7,7 +7,6 @@ pub mod jasession;
 pub mod prelude;
 
 pub use jarust_transport::transaction_gen::GenerateTransaction;
-pub use jarust_transport::transaction_gen::TransactionGenerationStrategy;
 
 use jaconfig::ApiInterface;
 use jaconfig::JaConfig;
@@ -35,8 +34,8 @@ use tracing::Level;
 #[cfg(not(target_family = "wasm"))]
 pub async fn connect(
     jaconfig: JaConfig,
-    transport_type: ApiInterface,
-    transaction_generation_strategy: TransactionGenerationStrategy,
+    api_interface: ApiInterface,
+    transaction_generator: impl GenerateTransaction,
 ) -> JaResult<JaConnection> {
     let conn_params = ConnectionParams {
         url: jaconfig.url,
@@ -44,8 +43,7 @@ pub async fn connect(
         apisecret: jaconfig.apisecret,
         namespace: jaconfig.namespace,
     };
-    let transaction_generator = transaction_generation_strategy.generator();
-    match transport_type {
+    match api_interface {
         ApiInterface::WebSocket => {
             custom_connect(
                 WebSocketInterface::make_interface(conn_params, transaction_generator).await?,
@@ -65,8 +63,8 @@ pub async fn connect(
 #[cfg(target_family = "wasm")]
 pub async fn connect(
     jaconfig: JaConfig,
-    transport_type: ApiInterface,
-    transaction_generation_strategy: TransactionGenerationStrategy,
+    api_interface: ApiInterface,
+    transaction_generator: impl GenerateTransaction,
 ) -> JaResult<JaConnection> {
     todo!("WASM is not supported yet")
 }
