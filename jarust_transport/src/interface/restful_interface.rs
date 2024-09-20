@@ -368,6 +368,10 @@ impl JanusInterface for RestfulInterface {
             .await?;
         Ok(response)
     }
+
+    fn name(&self) -> Box<str> {
+        "Restful Interface".to_string().into_boxed_str()
+    }
 }
 
 impl Drop for Exclusive {
