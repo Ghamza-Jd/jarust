@@ -60,7 +60,7 @@ mod tests {
         interface.mock_create_rsp(response).await;
 
         let session = connection
-            .create(CreateConnectionParams {
+            .create_session(CreateConnectionParams {
                 ka_interval: 10,
                 timeout: Duration::from_secs(10),
             })
@@ -99,7 +99,7 @@ mod tests {
         interface.mock_create_rsp(response).await;
 
         let session = connection
-            .create(CreateConnectionParams {
+            .create_session(CreateConnectionParams {
                 ka_interval: 10,
                 timeout: Duration::from_secs(10),
             })

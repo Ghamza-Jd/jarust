@@ -70,7 +70,7 @@ pub async fn connect(
 }
 
 /// Creates a new customized connection with janus server from the provided configs, custom transport, and custom transaction generator.
-#[tracing::instrument(level = Level::TRACE)]
+#[tracing::instrument(level = Level::TRACE, skip_all)]
 pub async fn custom_connect(interface: impl JanusInterface) -> JaResult<JaConnection> {
     JaConnection::open(interface).await
 }

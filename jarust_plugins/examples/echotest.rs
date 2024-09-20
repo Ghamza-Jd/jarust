@@ -15,19 +15,22 @@ async fn main() -> anyhow::Result<()> {
     let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
     let env_filter = EnvFilter::from_default_env()
         .add_directive("jarust=trace".parse()?)
-        .add_directive(format!("{filename}=trace").parse()?);
+        .add_directive("jarust_plugins=trace".parse()?)
+        .add_directive("jarust_transport=trace".parse()?)
+        .add_directive("jarust_rt=trace".parse()?)
+        .add_directive(format!("{filename}=error").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let capacity = 32;
     let config = JaConfig::builder()
-        .url("ws://localhost:8188/ws")
+        .url("wss://janus.conf.meetecho.com/ws")
         .capacity(capacity)
         .build();
     let mut connection =
         jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
-        .create(CreateConnectionParams {
+        .create_session(CreateConnectionParams {
             ka_interval: 10,
             timeout,
         })

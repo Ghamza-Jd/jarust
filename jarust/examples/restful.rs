@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
     let timeout = Duration::from_secs(10);
 
     let session = connection
-        .create(CreateConnectionParams {
+        .create_session(CreateConnectionParams {
             ka_interval: 10,
             timeout,
         })

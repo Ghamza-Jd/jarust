@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct RingBufMap<K, V> {
@@ -10,10 +11,11 @@ pub struct RingBufMap<K, V> {
 
 impl<K, V> RingBufMap<K, V>
 where
-    K: std::hash::Hash + Eq + Clone,
+    K: std::hash::Hash + Eq + Clone + Debug,
 {
     pub fn new(capacity: usize) -> Self {
         assert!(capacity > 0, "capacity should be > 0");
+        tracing::trace!(capacity = capacity, "Created new RingBufMap");
         Self {
             map: HashMap::with_capacity(capacity),
             keys: VecDeque::with_capacity(capacity),
@@ -21,6 +23,7 @@ where
         }
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, value))]
     pub fn put(&mut self, key: K, value: V) {
         if self.keys.len() == self.capacity {
             if let Some(oldest_key) = self.keys.pop_front() {
@@ -29,9 +32,12 @@ where
         }
         self.keys.push_back(key.clone());
         self.map.insert(key, value);
+        tracing::trace!("Value inserted");
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
     pub fn get(&self, key: &K) -> Option<&V> {
+        tracing::trace!("Getting value");
         self.map.get(key)
     }
 }

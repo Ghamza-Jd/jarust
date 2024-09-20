@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
     let mut connection =
         jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
-        .create(CreateConnectionParams {
+        .create_session(CreateConnectionParams {
             ka_interval: 10,
             timeout,
         })

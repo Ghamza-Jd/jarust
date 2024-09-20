@@ -52,10 +52,12 @@ impl WebSocketClient {
         }
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn connect(
         &mut self,
         url: &str,
     ) -> JaTransportResult<mpsc::UnboundedReceiver<Bytes>> {
+        tracing::debug!("Connecting to {url}");
         let mut request = url.into_client_request()?;
         let headers = request.headers_mut();
         headers.insert("Sec-Websocket-Protocol", "janus-protocol".parse()?);
@@ -64,7 +66,7 @@ impl WebSocketClient {
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let task = jarust_rt::spawn(async move {
+        let task = jarust_rt::spawn_with_name("WebSocket incoming messages", async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
                     let _ = tx.send(text.into());

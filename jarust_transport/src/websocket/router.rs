@@ -43,7 +43,7 @@ impl Router {
         });
         let mut jarouter = Self { inner };
         let channel = jarouter.make_root_route().await;
-        tracing::debug!("created new JaRouter");
+        tracing::trace!("created new JaRouter");
         (jarouter, channel)
     }
 
