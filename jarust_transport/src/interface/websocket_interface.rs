@@ -403,6 +403,10 @@ impl JanusInterface for WebSocketInterface {
         let transaction = self.send(request).await?;
         self.poll_ack(&transaction, message.timeout).await
     }
+
+    fn name(&self) -> Box<str> {
+        "WebSocket Interface".to_string().into_boxed_str()
+    }
 }
 
 impl Drop for InnerWebSocketInterface {
