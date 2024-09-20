@@ -62,10 +62,12 @@ impl RestfulInterface {
 
 #[async_trait::async_trait]
 impl JanusInterface for RestfulInterface {
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
     ) -> JaTransportResult<Self> {
+        tracing::debug!("Creating new Restful Interface");
         let client = reqwest::Client::new();
         let transaction_generator = TransactionGenerator::new(transaction_generator);
         let shared = Shared {
@@ -84,6 +86,7 @@ impl JanusInterface for RestfulInterface {
         })
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
         let url = &self.inner.shared.url;
         let request = json!({"janus": "create"});
@@ -119,6 +122,7 @@ impl JanusInterface for RestfulInterface {
         Ok(session_id)
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
         let url = &self.inner.shared.url;
         let response = self
@@ -141,6 +145,7 @@ impl JanusInterface for RestfulInterface {
         }
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn attach(
         &self,
         session_id: u64,
@@ -182,7 +187,7 @@ impl JanusInterface for RestfulInterface {
         };
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let handle = jarust_rt::spawn({
+        let handle = jarust_rt::spawn_with_name("Long polling", {
             let client = self.inner.shared.client.clone();
             let url = url.clone();
 
@@ -212,6 +217,7 @@ impl JanusInterface for RestfulInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let url = &self.inner.shared.url;
         let request = json!({
@@ -230,6 +236,7 @@ impl JanusInterface for RestfulInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
@@ -250,6 +257,7 @@ impl JanusInterface for RestfulInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack(
         &self,
         message: HandleMessageWithTimeout,
@@ -304,6 +312,7 @@ impl JanusInterface for RestfulInterface {
         Ok(response)
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
@@ -335,6 +344,7 @@ impl JanusInterface for RestfulInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,

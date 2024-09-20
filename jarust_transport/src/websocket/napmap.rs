@@ -25,6 +25,7 @@ where
 {
     pub fn new(buffer: usize) -> Self {
         assert!(buffer > 0, "buffer > 0");
+        tracing::trace!("Created new NapMap");
         Self {
             map: Arc::new(AsyncRwLock::new(IndexMap::with_capacity(buffer))),
             notifiers: Arc::new(AsyncMutex::new(HashMap::new())),
@@ -32,42 +33,42 @@ where
         }
     }
 
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, v))]
-    pub async fn insert(&self, k: K, v: V) {
-        tracing::trace!("Insert");
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, value))]
+    pub async fn insert(&self, key: K, value: V) {
+        tracing::trace!("Inserting");
 
         let mut map = self.map.write().await;
         if map.len() >= self.bound {
             map.pop();
         }
-        map.insert(k.clone(), v);
+        map.insert(key.clone(), value);
         drop(map);
 
-        if let Some(notify) = self.notifiers.lock().await.remove(&k) {
+        if let Some(notify) = self.notifiers.lock().await.remove(&key) {
             notify.notify_waiters();
             tracing::trace!("Notified all waiting tasks");
         }
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    pub async fn get(&self, k: K) -> Option<V> {
-        tracing::trace!("Get");
-        if self.map.read().await.contains_key(&k) {
-            tracing::debug!("Contains key");
-            return self.map.read().await.get(&k).cloned();
+    pub async fn get(&self, key: K) -> Option<V> {
+        tracing::trace!("Getting value");
+        if self.map.read().await.contains_key(&key) {
+            tracing::debug!("Key present");
+            return self.map.read().await.get(&key).cloned();
         }
 
         let mut notifiers = self.notifiers.lock().await;
         let notify = notifiers
-            .entry(k.clone())
+            .entry(key.clone())
             .or_insert(Arc::new(Notify::new()))
             .clone();
         drop(notifiers);
 
-        tracing::trace!("Waiting...");
+        tracing::trace!("Waiting for key");
         notify.notified().await;
-        tracing::trace!("Notified, data is available");
-        self.map.read().await.get(&k).cloned()
+        tracing::trace!("Key is available");
+        self.map.read().await.get(&key).cloned()
     }
 
     #[allow(unused)]

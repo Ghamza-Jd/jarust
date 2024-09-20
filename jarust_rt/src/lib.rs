@@ -8,10 +8,22 @@ pub mod jatask;
 use futures_util::Future;
 pub use jatask::JaTask;
 
+#[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
 pub fn spawn<F>(future: F) -> JaTask
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
 {
+    tracing::trace!("Spawning task");
+    jatask::spawn(future)
+}
+
+#[tracing::instrument(level = tracing::Level::TRACE, skip(future))]
+pub fn spawn_with_name<F>(name: &str, future: F) -> JaTask
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    tracing::trace!("Spawning task");
     jatask::spawn(future)
 }

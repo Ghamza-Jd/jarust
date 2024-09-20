@@ -52,7 +52,7 @@ impl JaSession {
 
         let this = session.clone();
 
-        let keepalive_task = jarust_rt::spawn(async move {
+        let keepalive_task = jarust_rt::spawn_with_name("keepalive", async move {
             let _ = this.keep_alive(params.ka_interval).await;
         });
 

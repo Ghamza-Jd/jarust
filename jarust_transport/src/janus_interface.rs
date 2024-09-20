@@ -96,6 +96,7 @@ impl JanusInterfaceImpl {
         }
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn send_msg_waiton_rsp<R>(
         &self,
         message: HandleMessageWithTimeout,

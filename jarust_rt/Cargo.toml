@@ -16,6 +16,7 @@ doctest = false
 [dependencies]
 futures-util.workspace = true
 tokio = { workspace = true, features = ["rt"] }
+tracing.workspace = true
 
 [features]
 default = ["tokio-rt"]

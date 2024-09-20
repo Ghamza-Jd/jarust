@@ -35,7 +35,7 @@ impl JaConnection {
 
     /// Creates a new session with janus server.
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
+    pub async fn create_session(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
         let session_id = self.inner.interface.create(params.timeout).await?;
         let session = JaSession::new(NewSessionParams {

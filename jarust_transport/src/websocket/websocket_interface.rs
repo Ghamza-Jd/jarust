@@ -65,11 +65,11 @@ impl WebSocketInterface {
         let mut guard = self.inner.exclusive.lock().await;
         guard.transaction_manager.insert(&transaction, &path).await;
         guard.ws.send(message.to_string().as_bytes(), &path).await?;
-        tracing::debug!("{message:#?}");
+        tracing::trace!("Sending {message:#?}");
         Ok(transaction)
     }
 
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, timeout))]
     async fn poll_response(
         &self,
         transaction: &str,
@@ -100,7 +100,7 @@ impl WebSocketInterface {
         }
     }
 
-    #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
+    #[tracing::instrument(level = tracing::Level::TRACE, skip(self, timeout))]
     async fn poll_ack(
         &self,
         transaction: &str,
@@ -147,10 +147,12 @@ impl WebSocketInterface {
 
 #[async_trait::async_trait]
 impl JanusInterface for WebSocketInterface {
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
     ) -> JaTransportResult<Self> {
+        tracing::debug!("Creating WebSocket Interface");
         let (router, _) = Router::new(&conn_params.namespace).await;
         let mut websocket = WebSocketClient::new();
         let receiver = websocket.connect(&conn_params.url).await?;
@@ -163,7 +165,7 @@ impl JanusInterface for WebSocketInterface {
         let (rsp_sender, mut rsp_receiver) = mpsc::unbounded_channel::<JaResponse>();
         let (ack_sender, mut ack_receiver) = mpsc::unbounded_channel::<JaResponse>();
 
-        let rsp_task = jarust_rt::spawn({
+        let rsp_task = jarust_rt::spawn_with_name("Responses gathering task", {
             let rsp_map = rsp_map.clone();
             async move {
                 while let Some(rsp) = rsp_receiver.recv().await {
@@ -174,7 +176,7 @@ impl JanusInterface for WebSocketInterface {
             }
         });
 
-        let ack_task = jarust_rt::spawn({
+        let ack_task = jarust_rt::spawn_with_name("ACKs gathering task", {
             let ack_map = ack_map.clone();
             async move {
                 while let Some(rsp) = ack_receiver.recv().await {
@@ -185,7 +187,7 @@ impl JanusInterface for WebSocketInterface {
             }
         });
 
-        let demux_task = jarust_rt::spawn({
+        let demux_task = jarust_rt::spawn_with_name("Demultiplexing task", {
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
             let demuxer = Demuxer {
@@ -221,6 +223,7 @@ impl JanusInterface for WebSocketInterface {
         Ok(this)
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64> {
         let request = json!({
             "janus": "create"
@@ -246,6 +249,7 @@ impl JanusInterface for WebSocketInterface {
         Ok(session_id)
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
         let request = json!({
             "janus": "info"
@@ -262,6 +266,7 @@ impl JanusInterface for WebSocketInterface {
         }
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn attach(
         &self,
         session_id: u64,
@@ -301,6 +306,7 @@ impl JanusInterface for WebSocketInterface {
         Ok((handle_id, receiver))
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let request = json!({
             "janus": "keepalive",
@@ -311,6 +317,7 @@ impl JanusInterface for WebSocketInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()> {
         let request = json!({
             "janus": "destroy",
@@ -321,6 +328,7 @@ impl JanusInterface for WebSocketInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()> {
         let request = json!({
             "janus": "message",
@@ -332,6 +340,7 @@ impl JanusInterface for WebSocketInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack(
         &self,
         message: HandleMessageWithTimeout,
@@ -360,6 +369,7 @@ impl JanusInterface for WebSocketInterface {
         self.poll_response(&transaction, message.timeout).await
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
@@ -382,6 +392,7 @@ impl JanusInterface for WebSocketInterface {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,

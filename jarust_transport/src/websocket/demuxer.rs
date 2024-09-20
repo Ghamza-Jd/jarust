@@ -25,7 +25,7 @@ impl Demuxer {
                 continue;
             };
 
-            tracing::debug!("Received {incoming_event}");
+            tracing::trace!("Received {incoming_event}");
 
             // Parse the incoming message
             match serde_json::from_str::<JaResponse>(incoming_event) {
