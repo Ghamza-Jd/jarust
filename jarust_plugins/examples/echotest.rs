@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
         .add_directive("jarust_plugins=trace".parse()?)
         .add_directive("jarust_transport=trace".parse()?)
         .add_directive("jarust_rt=trace".parse()?)
-        .add_directive(format!("{filename}=error").parse()?);
+        .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let capacity = 32;

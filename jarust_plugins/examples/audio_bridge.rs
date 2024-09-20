@@ -12,6 +12,9 @@ async fn main() -> anyhow::Result<()> {
     let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
     let env_filter = EnvFilter::from_default_env()
         .add_directive("jarust=trace".parse()?)
+        .add_directive("jarust_plugins=trace".parse()?)
+        .add_directive("jarust_transport=trace".parse()?)
+        .add_directive("jarust_rt=trace".parse()?)
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
