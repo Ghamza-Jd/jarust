@@ -1,5 +1,5 @@
 use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::TransportType;
+use jarust::jaconfig::ApiInterface;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
@@ -25,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
     let mut connection = jarust::connect(
         config,
-        TransportType::Ws,
+        ApiInterface::WebSocket,
         TransactionGenerationStrategy::Random,
     )
     .await?;

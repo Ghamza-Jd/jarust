@@ -1,5 +1,5 @@
+use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::TransportType;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::TransactionGenerationStrategy;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
         .build();
     let mut connection = jarust::connect(
         config,
-        TransportType::Ws,
+        ApiInterface::WebSocket,
         TransactionGenerationStrategy::Random,
     )
     .await?;
