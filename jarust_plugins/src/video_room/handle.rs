@@ -18,6 +18,7 @@ pub struct VideoRoomHandle {
 // synchronous methods
 //
 impl VideoRoomHandle {
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn create_room(
         &self,
         room: Option<Identifier>,
@@ -33,11 +34,13 @@ impl VideoRoomHandle {
         .await
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn create_room_with_config(
         &self,
         options: VideoRoomCreateOptions,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
+        tracing::info!(plugin = "videoroom", "Sending create");
         let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
 
@@ -46,12 +49,14 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn destroy_room(
         &self,
         room: Identifier,
         options: VideoRoomDestroyOptions,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
+        tracing::info!(plugin = "videoroom", "Sending destroy");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
         message["room"] = room.try_into()?;
@@ -61,12 +66,14 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn edit_room(
         &self,
         room: Identifier,
         options: VideoRoomEditOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
+        tracing::info!(plugin = "videoroom", "Sending edit");
         let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
         message["room"] = room.try_into()?;
@@ -76,7 +83,9 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<RoomExistsRsp> {
+        tracing::info!(plugin = "videoroom", "Sending exists");
         let message = json!({
             "request": "exists",
             "room": room
@@ -87,7 +96,9 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn list(&self, timeout: Duration) -> JaResult<Vec<Room>> {
+        tracing::info!(plugin = "videoroom", "Sending list");
         let response = self
             .handle
             .send_waiton_rsp::<ListRoomsRsp>(
@@ -101,6 +112,7 @@ impl VideoRoomHandle {
         Ok(response.list)
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn allowed(
         &self,
         room: Identifier,
@@ -118,6 +130,7 @@ impl VideoRoomHandle {
             });
         }
 
+        tracing::info!(plugin = "videoroom", "Sending allowed");
         let mut message: Value = options.try_into()?;
         message["request"] = "allowed".into();
         message["room"] = room.try_into()?;
@@ -131,6 +144,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn kick(
         &self,
         room: Identifier,
@@ -138,12 +152,46 @@ impl VideoRoomHandle {
         options: VideoRoomKickOptions,
         timeout: Duration,
     ) -> JaResult<()> {
+        tracing::info!(plugin = "videoroom", "Sending kick");
         let mut message: Value = options.try_into()?;
         message["request"] = "kick".into();
         message["room"] = room.try_into()?;
         message["participant"] = participant.try_into()?;
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
+    }
+
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    pub async fn enable_recording(
+        &self,
+        room: Identifier,
+        options: VideoRoomEnableRecordingOptions,
+        timeout: Duration,
+    ) -> JaResult<()> {
+        tracing::info!(plugin = "videoroom", "Sending enable recording");
+        let mut message: Value = options.try_into()?;
+        message["request"] = "enable_recording".into();
+        message["room"] = room.try_into()?;
+
+        self.handle.send_waiton_rsp::<()>(message, timeout).await
+    }
+
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    pub async fn list_participants(
+        &self,
+        room: Identifier,
+        timeout: Duration,
+    ) -> JaResult<ListParticipantsRsp> {
+        tracing::info!(plugin = "videoroom", "Sending list participants");
+        self.handle
+            .send_waiton_rsp::<ListParticipantsRsp>(
+                json!({
+                    "request": "listparticipants",
+                    "room": room
+                }),
+                timeout,
+            )
+            .await
     }
 
     #[cfg(feature = "__experimental")]
@@ -162,35 +210,6 @@ impl VideoRoomHandle {
         message["m_line"] = serde_json::to_value(m_line)?;
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
-    }
-
-    pub async fn enable_recording(
-        &self,
-        room: Identifier,
-        options: VideoRoomEnableRecordingOptions,
-        timeout: Duration,
-    ) -> JaResult<()> {
-        let mut message: Value = options.try_into()?;
-        message["request"] = "enable_recording".into();
-        message["room"] = room.try_into()?;
-
-        self.handle.send_waiton_rsp::<()>(message, timeout).await
-    }
-
-    pub async fn list_participants(
-        &self,
-        room: Identifier,
-        timeout: Duration,
-    ) -> JaResult<ListParticipantsRsp> {
-        self.handle
-            .send_waiton_rsp::<ListParticipantsRsp>(
-                json!({
-                    "request": "listparticipants",
-                    "room": room
-                }),
-                timeout,
-            )
-            .await
     }
 
     #[cfg(feature = "__experimental")]
