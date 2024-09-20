@@ -11,16 +11,20 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
     pub async fn start(&self, options: StartOptions) -> JaResult<()> {
+        tracing::info!(plugin = "echotest", "Sending start");
         self.handle.fire_and_forget(options.try_into()?).await
     }
 
-    pub async fn start_with_establishment(
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    pub async fn start_with_est(
         &self,
         options: StartOptions,
         establishment: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<()> {
+        tracing::info!(plugin = "echotest", "Sending start with establishment");
         self.send_waiton_ack_with_est(options.try_into()?, establishment, timeout)
             .await?;
         Ok(())

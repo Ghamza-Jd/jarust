@@ -76,7 +76,7 @@ impl JaSession {
             interval.tick().await;
             tracing::debug!("Sending keep-alive");
             let _ = self.inner.shared.interface.keep_alive(id, duration).await;
-            tracing::debug!("Kept alive");
+            tracing::debug!("Ok");
         }
     }
 }

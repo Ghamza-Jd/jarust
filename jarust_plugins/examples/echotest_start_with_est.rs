@@ -38,7 +38,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 
     let rsp = handle
-        .start_with_establishment(
+        .start_with_est(
             StartOptions {
                 audio: true,
                 video: true,
