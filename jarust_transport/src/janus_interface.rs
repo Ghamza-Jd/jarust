@@ -46,10 +46,21 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse>;
+
+    /// Internal method to send a message and wait for the response. Ideally, this shouldn't be internal,
+    /// but we can't have a generic return type for this method as it would be considered object-unsafe.
+    ///
+    /// Being object-unsafe means we can't use it as a trait object (dyn JanusInterface). Therefore, we have to
+    /// make this internal, and the public method that uses this one will have a generic return type.
+    /// See [`JanusInterfaceImpl::send_msg_waiton_rsp`] for the public method.
+    ///
+    /// Check this stack overflow asnwer for the technicalities:
+    /// https://stackoverflow.com/questions/67767207/why-are-trait-methods-with-generic-type-parameters-object-unsafe
     async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse>;
+
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
@@ -59,6 +70,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse>;
 
+    // Returns the name of the interface for the debug trait
     fn name(&self) -> Box<str> {
         "Janus Interface".to_string().into_boxed_str()
     }
