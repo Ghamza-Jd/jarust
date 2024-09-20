@@ -277,7 +277,7 @@ impl VideoRoomHandle {
             None => self.handle.send_waiton_ack(message, timeout).await?,
             Some(ep) => {
                 self.handle
-                    .send_waiton_ack_with_establishment(message, ep, timeout)
+                    .send_waiton_ack_with_est(message, ep, timeout)
                     .await?
             }
         };
@@ -312,7 +312,7 @@ impl VideoRoomHandle {
             None => self.handle.send_waiton_ack(message, timeout).await?,
             Some(ep) => {
                 self.handle
-                    .send_waiton_ack_with_establishment(message, ep, timeout)
+                    .send_waiton_ack_with_est(message, ep, timeout)
                     .await?
             }
         };
@@ -380,7 +380,7 @@ impl VideoRoomHandle {
         let mut message: Value = options.try_into()?;
         message["request"] = "publish".into();
         self.handle
-            .send_waiton_ack_with_establishment(message, establishment_protocol, timeout)
+            .send_waiton_ack_with_est(message, establishment_protocol, timeout)
             .await?;
         Ok(())
     }
@@ -405,11 +405,7 @@ impl VideoRoomHandle {
         timeout: Duration,
     ) -> JaResult<()> {
         self.handle
-            .send_waiton_ack_with_establishment(
-                json!({"request": "start"}),
-                establishment_protocol,
-                timeout,
-            )
+            .send_waiton_ack_with_est(json!({"request": "start"}), establishment_protocol, timeout)
             .await?;
         Ok(())
     }

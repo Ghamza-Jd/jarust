@@ -60,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
                 .unwrap();
 
             handle
-                .fire_and_forget_with_establishment(
+                .fire_and_forget_with_est(
                     json!({
                         "video": true,
                         "audio": true,

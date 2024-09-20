@@ -112,7 +112,7 @@ impl AudioBridgeHandle {
         match protocol {
             Some(protocol) => {
                 self.handle
-                    .send_waiton_ack_with_establishment(message, protocol, timeout)
+                    .send_waiton_ack_with_est(message, protocol, timeout)
                     .await?
             }
             None => self.handle.send_waiton_ack(message, timeout).await?,

@@ -21,7 +21,7 @@ impl EchoTestHandle {
         establishment: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<()> {
-        self.send_waiton_ack_with_establishment(options.try_into()?, establishment, timeout)
+        self.send_waiton_ack_with_est(options.try_into()?, establishment, timeout)
             .await?;
         Ok(())
     }

@@ -42,7 +42,9 @@ impl JaHandle {
     }
 
     /// Send a one-shot message
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
+        tracing::debug!("Sending one-shot message");
         self.inner
             .interface
             .fire_and_forget_msg(HandleMessage {
@@ -55,10 +57,12 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the expected response
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_rsp<R>(&self, body: Value, timeout: Duration) -> JaResult<R>
     where
         R: DeserializeOwned,
     {
+        tracing::debug!("Sending message and waiting for response");
         let res = self
             .inner
             .interface
@@ -73,7 +77,9 @@ impl JaHandle {
     }
 
     /// Send a message and wait for the ack
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
+        tracing::debug!("Sending message and waiting for ackowledgement");
         let ack = self
             .inner
             .interface
@@ -88,12 +94,14 @@ impl JaHandle {
     }
 
     /// Send a message with a specific establishment protocol and wait for the ack
-    pub async fn send_waiton_ack_with_establishment(
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
+    pub async fn send_waiton_ack_with_est(
         &self,
         body: Value,
         protocol: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<JaResponse> {
+        tracing::debug!("Sending message with establishment and waiting for ackowledgement");
         let ack = self
             .inner
             .interface
@@ -109,11 +117,13 @@ impl JaHandle {
     }
 
     /// Send a one-shot message with a specific establishment protocol
-    pub async fn fire_and_forget_with_establishment(
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
+    pub async fn fire_and_forget_with_est(
         &self,
         body: Value,
         protocol: EstablishmentProtocol,
     ) -> JaResult<()> {
+        tracing::debug!("Sending a one-shot message with establishment");
         self.inner
             .interface
             .fire_and_forget_msg_with_est(HandleMessageWithEstablishment {
@@ -128,7 +138,9 @@ impl JaHandle {
 }
 
 impl JaHandle {
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn hangup(&self, timeout: Duration) -> JaResult<()> {
+        tracing::info!("Hanging up");
         let request = json!({
             "janus": "hangup"
         });
@@ -136,7 +148,9 @@ impl JaHandle {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn detach(self, timeout: Duration) -> JaResult<()> {
+        tracing::info!("Detaching");
         let request = json!({
             "janus": "detach"
         });
@@ -144,11 +158,13 @@ impl JaHandle {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn trickle_single_candidate(
         &self,
         candidate: Candidate,
         timeout: Duration,
     ) -> JaResult<()> {
+        tracing::info!("Trickling single candidate");
         let request = json!({
             "janus": "trickle",
             "candidate": candidate
@@ -157,11 +173,13 @@ impl JaHandle {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn trickle_candidates(
         &self,
         candidates: Vec<Candidate>,
         timeout: Duration,
     ) -> JaResult<()> {
+        tracing::info!("Trickling candidates");
         let request = json!({
             "janus": "trickle",
             "candidates": candidates
@@ -170,7 +188,9 @@ impl JaHandle {
         Ok(())
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn complete_trickle(&self, timeout: Duration) -> JaResult<()> {
+        tracing::info!("Completing trickle");
         let request = json!({
             "janus": "trickle",
             "candidate": {
