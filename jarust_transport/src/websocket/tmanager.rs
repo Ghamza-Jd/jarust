@@ -1,4 +1,4 @@
-use crate::ringbuf_map::RingBufMap;
+use super::ringbuf_map::RingBufMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -21,7 +21,7 @@ impl TransactionManager {
     }
 
     #[tracing::instrument(parent = None, skip(self))]
-    pub async fn insert(&self, id: &str, transaction: &str) {
+    pub(crate) async fn insert(&self, id: &str, transaction: &str) {
         self.inner.write().await.put(id.into(), transaction.into());
     }
 }

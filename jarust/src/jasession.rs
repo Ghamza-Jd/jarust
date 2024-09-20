@@ -4,7 +4,7 @@ use crate::japlugin::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_rt::JaTask;
-use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
+use jarust_transport::janus_interface::JanusInterfaceImpl;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;

@@ -9,8 +9,8 @@ mod tests {
     use jarust::japlugin::AttachHandleParams;
     use jarust::prelude::Attach;
     use jarust::prelude::JaResponse;
-    use jarust_transport::interface::janus_interface::ConnectionParams;
-    use jarust_transport::interface::janus_interface::JanusInterface;
+    use jarust_transport::janus_interface::ConnectionParams;
+    use jarust_transport::janus_interface::JanusInterface;
     use jarust_transport::japrotocol::GenericEvent;
     use jarust_transport::japrotocol::JaData;
     use jarust_transport::japrotocol::JaHandleEvent;

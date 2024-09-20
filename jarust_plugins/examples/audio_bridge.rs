@@ -3,7 +3,7 @@ use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::MuteOptions;
-use jarust_transport::transaction_gen::RandomTransactionGenerator;
+use jarust_transport::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 

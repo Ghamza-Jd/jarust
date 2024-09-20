@@ -9,8 +9,8 @@ mod tests {
     use jarust::jaconnection::CreateConnectionParams;
     use jarust::prelude::JaResponse;
     use jarust_transport::error::JaTransportError;
-    use jarust_transport::interface::janus_interface::ConnectionParams;
-    use jarust_transport::interface::janus_interface::JanusInterface;
+    use jarust_transport::janus_interface::ConnectionParams;
+    use jarust_transport::janus_interface::JanusInterface;
     use jarust_transport::japrotocol::ErrorResponse;
     use jarust_transport::japrotocol::JaData;
     use jarust_transport::japrotocol::JaSuccessProtocol;

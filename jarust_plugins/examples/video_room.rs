@@ -7,7 +7,7 @@ use jarust_plugins::Identifier;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
-use jarust_transport::transaction_gen::RandomTransactionGenerator;
+use jarust_transport::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 

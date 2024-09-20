@@ -3,7 +3,7 @@ use jarust_transport::handle_msg::HandleMessage;
 use jarust_transport::handle_msg::HandleMessageWithEstablishment;
 use jarust_transport::handle_msg::HandleMessageWithEstablishmentAndTimeout;
 use jarust_transport::handle_msg::HandleMessageWithTimeout;
-use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
+use jarust_transport::janus_interface::JanusInterfaceImpl;
 use jarust_transport::japrotocol::Candidate;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::JaResponse;

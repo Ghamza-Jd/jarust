@@ -6,7 +6,7 @@ use jarust::japlugin::AttachHandleParams;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
-use jarust_transport::transaction_gen::RandomTransactionGenerator;
+use jarust_transport::tgenerator::RandomTransactionGenerator;
 use serde_json::json;
 use std::path::Path;
 use std::time::Duration;
