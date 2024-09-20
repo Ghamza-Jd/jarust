@@ -3,10 +3,10 @@ use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
 use jarust::japlugin::AttachHandleParams;
-use jarust::TransactionGenerationStrategy;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
+use jarust_transport::transaction_gen::RandomTransactionGenerator;
 use serde_json::json;
 use std::path::Path;
 use std::time::Duration;
@@ -26,12 +26,8 @@ async fn main() -> anyhow::Result<()> {
         .url("wss://janus.conf.meetecho.com/ws")
         .capacity(capacity)
         .build();
-    let mut connection = jarust::connect(
-        config,
-        ApiInterface::WebSocket,
-        TransactionGenerationStrategy::Random,
-    )
-    .await?;
+    let mut connection =
+        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
 
     tracing::info!("server info: {:#?}", connection.server_info(timeout).await?);

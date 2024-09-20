@@ -1,9 +1,9 @@
 use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::CreateConnectionParams;
-use jarust::japlugin::Attach;
 use jarust::japlugin::AttachHandleParams;
-use jarust::TransactionGenerationStrategy;
+use jarust::prelude::Attach;
+use jarust_transport::transaction_gen::RandomTransactionGenerator;
 use serde_json::json;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -18,12 +18,8 @@ async fn main() -> anyhow::Result<()> {
         .url("ws://localhost:8188/ws")
         .capacity(capacity)
         .build();
-    let mut connection = jarust::connect(
-        config,
-        ApiInterface::WebSocket,
-        TransactionGenerationStrategy::Random,
-    )
-    .await?;
+    let mut connection =
+        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
         .create(CreateConnectionParams {

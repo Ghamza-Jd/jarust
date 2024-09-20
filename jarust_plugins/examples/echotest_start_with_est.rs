@@ -1,15 +1,14 @@
-use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::ApiInterface;
+use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::CreateConnectionParams;
-use jarust::TransactionGenerationStrategy;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::StartOptions;
-use jarust_plugins::AttachPluginParams;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
+use jarust_transport::transaction_gen::RandomTransactionGenerator;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -27,12 +26,8 @@ async fn main() -> anyhow::Result<()> {
         .url("ws://localhost:8188/ws")
         .capacity(capacity)
         .build();
-    let mut connection = jarust::connect(
-        config,
-        ApiInterface::WebSocket,
-        TransactionGenerationStrategy::Random,
-    )
-    .await?;
+    let mut connection =
+        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
         .create(CreateConnectionParams {
@@ -40,9 +35,7 @@ async fn main() -> anyhow::Result<()> {
             timeout,
         })
         .await?;
-    let (handle, mut event_receiver) = session
-        .attach_echo_test(AttachPluginParams { timeout })
-        .await?;
+    let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 
     let rsp = handle
         .start_with_establishment(

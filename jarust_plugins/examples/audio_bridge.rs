@@ -1,10 +1,9 @@
-use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::ApiInterface;
+use jarust::jaconfig::JaConfig;
 use jarust::jaconnection::CreateConnectionParams;
-use jarust::TransactionGenerationStrategy;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::MuteOptions;
-use jarust_plugins::AttachPluginParams;
+use jarust_transport::transaction_gen::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -23,21 +22,15 @@ async fn main() -> anyhow::Result<()> {
             32, /* Buffer size on the entire connection with janus */
         )
         .build();
-    let mut connection = jarust::connect(
-        config,
-        ApiInterface::WebSocket,
-        TransactionGenerationStrategy::Random,
-    )
-    .await?;
+    let mut connection =
+        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
         .create(CreateConnectionParams {
             ka_interval: 10,
             timeout,
         })
         .await?;
-    let (handle, mut events) = session
-        .attach_audio_bridge(AttachPluginParams { timeout })
-        .await?;
+    let (handle, mut events) = session.attach_audio_bridge(timeout).await?;
 
     let create_room_rsp = handle.create_room(None, timeout).await?;
     let rooms = handle.list_rooms(timeout).await?;

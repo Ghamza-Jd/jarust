@@ -1,14 +1,11 @@
 use crate::jasession::JaSession;
+use crate::jasession::NewSessionParams;
 use crate::prelude::*;
 use jarust_transport::interface::janus_interface::JanusInterface;
 use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
-use jarust_transport::japrotocol::JaResponse;
 use jarust_transport::respones::ServerInfoRsp;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::sync::mpsc;
-
-pub type JaResponseStream = mpsc::UnboundedReceiver<JaResponse>;
 
 #[derive(Debug)]
 struct InnerConnection {
@@ -40,16 +37,18 @@ impl JaConnection {
     pub async fn create(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
         tracing::info!("Creating new session");
         let session_id = self.inner.interface.create(params.timeout).await?;
-        let session =
-            JaSession::new(session_id, params.ka_interval, self.inner.interface.clone()).await;
+        let session = JaSession::new(NewSessionParams {
+            session_id,
+            ka_interval: params.ka_interval,
+            interface: self.inner.interface.clone(),
+        })
+        .await;
 
         tracing::info!("Session created {{ session_id: {session_id} }}");
 
         Ok(session)
     }
-}
 
-impl JaConnection {
     /// Returns janus server info
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {

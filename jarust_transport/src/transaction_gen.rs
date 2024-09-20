@@ -22,20 +22,8 @@ impl Deref for TransactionGenerator {
     }
 }
 
-pub enum TransactionGenerationStrategy {
-    Random,
-}
-
-impl TransactionGenerationStrategy {
-    pub fn generator(self) -> impl GenerateTransaction {
-        match self {
-            TransactionGenerationStrategy::Random => RandomTransactionGenerator,
-        }
-    }
-}
-
 #[derive(Debug)]
-struct RandomTransactionGenerator;
+pub struct RandomTransactionGenerator;
 
 impl GenerateTransaction for RandomTransactionGenerator {
     fn generate_transaction(&self) -> String {
@@ -47,5 +35,14 @@ impl GenerateTransaction for RandomTransactionGenerator {
             .take(12)
             .map(char::from)
             .collect()
+    }
+}
+
+#[derive(Debug)]
+pub struct UuidTransactionGenerator;
+
+impl GenerateTransaction for UuidTransactionGenerator {
+    fn generate_transaction(&self) -> String {
+        uuid::Uuid::new_v4().to_string()
     }
 }

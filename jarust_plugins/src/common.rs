@@ -1,11 +1,5 @@
-use crate::Identifier::Uint;
 use serde::Deserialize;
 use serde::Serialize;
-
-pub struct AttachPluginParams {
-    // Request timeout
-    pub timeout: std::time::Duration,
-}
 
 tryfrom_serde_value!(Identifier);
 
@@ -23,6 +17,6 @@ pub enum Identifier {
 
 impl Default for Identifier {
     fn default() -> Self {
-        Uint(0)
+        Self::Uint(0)
     }
 }

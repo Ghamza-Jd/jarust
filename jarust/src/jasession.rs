@@ -1,4 +1,5 @@
 use crate::jahandle::JaHandle;
+use crate::jahandle::NewHandleParams;
 use crate::japlugin::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
@@ -6,6 +7,7 @@ use jarust_rt::JaTask;
 use jarust_transport::interface::janus_interface::JanusInterfaceImpl;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::sync::mpsc;
 use tokio::sync::Mutex;
 use tokio::time;
 
@@ -15,7 +17,7 @@ pub struct Shared {
     interface: JanusInterfaceImpl,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Exclusive {
     tasks: Vec<JaTask>,
 }
@@ -31,22 +33,27 @@ pub struct JaSession {
     inner: Arc<InnerSession>,
 }
 
-impl JaSession {
-    pub(crate) async fn new(id: u64, ka_interval: u32, interface: JanusInterfaceImpl) -> Self {
-        let shared = Shared { id, interface };
-        let safe = Exclusive { tasks: vec![] };
+pub struct NewSessionParams {
+    pub session_id: u64,
+    pub ka_interval: u32,
+    pub interface: JanusInterfaceImpl,
+}
 
+impl JaSession {
+    pub(crate) async fn new(params: NewSessionParams) -> Self {
+        let shared = Shared {
+            id: params.session_id,
+            interface: params.interface,
+        };
+        let exclusive = Mutex::new(Exclusive::default());
         let session = Self {
-            inner: Arc::new(InnerSession {
-                shared,
-                exclusive: Mutex::new(safe),
-            }),
+            inner: Arc::new(InnerSession { shared, exclusive }),
         };
 
         let this = session.clone();
 
         let keepalive_task = jarust_rt::spawn(async move {
-            let _ = this.keep_alive(ka_interval).await;
+            let _ = this.keep_alive(params.ka_interval).await;
         });
 
         session
@@ -62,17 +69,13 @@ impl JaSession {
 
     #[tracing::instrument(skip(self))]
     async fn keep_alive(self, ka_interval: u32) -> JaResult<()> {
-        let mut interval = time::interval(Duration::from_secs(ka_interval.into()));
+        let duration = Duration::from_secs(ka_interval.into());
+        let mut interval = time::interval(duration);
         let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
             tracing::debug!("Sending {{ id: {id} }}");
-            let _ = self
-                .inner
-                .shared
-                .interface
-                .keep_alive(id, Duration::from_secs(ka_interval.into()))
-                .await;
+            let _ = self.inner.shared.interface.keep_alive(id, duration).await;
             tracing::debug!("OK");
         }
     }
@@ -91,20 +94,14 @@ impl JaSession {
     }
 }
 
-impl Drop for Exclusive {
-    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
-    fn drop(&mut self) {
-        self.tasks.iter().for_each(|task| {
-            task.cancel();
-        });
-    }
-}
-
 #[async_trait]
 impl Attach for JaSession {
     /// Attach a plugin to the current session
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
-    async fn attach(&self, params: AttachHandleParams) -> JaResult<(JaHandle, JaResponseStream)> {
+    async fn attach(
+        &self,
+        params: AttachHandleParams,
+    ) -> JaResult<(JaHandle, mpsc::UnboundedReceiver<JaResponse>)> {
         tracing::info!("Attaching new handle");
 
         let session_id = self.inner.shared.id;
@@ -115,15 +112,24 @@ impl Attach for JaSession {
             .attach(session_id, params.plugin_id, params.timeout)
             .await?;
 
-        let handle = JaHandle::new(
+        let handle = JaHandle::new(NewHandleParams {
             handle_id,
-            self.inner.shared.id,
-            self.inner.shared.interface.clone(),
-        )
+            session_id,
+            interface: self.inner.shared.interface.clone(),
+        })
         .await;
 
         tracing::info!("Handle created {{ handle_id: {handle_id} }}");
 
         Ok((handle, event_receiver))
+    }
+}
+
+impl Drop for Exclusive {
+    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
+    fn drop(&mut self) {
+        self.tasks.iter().for_each(|task| {
+            task.cancel();
+        });
     }
 }
