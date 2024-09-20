@@ -1,9 +1,9 @@
-version: '3.8'
+version: "3.8"
 
 services:
   janus-gateway:
     container_name: janus-dev-server
-    image: 'canyan/janus-gateway:latest'
+    image: "canyan/janus-gateway:latest"
     command: ["/usr/local/bin/janus", "-F", "/usr/local/etc/janus"]
     ports:
       - "7088:7088"
@@ -15,4 +15,5 @@ services:
       - "8889:8889"
     volumes:
       - "./server_config/janus.plugin.audiobridge.jcfg:/usr/local/etc/janus/janus.plugin.audiobridge.jcfg"
+      - "./server_config/janus.plugin.videoroom.jcfg:/usr/local/etc/janus/janus.plugin.videoroom.jcfg"
     restart: always
