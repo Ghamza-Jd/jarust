@@ -23,10 +23,14 @@ use tracing::Level;
 /// ## Example:
 ///
 /// ```rust
+/// use jarust::jaconfig::JaConfig;
+/// use jarust::jaconfig::ApiInterface;
+/// use jarust_transport::tgenerator::RandomTransactionGenerator;
+///
 /// let mut connection = jarust::connect(
 ///     JaConfig::new("ws://localhost:8188/ws", None, "janus"),
-///     TransportType::Ws,
-///     TransactionGenerationStrategy::Random,
+///     ApiInterface::WebSocket,
+///     RandomTransactionGenerator,
 /// )
 /// .await
 /// .unwrap();
@@ -41,7 +45,7 @@ pub async fn connect(
         url: jaconfig.url,
         capacity: jaconfig.capacity,
         apisecret: jaconfig.apisecret,
-        namespace: jaconfig.namespace,
+        server_root: jaconfig.server_root,
     };
     match api_interface {
         ApiInterface::WebSocket => {
@@ -69,7 +73,7 @@ pub async fn connect(
     todo!("WASM is not supported yet")
 }
 
-/// Creates a new customized connection with janus server from the provided configs, custom transport, and custom transaction generator.
+/// Creates a new customized connection with janus servers.
 #[tracing::instrument(level = Level::TRACE, skip_all)]
 pub async fn custom_connect(interface: impl JanusInterface) -> JaResult<JaConnection> {
     JaConnection::open(interface).await

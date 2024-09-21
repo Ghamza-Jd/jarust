@@ -20,7 +20,7 @@ pub struct ConnectionParams {
     pub url: String,
     pub capacity: usize,
     pub apisecret: Option<String>,
-    pub namespace: String,
+    pub server_root: String,
 }
 
 #[async_trait::async_trait]
@@ -55,7 +55,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// See [`JanusInterfaceImpl::send_msg_waiton_rsp`] for the public method.
     ///
     /// Check this stack overflow asnwer for the technicalities:
-    /// https://stackoverflow.com/questions/67767207/why-are-trait-methods-with-generic-type-parameters-object-unsafe
+    /// [Why are trait methods with generic type parameters are object unsafe](https://stackoverflow.com/questions/67767207/why-are-trait-methods-with-generic-type-parameters-object-unsafe)
     async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,

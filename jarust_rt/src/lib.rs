@@ -18,6 +18,7 @@ where
     jatask::spawn(future)
 }
 
+/// Spawns a new task. The name field is just for tracing purposes.
 #[tracing::instrument(level = tracing::Level::TRACE, skip(future))]
 pub fn spawn_with_name<F>(name: &str, future: F) -> JaTask
 where

@@ -275,9 +275,9 @@ impl VideoRoomHandle {
     /// In a VideoRoom, publishers are those participant handles that are able (although may choose not to)
     /// publish media in the room, and as such become feeds that you can subscribe to.
     /// To specify that a handle will be associated with a publisher, you must use the `join_as_publisher` request
-    /// (note that you can also use [`join_and_configure`] for the purpose).
+    /// (note that you can also use [`VideoRoomHandle::join_and_configure`] for the purpose).
     ///
-    /// A successful join will result in a [events::VideoRoomEvent::RoomJoined] event,
+    /// A successful join will result in a [`VideoRoomEvent::RoomJoined`](super::events::VideoRoomEvent::RoomJoined) event,
     /// which will contain a list of the currently active (as in publishing via WebRTC) publishers,
     /// and optionally a list of passive attendees (but only if the room was configured with notify_joining set to TRUE)
     pub async fn join_as_publisher(

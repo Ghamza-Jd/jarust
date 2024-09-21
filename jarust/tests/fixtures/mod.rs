@@ -8,4 +8,4 @@ pub const FIXTURE_CAPACITY: usize = 10;
 
 pub const FIXTURE_PLUGIN_ID: &str = "jarust.plugin.fixture";
 pub const FIXTURE_URL: &str = "fixture://www.jarust.rs";
-pub const FIXTURE_NAMESPACE: &str = "fixture_nsp";
+pub const FIXTURE_SERVER_ROOT: &str = "fixture_nsp";

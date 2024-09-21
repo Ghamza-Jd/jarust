@@ -82,6 +82,7 @@ impl JaSession {
 }
 
 impl JaSession {
+    /// Destory the current session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
         tracing::info!("Destroying session");

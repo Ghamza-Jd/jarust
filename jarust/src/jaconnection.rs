@@ -48,7 +48,7 @@ impl JaConnection {
         Ok(session)
     }
 
-    /// Returns janus server info
+    /// Retreive janus server info
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
         let res = self.inner.interface.server_info(timeout).await?;

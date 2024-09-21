@@ -74,7 +74,7 @@ impl JanusInterface for RestfulInterface {
             apisecret: conn_params.apisecret,
             transaction_generator,
             client,
-            url: format!("{}/{}", conn_params.url, conn_params.namespace),
+            url: format!("{}/{}", conn_params.url, conn_params.server_root),
         };
         let exclusive = Exclusive { tasks: Vec::new() };
         let inner = InnerResultfulInterface {
