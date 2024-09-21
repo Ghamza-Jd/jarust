@@ -18,7 +18,7 @@ pub struct VideoRoomHandle {
 // synchronous methods
 //
 impl VideoRoomHandle {
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room(
         &self,
         room: Option<Identifier>,
@@ -34,7 +34,7 @@ impl VideoRoomHandle {
         .await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
         options: VideoRoomCreateOptions,
@@ -49,7 +49,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
         room: Identifier,
@@ -66,7 +66,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
         room: Identifier,
@@ -83,7 +83,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<RoomExistsRsp> {
         tracing::info!(plugin = "videoroom", "Sending exists");
         let message = json!({
@@ -96,7 +96,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list(&self, timeout: Duration) -> JaResult<Vec<Room>> {
         tracing::info!(plugin = "videoroom", "Sending list");
         let response = self
@@ -112,7 +112,7 @@ impl VideoRoomHandle {
         Ok(response.list)
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
         room: Identifier,
@@ -144,7 +144,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick(
         &self,
         room: Identifier,
@@ -161,7 +161,7 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
         room: Identifier,
@@ -176,7 +176,7 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.handle.session_id(), handle_id = self.handle.id()))]
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,
         room: Identifier,
