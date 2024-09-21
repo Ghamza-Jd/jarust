@@ -46,7 +46,7 @@ where
 
         if let Some(notify) = self.notifiers.lock().await.remove(&key) {
             notify.notify_waiters();
-            tracing::trace!("Notified all waiting tasks");
+            tracing::trace!("Notified waiting tasks");
         }
     }
 
