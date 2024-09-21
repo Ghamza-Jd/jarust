@@ -23,7 +23,7 @@ mod tests {
             url: "mock://some.janus.com".to_string(),
             capacity: 10,
             apisecret: None,
-            namespace: "mock".to_string(),
+            server_root: "mock".to_string(),
         };
         let transaction_generator = MockGenerateTransaction::new();
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
@@ -39,7 +39,7 @@ mod tests {
             url: "mock://some.janus.com".to_string(),
             capacity: 10,
             apisecret: None,
-            namespace: "mock".to_string(),
+            server_root: "mock".to_string(),
         };
         let transaction_generator = MockGenerateTransaction::new();
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
@@ -75,7 +75,7 @@ mod tests {
             url: "mock://some.janus.com".to_string(),
             capacity: 10,
             apisecret: None,
-            namespace: "mock".to_string(),
+            server_root: "mock".to_string(),
         };
         let transaction_generator = MockGenerateTransaction::new();
         let interface = MockInterface::make_interface(conn_params, transaction_generator)

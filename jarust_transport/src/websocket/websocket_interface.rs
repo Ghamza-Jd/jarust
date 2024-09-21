@@ -29,7 +29,7 @@ use tokio::sync::Mutex;
 #[derive(Debug)]
 struct Shared {
     tasks: Vec<JaTask>,
-    namespace: String,
+    server_root: String,
     apisecret: Option<String>,
     transaction_generator: TransactionGenerator,
     ack_map: Arc<NapMap<String, JaResponse>>,
@@ -60,7 +60,7 @@ impl WebSocketInterface {
         let (message, transaction) = self.decorate_request(message);
 
         let path =
-            Router::path_from_request(&message).unwrap_or(self.inner.shared.namespace.clone());
+            Router::path_from_request(&message).unwrap_or(self.inner.shared.server_root.clone());
 
         let mut guard = self.inner.exclusive.lock().await;
         guard.transaction_manager.insert(&transaction, &path).await;
@@ -153,7 +153,7 @@ impl JanusInterface for WebSocketInterface {
         transaction_generator: impl GenerateTransaction,
     ) -> JaTransportResult<Self> {
         tracing::debug!("Creating WebSocket Interface");
-        let (router, _) = Router::new(&conn_params.namespace).await;
+        let (router, _) = Router::new(&conn_params.server_root).await;
         let mut websocket = WebSocketClient::new();
         let receiver = websocket.connect(&conn_params.url).await?;
         let transaction_manager = TransactionManager::new(conn_params.capacity);
@@ -202,7 +202,7 @@ impl JanusInterface for WebSocketInterface {
 
         let shared = Shared {
             tasks: vec![demux_task, rsp_task, ack_task],
-            namespace: conn_params.namespace,
+            server_root: conn_params.server_root,
             apisecret: conn_params.apisecret,
             transaction_generator,
             ack_map,

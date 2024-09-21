@@ -41,16 +41,6 @@ impl JaHandle {
         }
     }
 
-    #[inline]
-    pub fn id(&self) -> u64 {
-        self.inner.id
-    }
-
-    #[inline]
-    pub fn session_id(&self) -> u64 {
-        self.inner.session_id
-    }
-
     /// Send a one-shot message
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn fire_and_forget(&self, body: Value) -> JaResult<()> {
@@ -86,7 +76,7 @@ impl JaHandle {
         Ok(res)
     }
 
-    /// Send a message and wait for the ack
+    /// Send a message and wait for ackowledgement
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_ack(&self, body: Value, timeout: Duration) -> JaResult<JaResponse> {
         tracing::debug!("Sending message and waiting for ackowledgement");
@@ -103,7 +93,7 @@ impl JaHandle {
         Ok(ack)
     }
 
-    /// Send a message with a specific establishment protocol and wait for the ack
+    /// Send a message with a specific establishment protocol and wait for ackowledgement
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_ack_with_est(
         &self,
@@ -148,6 +138,7 @@ impl JaHandle {
 }
 
 impl JaHandle {
+    /// Hang up the associated PeerConnection but keep the handle alive
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn hangup(&self, timeout: Duration) -> JaResult<()> {
         tracing::info!("Hanging up");
@@ -158,6 +149,7 @@ impl JaHandle {
         Ok(())
     }
 
+    /// Destroy the plugin handle
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn detach(self, timeout: Duration) -> JaResult<()> {
         tracing::info!("Detaching");
