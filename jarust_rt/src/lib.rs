@@ -1,3 +1,8 @@
+//! # Jarust Runtime
+//!
+//! A runtime abstraction crate for jarust.
+//!
+
 #[cfg(not(any(feature = "tokio-rt")))]
 compile_error!("Feature \"tokio-rt\" must be enabled for this crate.");
 

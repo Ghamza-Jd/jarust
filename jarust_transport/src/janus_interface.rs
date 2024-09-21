@@ -17,31 +17,54 @@ use std::time::Duration;
 use tokio::sync::mpsc;
 
 pub struct ConnectionParams {
+    /// The url of the janus server.
     pub url: String,
+    /// The capacity of the connection (for the websocket interface).
     pub capacity: usize,
+    /// The api secret (if any).
     pub apisecret: Option<String>,
+    /// The server root, it should match the server root of the janus server when choosing the restful interface.
     pub server_root: String,
 }
 
+/// [`JanusInterface`] is the main trait that defines the interface for the janus server.
+///
+/// It acts as a contract to implement different interfaces supported by janus server,
+/// full docs: <https://janus.conf.meetecho.com/docs/rest.html>
 #[async_trait::async_trait]
 pub trait JanusInterface: Debug + Send + Sync + 'static {
+    /// Constructs a new interface with the given connection parameters and transaction generator.
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
     ) -> JaTransportResult<Self>
     where
         Self: Sized;
+
+    /// Creates a new session with the janus server.
     async fn create(&self, timeout: Duration) -> JaTransportResult<u64>;
+
+    /// Gets the server info.
     async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp>;
+
+    /// Attaches a plugin to the session.
     async fn attach(
         &self,
         session_id: u64,
         plugin_id: String,
         timeout: Duration,
     ) -> JaTransportResult<(u64, mpsc::UnboundedReceiver<JaResponse>)>;
+
+    /// Send keep alive messages (to keep the connection and the client-server session alive).
     async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()>;
+
+    /// Destroys the session.
     async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()>;
+
+    /// Sends a one-shot message
     async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()>;
+
+    /// Sends a message and waits for acknowledgment.
     async fn send_msg_waiton_ack(
         &self,
         message: HandleMessageWithTimeout,
@@ -61,16 +84,19 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         message: HandleMessageWithTimeout,
     ) -> JaTransportResult<JaResponse>;
 
+    /// Sends a one-shot message with establishment.
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
     ) -> JaTransportResult<()>;
+
+    /// Sends a message and waits for acknowledgment with establishment.
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
     ) -> JaTransportResult<JaResponse>;
 
-    // Returns the name of the interface for the debug trait
+    /// Returns the name of the interface (for the debug trait)
     fn name(&self) -> Box<str> {
         "Janus Interface".to_string().into_boxed_str()
     }
@@ -96,6 +122,7 @@ impl JanusInterfaceImpl {
         }
     }
 
+    /// Sends a message and waits for the response.
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn send_msg_waiton_rsp<R>(
         &self,
