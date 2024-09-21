@@ -1,3 +1,39 @@
+//! # Jarust
+//!
+//! Jarust is a Rust adapter for [Janus WebRTC server](https://github.com/meetecho/janus-gateway)
+//!
+//! It provides a high-level API to interact with Janus server.
+//!
+//! You can use it to connect with Janus server, create a session,
+//! attach a plugin, send messages to the plugin, and handle the incoming messages.
+//!
+//! ## Jarust Transport
+//!
+//! The details of the connection and the underlying transport are inside the [`jarust_transport`] crate.
+//! [`jarust_transport`] provides a customizable interface and transaction generator to customize jarust as per your needs.
+//!
+//! ### Interfaces
+//! jarust_transport provides two default interfaces, [`WebSocketInterface`](jarust_transport::websocket::WebSocketInterface) and [`RestfulInterface`](jarust_transport::restful::RestfulInterface).
+//!
+//! ### Transaction Generators
+//! On the transaction generator side it provides a [`RandomTransactionGenerator`](jarust_transport::tgenerator::RandomTransactionGenerator) and [`UuidTransactionGenerator`](jarust_transport::tgenerator::UuidTransactionGenerator).
+//!
+//! You could also bring your own transaction generator by implementing the [`GenerateTransaction`](jarust_transport::tgenerator::GenerateTransaction) trait. For example, if you want to use uuid v7.
+//!
+//! ## Runtime
+//!
+//! We currently only support tokio runtime and planning to support more runtimes in the future. For that we've abstracted the runtime specific code in the [`jarust_rt`] crate.
+//!
+//! ## Plugins
+//!
+//! We have a separate crate for janus plugins, [`jarust_plugins`](https://crates.io/crates/jarust_plugins).
+//!
+//! For now it supports:
+//! - EchoTest plugin
+//! - AudioBridge plugin
+//! - VideoRoom plugin
+//!
+
 pub mod error;
 pub mod jaconfig;
 pub mod jaconnection;
