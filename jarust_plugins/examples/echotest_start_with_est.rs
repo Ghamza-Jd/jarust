@@ -4,7 +4,7 @@ use jarust::jaconnection::CreateConnectionParams;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
-use jarust_plugins::echo_test::msg_options::StartOptions;
+use jarust_plugins::echo_test::msg_options::EchoTestStartOptions;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
 
     let rsp = handle
         .start_with_est(
-            StartOptions {
+            EchoTestStartOptions {
                 audio: true,
                 video: true,
                 ..Default::default()

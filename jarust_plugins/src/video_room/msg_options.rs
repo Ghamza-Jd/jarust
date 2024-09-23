@@ -1,15 +1,12 @@
 use crate::JanusId;
 use serde::Serialize;
 
-tryfrom_serde_value!(
+impl_tryfrom_serde_value!(
     VideoRoomCreateOptions VideoRoomDestroyOptions VideoRoomEditOptions VideoRoomAllowedOptions VideoRoomAllowedAction
     VideoRoomKickOptions VideoRoomEnableRecordingOptions VideoRoomPublisherJoinOptions VideoRoomSubscriberJoinOptions
     VideoRoomConfigurePublisherOptions VideoRoomConfigureSubscriberOptions JoinAndConfigureOptions VideoRoomPublishOptions
 );
 
-//
-// Create Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomCreateOptions {
     /// unique numeric ID, chosen by plugin if missing
@@ -174,9 +171,6 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
-//
-// Edit message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomEditOptions {
     /// room secret, mandatory if configured
@@ -228,9 +222,6 @@ pub struct VideoRoomEditOptions {
     pub permanent: Option<bool>,
 }
 
-//
-// Destroy Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomDestroyOptions {
     /// room secret, mandatory if configured
@@ -242,9 +233,6 @@ pub struct VideoRoomDestroyOptions {
     pub permanent: Option<bool>,
 }
 
-//
-// Join Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublisherJoinOptions {
     /// unique ID to register for the publisher;
@@ -309,9 +297,6 @@ pub struct VideoRoomSubscriberUnsubscribeStream {
     pub sub_mid: Option<u64>,
 }
 
-//
-// Allowed Message
-//
 #[derive(PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomAllowedAction {
@@ -328,9 +313,6 @@ pub struct VideoRoomAllowedOptions {
     pub secret: Option<String>,
 }
 
-//
-// Kick Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomKickOptions {
     /// room secret, mandatory if configured
@@ -338,9 +320,6 @@ pub struct VideoRoomKickOptions {
     pub secret: Option<String>,
 }
 
-//
-// Moderate Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomModerateOptions {
     /// room secret, mandatory if configured
@@ -348,9 +327,6 @@ pub struct VideoRoomModerateOptions {
     pub secret: Option<String>,
 }
 
-//
-// Enable Recording Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomEnableRecordingOptions {
     /// whether participants in this room should be automatically recorded or not
@@ -360,9 +336,6 @@ pub struct VideoRoomEnableRecordingOptions {
     pub secret: Option<String>,
 }
 
-//
-// List Forwarders Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomListForwardersOptions {
     /// room secret, mandatory if configured
@@ -370,9 +343,6 @@ pub struct VideoRoomListForwardersOptions {
     pub secret: Option<String>,
 }
 
-//
-// Configure Publisher Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigurePublisherOptions {
     /// bitrate cap to return via REMB;
@@ -433,9 +403,6 @@ pub struct VideoRoomConfigurePublisherStream {
     pub max_delay: Option<u64>,
 }
 
-//
-// Join and configure wrapper
-//
 #[derive(Serialize, Default)]
 pub struct JoinAndConfigureOptions {
     #[serde(flatten)]
@@ -444,9 +411,6 @@ pub struct JoinAndConfigureOptions {
     pub configure_options: VideoRoomConfigurePublisherOptions,
 }
 
-//
-// Publish Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomPublishOptions {
     /// audio codec to prefer among the negotiated ones
@@ -496,9 +460,6 @@ pub struct VideoRoomPublishDescription {
     pub description: String,
 }
 
-//
-// Configure Subscriber Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomConfigureSubscriberOptions {
     /// list of streams to configure
@@ -554,9 +515,6 @@ pub struct VideoRoomConfigureSubscriberStream {
     pub max_delay: Option<u64>,
 }
 
-//
-// Switch Message
-//
 #[derive(Serialize)]
 pub struct VideoRoomSwitchStream {
     /// unique ID of the publisher the new source is from
@@ -569,9 +527,6 @@ pub struct VideoRoomSwitchStream {
     pub sub_mid: String,
 }
 
-//
-// RTP Forward Message
-//
 #[derive(Serialize, Default)]
 pub struct VideoRoomRtpForwardOptions {
     /// unique numeric ID of the publisher to relay externally

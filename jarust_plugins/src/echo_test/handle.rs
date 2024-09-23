@@ -1,4 +1,4 @@
-use super::msg_options::StartOptions;
+use super::msg_options::EchoTestStartOptions;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
 use jarust_transport::japrotocol::EstablishmentProtocol;
@@ -12,7 +12,7 @@ pub struct EchoTestHandle {
 
 impl EchoTestHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn start(&self, options: StartOptions) -> JaResult<()> {
+    pub async fn start(&self, options: EchoTestStartOptions) -> JaResult<()> {
         tracing::info!(plugin = "echotest", "Sending start");
         self.handle.fire_and_forget(options.try_into()?).await
     }
@@ -20,7 +20,7 @@ impl EchoTestHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn start_with_est(
         &self,
-        options: StartOptions,
+        options: EchoTestStartOptions,
         establishment: EstablishmentProtocol,
         timeout: Duration,
     ) -> JaResult<()> {

@@ -9,7 +9,7 @@
 /// tryfrom_serde_value!(ChangeRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions);
 /// ```
 #[macro_export]
-macro_rules! tryfrom_serde_value {
+macro_rules! impl_tryfrom_serde_value {
     ($($ty:ident)*) => {
         $(
             impl TryFrom<$ty> for serde_json::Value {

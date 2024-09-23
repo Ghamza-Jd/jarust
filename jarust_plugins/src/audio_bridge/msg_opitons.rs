@@ -1,14 +1,15 @@
 use crate::JanusId;
 use serde::Serialize;
 
-tryfrom_serde_value!(
-    CreateRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions
-    AllowedOptions AllowAction ConfigureOptions MuteOptions MuteRoomOptions
-    KickOptions KickAllOptions ChangeRoomOptions
+impl_tryfrom_serde_value!(
+    AudioBridgeCreateRoomOptions AudioBridgeEditRoomOptions AudioBridgeDestroyRoomMsg
+    AudioBridgeJoinRoomOptions AudioBridgeAllowedOptions AudioBridgeAllowAction
+    AudioBridgeConfigureOptions AudioBridgeMuteOptions AudioBridgeMuteRoomOptions
+    AudioBridgeKickOptions AudioBridgeKickAllOptions AudioBridgeChangeRoomOptions
 );
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
-pub struct CreateRoomOptions {
+pub struct AudioBridgeCreateRoomOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub room: Option<JanusId>,
@@ -102,7 +103,7 @@ pub struct CreateRoomOptions {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
-pub struct EditRoomOptions {
+pub struct AudioBridgeEditRoomOptions {
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -137,7 +138,7 @@ pub struct EditRoomOptions {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
-pub struct DestroyRoomMsg {
+pub struct AudioBridgeDestroyRoomMsg {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -145,7 +146,7 @@ pub struct DestroyRoomMsg {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
-pub struct JoinRoomOptions {
+pub struct AudioBridgeJoinRoomOptions {
     /// Unique ID to assign to the participant, assigned by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<JanusId>,
@@ -243,8 +244,8 @@ pub struct JoinRoomOptions {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct AllowedOptions {
-    pub action: AllowAction,
+pub struct AudioBridgeAllowedOptions {
+    pub action: AudioBridgeAllowAction,
 
     /// Array of strings (tokens users might pass in "join", only for add|remove)
     pub allowed: Vec<String>,
@@ -256,7 +257,7 @@ pub struct AllowedOptions {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
-pub enum AllowAction {
+pub enum AudioBridgeAllowAction {
     Enable,
     Disable,
     Add,
@@ -264,7 +265,7 @@ pub enum AllowAction {
 }
 
 #[derive(Serialize, Default)]
-pub struct ConfigureOptions {
+pub struct AudioBridgeConfigureOptions {
     /// whether to unmute or mute
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
@@ -312,7 +313,7 @@ pub struct ConfigureOptions {
 }
 
 #[derive(Serialize)]
-pub struct MuteOptions {
+pub struct AudioBridgeMuteOptions {
     /// unique numeric ID
     pub id: JanusId,
 
@@ -325,7 +326,7 @@ pub struct MuteOptions {
 }
 
 #[derive(Serialize)]
-pub struct MuteRoomOptions {
+pub struct AudioBridgeMuteRoomOptions {
     /// unique numeric ID
     pub room: JanusId,
 
@@ -335,7 +336,7 @@ pub struct MuteRoomOptions {
 }
 
 #[derive(Serialize)]
-pub struct KickOptions {
+pub struct AudioBridgeKickOptions {
     /// unique numeric ID
     pub id: JanusId,
 
@@ -348,7 +349,7 @@ pub struct KickOptions {
 }
 
 #[derive(Serialize)]
-pub struct KickAllOptions {
+pub struct AudioBridgeKickAllOptions {
     /// unique numeric ID
     pub room: JanusId,
 
@@ -358,7 +359,7 @@ pub struct KickAllOptions {
 }
 
 #[derive(Serialize, Default)]
-pub struct ChangeRoomOptions {
+pub struct AudioBridgeChangeRoomOptions {
     /// numeric ID of the room to move to
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<JanusId>,
