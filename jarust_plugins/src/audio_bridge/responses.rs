@@ -1,34 +1,32 @@
+use super::common::AudioBridgeParticipant;
+use crate::JanusId;
 use serde::Deserialize;
 
-use crate::JanusId;
-
-use super::common::Participant;
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomCreatedRsp {
+pub struct AudioBridgeRoomCreatedRsp {
     pub room: JanusId,
     pub permanent: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomEditedRsp {
+pub struct AudioBridgeRoomEditedRsp {
     pub room: JanusId,
     pub permanent: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomDestroyedRsp {
+pub struct AudioBridgeRoomDestroyedRsp {
     pub room: JanusId,
     pub permanent: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct ListRoomsRsp {
-    pub list: Vec<Room>,
+pub struct AudioBridgeListRoomsRsp {
+    pub list: Vec<AudioBridgeRoom>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct Room {
+pub struct AudioBridgeRoom {
     pub room: JanusId,
     pub description: String,
     pub pin_required: bool,
@@ -40,19 +38,19 @@ pub struct Room {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct AllowedRsp {
+pub struct AudioBridgeAllowedRsp {
     pub room: JanusId,
     pub allowed: Vec<String>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct ExistsRoomRsp {
+pub struct AudioBridgeExistsRoomRsp {
     pub room: JanusId,
     pub exists: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct ListParticipantsRsp {
+pub struct AudioBridgeListParticipantsRsp {
     pub room: JanusId,
-    pub participants: Vec<Participant>,
+    pub participants: Vec<AudioBridgeParticipant>,
 }

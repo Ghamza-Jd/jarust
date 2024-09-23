@@ -1,4 +1,4 @@
-use super::common::Participant;
+use super::common::AudioBridgeParticipant;
 use crate::JanusId;
 use jarust::error::JaError;
 use jarust_transport::japrotocol::EstablishmentProtocol;
@@ -16,7 +16,7 @@ enum AudioBridgeEventDto {
     RoomJoined {
         id: JanusId,
         room: JanusId,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
     },
 
     #[serde(rename = "left")]
@@ -26,13 +26,13 @@ enum AudioBridgeEventDto {
     RoomChanged {
         id: JanusId,
         room: JanusId,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
     },
 
     #[serde(rename = "event")]
     Event {
         room: u64,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
     },
 }
 
@@ -47,13 +47,13 @@ pub enum AudioBridgeEvent {
     RoomJoinedWithEstabilshment {
         id: JanusId,
         room: JanusId,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
         establishment_protocol: EstablishmentProtocol,
     },
     RoomJoined {
         id: JanusId,
         room: JanusId,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
     },
     RoomLeft {
         id: JanusId,
@@ -62,11 +62,11 @@ pub enum AudioBridgeEvent {
     RoomChanged {
         id: JanusId,
         room: JanusId,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
     },
     ParticipantsUpdated {
         room: u64,
-        participants: Vec<Participant>,
+        participants: Vec<AudioBridgeParticipant>,
     },
 }
 

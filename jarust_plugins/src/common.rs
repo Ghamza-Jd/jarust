@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-tryfrom_serde_value!(JanusId);
+impl_tryfrom_serde_value!(JanusId);
 
 /// Rooms and Participants Identifier.
 ///
