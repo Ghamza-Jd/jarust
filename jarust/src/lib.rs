@@ -21,11 +21,6 @@
 //!
 //! We have a separate crate for Janus plugins, [`jarust_plugins`](https://crates.io/crates/jarust_plugins).
 //!
-//! For now, it supports:
-//! - EchoTest plugin
-//! - AudioBridge plugin
-//! - VideoRoom plugin
-//!
 
 pub mod error;
 pub mod jaconfig;
