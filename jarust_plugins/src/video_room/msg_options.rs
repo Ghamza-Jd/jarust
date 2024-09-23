@@ -415,11 +415,11 @@ pub struct JoinAndConfigureOptions {
 pub struct VideoRoomPublishOptions {
     /// audio codec to prefer among the negotiated ones
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiocodec: Option<String>,
+    pub audiocodec: Option<VideoRoomAudioCodec>,
 
     /// video codec to prefer among the negotiated ones
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub videocodec: Option<String>,
+    pub videocodec: Option<VideoRoomVideoCodec>,
 
     /// bitrate cap to return via REMB
     /// overrides the global room value if present
