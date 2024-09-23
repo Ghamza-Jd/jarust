@@ -1,4 +1,4 @@
-use crate::Identifier;
+use crate::JanusId;
 use serde::Serialize;
 
 tryfrom_serde_value!(
@@ -11,7 +11,7 @@ tryfrom_serde_value!(
 pub struct CreateRoomOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<Identifier>,
+    pub room: Option<JanusId>,
 
     /// whether the room should be saved in the config file, default=false
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -148,7 +148,7 @@ pub struct DestroyRoomMsg {
 pub struct JoinRoomOptions {
     /// Unique ID to assign to the participant, assigned by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Identifier>,
+    pub id: Option<JanusId>,
 
     /// Group to assign to this participant (for forwarding purposes only; optional, mandatory if enabled in the room)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -314,10 +314,10 @@ pub struct ConfigureOptions {
 #[derive(Serialize)]
 pub struct MuteOptions {
     /// unique numeric ID
-    pub id: Identifier,
+    pub id: JanusId,
 
     /// unique numeric ID
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// Room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -327,7 +327,7 @@ pub struct MuteOptions {
 #[derive(Serialize)]
 pub struct MuteRoomOptions {
     /// unique numeric ID
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// Room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -337,10 +337,10 @@ pub struct MuteRoomOptions {
 #[derive(Serialize)]
 pub struct KickOptions {
     /// unique numeric ID
-    pub id: Identifier,
+    pub id: JanusId,
 
     /// unique numeric ID
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// Room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -350,7 +350,7 @@ pub struct KickOptions {
 #[derive(Serialize)]
 pub struct KickAllOptions {
     /// unique numeric ID
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// Room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -361,7 +361,7 @@ pub struct KickAllOptions {
 pub struct ChangeRoomOptions {
     /// numeric ID of the room to move to
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<Identifier>,
+    pub id: Option<JanusId>,
 
     /// whether to unmute or mute
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -17,7 +17,7 @@ use super::responses::Room;
 use super::responses::RoomCreatedRsp;
 use super::responses::RoomDestroyedRsp;
 use super::responses::RoomEditedRsp;
-use crate::Identifier;
+use crate::JanusId;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
 use jarust_transport::japrotocol::EstablishmentProtocol;
@@ -39,7 +39,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room(
         &self,
-        room: Option<Identifier>,
+        room: Option<JanusId>,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
@@ -74,7 +74,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: EditRoomOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
@@ -92,7 +92,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: DestroyRoomMsg,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
@@ -109,7 +109,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn join_room(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: JoinRoomOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
@@ -147,7 +147,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: AllowedOptions,
         timeout: Duration,
     ) -> JaResult<AllowedRsp> {
@@ -162,7 +162,7 @@ impl AudioBridgeHandle {
 
     /// Allows you to check whether a specific audio conference room exists
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<bool> {
+    pub async fn exists(&self, room: JanusId, timeout: Duration) -> JaResult<bool> {
         tracing::info!(plugin = "audiobridge", "Sending exists");
         let message = json!({
             "request": "exists",
@@ -180,7 +180,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,
-        room: Identifier,
+        room: JanusId,
         timeout: Duration,
     ) -> JaResult<ListParticipantsRsp> {
         tracing::info!(plugin = "audiobridge", "Sending list participants");
@@ -272,7 +272,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn change_room(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: ChangeRoomOptions,
         timeout: Duration,
     ) -> JaResult<()> {

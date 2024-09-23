@@ -1,10 +1,10 @@
-use crate::Identifier;
+use crate::JanusId;
 use serde::Deserialize;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Room {
     /// unique numeric ID
-    pub room: Identifier,
+    pub room: JanusId,
     /// name of the room
     pub description: String,
     /// whether a PIN is required to join this room
@@ -62,7 +62,7 @@ pub struct Room {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Participant {
     /// unique numeric ID of the participant
-    pub id: Identifier,
+    pub id: JanusId,
     /// display name of the participant, if any
     pub display: Option<String>,
     /// whether user is an active publisher in the room
@@ -74,7 +74,7 @@ pub struct Participant {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Publisher {
     /// unique ID of active publisher
-    pub id: Identifier,
+    pub id: JanusId,
     /// display name of active publisher
     pub display: Option<String>,
     /// true if this participant is a dummy publisher
@@ -120,7 +120,7 @@ pub struct Stream {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Attendee {
     /// unique ID of the attendee
-    pub id: Identifier,
+    pub id: JanusId,
 
     /// display name of the attendee, if any
     pub display: Option<String>,
@@ -128,7 +128,7 @@ pub struct Attendee {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RtpForwarderPublisher {
-    pub publisher_id: Identifier,
+    pub publisher_id: JanusId,
     pub forwarders: Vec<RtpForwarderStream>,
 }
 
@@ -173,7 +173,7 @@ pub struct AttachedStream {
     pub active: bool,
 
     /// unique ID of the publisher originating this stream
-    pub feed_id: Identifier,
+    pub feed_id: JanusId,
 
     /// unique mid of this publisher's stream
     pub feed_mid: u64,
@@ -212,7 +212,7 @@ pub struct AttachedStream {
     pub sources: Option<i64>,
 
     /// if this is a data channel stream, an array containing the IDs of participants we've subscribed to
-    pub source_ids: Vec<Identifier>,
+    pub source_ids: Vec<JanusId>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Deserialize)]
@@ -268,7 +268,7 @@ pub struct ConfiguredStream {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomCreatedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub permanent: bool,
 }
 
@@ -279,29 +279,29 @@ pub struct ListRoomsRsp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ListParticipantsRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub participants: Vec<Participant>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomDestroyedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomEditedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomExistsRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub exists: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AccessRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     // TODO: Is it better to have an empty Vec here or should this be wrapped in Option?
     #[serde(default = "Vec::default")]
     pub allowed: Vec<String>,
@@ -310,7 +310,7 @@ pub struct AccessRsp {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ListForwardersRsp {
     /// unique ID of the room
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// Array of publishers with RTP forwarders
     pub publisher: Vec<RtpForwarderPublisher>,
@@ -319,10 +319,10 @@ pub struct ListForwardersRsp {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RtpForwardRsp {
     /// unique ID, same as request
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// unique ID, same as request
-    pub publisher_id: Identifier,
+    pub publisher_id: JanusId,
 
     pub forwarders: Vec<RtpForwarderStream>,
 }
@@ -330,10 +330,10 @@ pub struct RtpForwardRsp {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct StopRtpForwardRsp {
     /// unique ID, same as request
-    pub room: Identifier,
+    pub room: JanusId,
 
     /// unique ID, same as request
-    pub publisher_id: Identifier,
+    pub publisher_id: JanusId,
 
     /// unique numeric ID, same as request
     pub stream_id: u64,

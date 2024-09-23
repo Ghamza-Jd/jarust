@@ -116,6 +116,7 @@ mod tests {
             }),
             establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
+                trickle: Some(false),
                 sdp: "test_sdp".to_string(),
             })),
             transaction: None,
@@ -130,6 +131,7 @@ mod tests {
                 result: "ok".to_string(),
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
+                    trickle: Some(false),
                     sdp: "test_sdp".to_string()
                 })
             })

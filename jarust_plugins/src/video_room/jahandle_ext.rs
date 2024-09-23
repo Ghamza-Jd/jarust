@@ -22,7 +22,7 @@ pub trait VideoRoom: Attach {
             })
             .await?;
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-        let task = jarust_rt::spawn_with_name("videoroom listener", async move {
+        let task = jarust_rt::spawn("videoroom listener", async move {
             while let Some(rsp) = receiver.recv().await {
                 if let Ok(event) = rsp.try_into() {
                     let _ = tx.send(event);

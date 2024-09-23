@@ -1,6 +1,6 @@
 use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
-use crate::Identifier;
+use crate::JanusId;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
 use jarust_transport::japrotocol::EstablishmentProtocol;
@@ -21,7 +21,7 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room(
         &self,
-        room: Option<Identifier>,
+        room: Option<JanusId>,
         timeout: Duration,
     ) -> JaResult<RoomCreatedRsp> {
         self.create_room_with_config(
@@ -52,7 +52,7 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomDestroyOptions,
         timeout: Duration,
     ) -> JaResult<RoomDestroyedRsp> {
@@ -69,7 +69,7 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomEditOptions,
         timeout: Duration,
     ) -> JaResult<RoomEditedRsp> {
@@ -84,7 +84,7 @@ impl VideoRoomHandle {
     }
 
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn exists(&self, room: Identifier, timeout: Duration) -> JaResult<RoomExistsRsp> {
+    pub async fn exists(&self, room: JanusId, timeout: Duration) -> JaResult<RoomExistsRsp> {
         tracing::info!(plugin = "videoroom", "Sending exists");
         let message = json!({
             "request": "exists",
@@ -115,7 +115,7 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
-        room: Identifier,
+        room: JanusId,
         action: VideoRoomAllowedAction,
         allowed: Vec<String>,
         options: VideoRoomAllowedOptions,
@@ -147,8 +147,8 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick(
         &self,
-        room: Identifier,
-        participant: Identifier,
+        room: JanusId,
+        participant: JanusId,
         options: VideoRoomKickOptions,
         timeout: Duration,
     ) -> JaResult<()> {
@@ -164,7 +164,7 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomEnableRecordingOptions,
         timeout: Duration,
     ) -> JaResult<()> {
@@ -179,7 +179,7 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,
-        room: Identifier,
+        room: JanusId,
         timeout: Duration,
     ) -> JaResult<ListParticipantsRsp> {
         tracing::info!(plugin = "videoroom", "Sending list participants");
@@ -197,8 +197,8 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn moderate(
         &self,
-        room: Identifier,
-        participant: Identifier,
+        room: JanusId,
+        participant: JanusId,
         m_line: u64,
         options: VideoRoomModerateOptions,
         timeout: Duration,
@@ -215,7 +215,7 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn list_forwarders(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomListForwardersOptions,
         timeout: Duration,
     ) -> JaResult<ListForwardersRsp> {
@@ -231,7 +231,7 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn rtp_forward(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomRtpForwardOptions,
         timeout: Duration,
     ) -> JaResult<RtpForwardRsp> {
@@ -247,8 +247,8 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn stop_rtp_forward(
         &self,
-        room: Identifier,
-        publisher_id: Identifier,
+        room: JanusId,
+        publisher_id: JanusId,
         stream_id: u64,
         timeout: Duration,
     ) -> JaResult<StopRtpForwardRsp> {
@@ -282,7 +282,7 @@ impl VideoRoomHandle {
     /// and optionally a list of passive attendees (but only if the room was configured with notify_joining set to TRUE)
     pub async fn join_as_publisher(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomPublisherJoinOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
@@ -317,7 +317,7 @@ impl VideoRoomHandle {
     /// (which is impossible in rooms configured with require_pvtid).
     pub async fn join_as_subscriber(
         &self,
-        room: Identifier,
+        room: JanusId,
         options: VideoRoomSubscriberJoinOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,

@@ -1,5 +1,5 @@
 use super::common::Participant;
-use crate::Identifier;
+use crate::JanusId;
 use jarust::error::JaError;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::GenericEvent;
@@ -14,18 +14,18 @@ use serde_json::from_value;
 enum AudioBridgeEventDto {
     #[serde(rename = "joined")]
     RoomJoined {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
         participants: Vec<Participant>,
     },
 
     #[serde(rename = "left")]
-    RoomLeft { id: Identifier, room: Identifier },
+    RoomLeft { id: JanusId, room: JanusId },
 
     #[serde(rename = "roomchanged")]
     RoomChanged {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
         participants: Vec<Participant>,
     },
 
@@ -45,23 +45,23 @@ pub enum PluginEvent {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum AudioBridgeEvent {
     RoomJoinedWithEstabilshment {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
         participants: Vec<Participant>,
         establishment_protocol: EstablishmentProtocol,
     },
     RoomJoined {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
         participants: Vec<Participant>,
     },
     RoomLeft {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
     },
     RoomChanged {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
         participants: Vec<Participant>,
     },
     ParticipantsUpdated {
@@ -138,7 +138,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 mod tests {
     use super::PluginEvent;
     use crate::audio_bridge::events::AudioBridgeEvent;
-    use crate::Identifier;
+    use crate::JanusId;
     use jarust_transport::japrotocol::EstablishmentProtocol;
     use jarust_transport::japrotocol::JaHandleEvent;
     use jarust_transport::japrotocol::JaResponse;
@@ -171,8 +171,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined {
-                id: Identifier::Uint(7513785212278430),
-                room: Identifier::Uint(6846571539994870),
+                id: JanusId::Uint(7513785212278430),
+                room: JanusId::Uint(6846571539994870),
                 participants: vec![],
             })
         );
@@ -194,6 +194,7 @@ mod tests {
             }),
             establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
+                trickle: Some(false),
                 sdp: "test_sdp".to_string(),
             })),
             transaction: None,
@@ -204,11 +205,12 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                id: Identifier::Uint(7513785212278430),
-                room: Identifier::Uint(6846571539994870),
+                id: JanusId::Uint(7513785212278430),
+                room: JanusId::Uint(6846571539994870),
                 participants: vec![],
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
+                    trickle: Some(false),
                     sdp: "test_sdp".to_string(),
                 }),
             })
@@ -237,8 +239,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
-                id: Identifier::Uint(7513785212278430),
-                room: Identifier::Uint(6846571539994870),
+                id: JanusId::Uint(7513785212278430),
+                room: JanusId::Uint(6846571539994870),
             })
         );
     }
@@ -266,8 +268,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomChanged {
-                id: Identifier::Uint(3862697705388820),
-                room: Identifier::Uint(6168266702836626),
+                id: JanusId::Uint(3862697705388820),
+                room: JanusId::Uint(6168266702836626),
                 participants: vec![],
             })
         );

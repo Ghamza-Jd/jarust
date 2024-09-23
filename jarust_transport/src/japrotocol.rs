@@ -108,6 +108,7 @@ pub enum JsepType {
 pub struct Jsep {
     #[serde(rename = "type")]
     pub jsep_type: JsepType,
+    pub trickle: Option<bool>,
     pub sdp: String,
 }
 
@@ -238,6 +239,7 @@ mod tests {
             session_id: Some(8643988533991908u64),
             establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
                 sdp: "random_sdp".to_string(),
+                trickle: None,
                 jsep_type: JsepType::Answer,
             })),
         };

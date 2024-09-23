@@ -22,7 +22,7 @@ pub trait EchoTest: Attach {
             })
             .await?;
         let (tx, rx) = mpsc::unbounded_channel();
-        let task = jarust_rt::spawn_with_name("echotest listener", async move {
+        let task = jarust_rt::spawn("echotest listener", async move {
             while let Some(rsp) = receiver.recv().await {
                 if let Ok(event) = rsp.try_into() {
                     let _ = tx.send(event);

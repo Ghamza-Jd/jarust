@@ -1,7 +1,7 @@
 use futures_util::Future;
 use tokio::task::AbortHandle;
 
-pub fn spawn<F>(future: F) -> JaTask
+pub fn spawn<F>(name: &str, future: F) -> JaTask
 where
     F: Future + Send + 'static,
     F::Output: Send + 'static,
@@ -9,12 +9,14 @@ where
     let jh = tokio::spawn(future);
     JaTask {
         inner: jh.abort_handle(),
+        task_name: name.to_owned(),
     }
 }
 
 #[derive(Debug)]
 pub struct JaTask {
     inner: AbortHandle,
+    pub task_name: String,
 }
 
 impl JaTask {
@@ -24,7 +26,9 @@ impl JaTask {
 }
 
 impl Drop for JaTask {
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all, fields(task_name = self.task_name))]
     fn drop(&mut self) {
+        tracing::trace!("Droping task");
         self.cancel();
     }
 }
