@@ -1,5 +1,5 @@
-use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
+use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::MuteOptions;
@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .build();
     let mut connection =
-        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
+        jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
         .create_session(CreateConnectionParams {
             ka_interval: 10,

@@ -2,7 +2,7 @@ use crate::video_room::responses::AttachedStream;
 use crate::video_room::responses::Attendee;
 use crate::video_room::responses::ConfiguredStream;
 use crate::video_room::responses::Publisher;
-use crate::Identifier;
+use crate::JanusId;
 use jarust::error::JaError;
 use jarust::prelude::JaResponse;
 use jarust_transport::error::JaTransportError;
@@ -23,26 +23,26 @@ pub enum PluginEvent {
 #[serde(tag = "videoroom")]
 enum VideoRoomEventDto {
     #[serde(rename = "destroyed")]
-    DestroyRoom { room: Identifier },
+    DestroyRoom { room: JanusId },
 
     #[serde(rename = "joining")]
     JoinedRoom {
-        id: Identifier,
-        room: Identifier,
+        id: JanusId,
+        room: JanusId,
         display: Option<String>,
     },
 
     #[serde(rename = "publishers")]
     NewPublisher {
-        room: Identifier,
+        room: JanusId,
         publishers: Vec<Publisher>,
     },
 
     #[serde(rename = "joined")]
     PublisherJoined {
-        room: Identifier,
+        room: JanusId,
         description: Option<String>,
-        id: Identifier,
+        id: JanusId,
         private_id: u64,
         publishers: Vec<Publisher>,
         attendees: Vec<Attendee>,
@@ -50,28 +50,28 @@ enum VideoRoomEventDto {
 
     #[serde(rename = "attached")]
     SubscriberAttached {
-        room: Identifier,
+        room: JanusId,
         streams: Vec<AttachedStream>,
     },
 
     #[serde(rename = "updated")]
     SubscriberUpdated {
-        room: Identifier,
+        room: JanusId,
         streams: Vec<AttachedStream>,
     },
 
     #[serde(rename = "talking")]
     Talking {
-        room: Identifier,
-        id: Identifier,
+        room: JanusId,
+        id: JanusId,
         #[serde(rename = "audio-level-dBov-avg")]
         audio_level: i16,
     },
 
     #[serde(rename = "stopped-talking")]
     StoppedTalking {
-        room: Identifier,
-        id: Identifier,
+        room: JanusId,
+        id: JanusId,
         #[serde(rename = "audio-level-dBov-avg")]
         audio_level: i16,
     },
@@ -88,7 +88,7 @@ enum VideoRoomEventEventType {
 
     #[serde(rename = "publishers")]
     PublishersEvent {
-        room: Identifier,
+        room: JanusId,
         publishers: Vec<Publisher>,
     },
 
@@ -96,24 +96,18 @@ enum VideoRoomEventEventType {
     UnpublishedRsp,
 
     #[serde(rename = "unpublished")]
-    UnpublishedEvent {
-        room: Identifier,
-        unpublished: Identifier,
-    },
+    UnpublishedEvent { room: JanusId, unpublished: JanusId },
 
     #[serde(rename = "configured")]
     ConfiguredRsp {
-        room: Identifier,
+        room: JanusId,
         audio_codec: Option<String>,
         video_codec: Option<String>,
         streams: Vec<ConfiguredStream>,
     },
 
     #[serde(rename = "leaving")]
-    LeavingEvent {
-        room: Identifier,
-        leaving: Identifier,
-    },
+    LeavingEvent { room: JanusId, leaving: JanusId },
 
     #[serde(rename = "started")]
     StartedRsp,
@@ -123,7 +117,7 @@ enum VideoRoomEventEventType {
 
     #[serde(rename = "switched")]
     SwitchedRsp {
-        room: Identifier,
+        room: JanusId,
         changes: i64,
         streams: Vec<AttachedStream>,
     },
@@ -135,15 +129,17 @@ enum VideoRoomEventEventType {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum VideoRoomEvent {
     /// Sent to all participants in the video room when the room is destroyed
-    RoomDestroyed { room: Identifier },
+    RoomDestroyed {
+        room: JanusId,
+    },
 
     /// Sent to all participants if a new participant joins
     RoomJoined {
         /// unique ID of the new participant
-        id: Identifier,
+        id: JanusId,
 
         /// ID of the room the participant joined into
-        room: Identifier,
+        room: JanusId,
 
         /// display name of the new participant
         display: Option<String>,
@@ -152,7 +148,7 @@ pub enum VideoRoomEvent {
     /// Sent to all participants if a new participant joins
     RoomJoinedWithEstablishment {
         /// unique ID of the new participant
-        id: Identifier,
+        id: JanusId,
 
         /// display name of the new participant
         display: Option<String>,
@@ -162,38 +158,38 @@ pub enum VideoRoomEvent {
 
     /// Sent to all participants if a participant started publishing
     NewPublisher {
-        room: Identifier,
+        room: JanusId,
         publishers: Vec<Publisher>,
     },
 
     PublisherJoined {
-        room: Identifier,
+        room: JanusId,
         description: Option<String>,
-        id: Identifier,
+        id: JanusId,
         private_id: u64,
         publishers: Vec<Publisher>,
         attendees: Vec<Attendee>,
     },
 
     LeftRoom {
-        room: Identifier,
-        participant: Identifier,
+        room: JanusId,
+        participant: JanusId,
     },
 
     /// Sent back to a subscriber session after a successful [join_as_subscriber](super::handle::VideoRoomHandle::join_as_subscriber) request accompanied by a new JSEP SDP offer
     SubscriberAttached {
         /// unique ID of the room the subscriber joined
-        room: Identifier,
+        room: JanusId,
         streams: Vec<AttachedStream>,
     },
 
     SubscriberUpdated {
-        room: Identifier,
+        room: JanusId,
         streams: Vec<AttachedStream>,
     },
 
     SubscriberSwitched {
-        room: Identifier,
+        room: JanusId,
         changes: i64,
         streams: Vec<AttachedStream>,
     },
@@ -201,7 +197,7 @@ pub enum VideoRoomEvent {
     /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
     /// [configure_publisher](super::handle::VideoRoomHandle::configure_publisher) request
     Configured {
-        room: Identifier,
+        room: JanusId,
         audio_codec: Option<String>,
         video_codec: Option<String>,
         streams: Vec<ConfiguredStream>,
@@ -210,7 +206,7 @@ pub enum VideoRoomEvent {
     /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
     /// [configure_publisher](super::handle::VideoRoomHandle::configure_publisher) request
     ConfiguredWithEstablishment {
-        room: Identifier,
+        room: JanusId,
         audio_codec: Option<String>,
         video_codec: Option<String>,
         streams: Vec<ConfiguredStream>,
@@ -221,10 +217,10 @@ pub enum VideoRoomEvent {
     /// ad-hoc events might be sent to all publishers if audiolevel_event is set to true
     Talking {
         /// unique ID of the room the publisher is in
-        room: Identifier,
+        room: JanusId,
 
         /// unique ID of the publisher
-        id: Identifier,
+        id: JanusId,
 
         /// average value of audio level, 127=muted, 0='too loud'
         audio_level: i16,
@@ -234,10 +230,10 @@ pub enum VideoRoomEvent {
     /// ad-hoc events might be sent to all publishers if audiolevel_event is set to true
     StoppedTalking {
         /// unique ID of the room the publisher is in
-        room: Identifier,
+        room: JanusId,
 
         /// unique ID of the publisher
-        id: Identifier,
+        id: JanusId,
 
         /// average value of audio level, 127=muted, 0='too loud'
         audio_level: i16,
@@ -247,10 +243,10 @@ pub enum VideoRoomEvent {
     /// also be notified about the fact that the stream is no longer available
     Unpublished {
         /// unique ID of the room the publisher is in
-        room: Identifier,
+        room: JanusId,
 
         /// unique ID of the publisher
-        id: Identifier,
+        id: JanusId,
     },
 
     /// Sent back to a publisher after a successful [unpublish](super::handle::VideoRoomHandle::unpublish) request
@@ -452,7 +448,7 @@ mod tests {
     use super::PluginEvent;
     use crate::video_room::events::VideoRoomEvent;
     use crate::video_room::responses::ConfiguredStream;
-    use crate::Identifier;
+    use crate::JanusId;
 
     #[test]
     fn it_parse_joined_room() {
@@ -477,8 +473,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoined {
-                id: Identifier::Uint(6380744183070564),
-                room: Identifier::Uint(8812066423493633u64),
+                id: JanusId::Uint(6380744183070564),
+                room: JanusId::Uint(8812066423493633u64),
                 display: Some("Joiner McJoinface".to_string()),
             })
         );
@@ -500,6 +496,7 @@ mod tests {
             }),
             establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
+                trickle: Some(false),
                 sdp: "test_sdp".to_string(),
             })),
             transaction: None,
@@ -510,10 +507,11 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEstablishment {
-                id: Identifier::Uint(6380744183070564u64),
+                id: JanusId::Uint(6380744183070564u64),
                 display: Some("Joiner McJoinface".to_string()),
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
+                    trickle: Some(false),
                     sdp: "test_sdp".to_string(),
                 })
             })
@@ -541,7 +539,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomDestroyed {
-                room: Identifier::Uint(8812066423493633u64),
+                room: JanusId::Uint(8812066423493633u64),
             })
         )
     }
@@ -568,7 +566,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
-                room: Identifier::Uint(8812066423493633u64),
+                room: JanusId::Uint(8812066423493633u64),
                 publishers: vec![]
             })
         );
@@ -600,9 +598,9 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::PublisherJoined {
-                room: Identifier::Uint(3966653182028680),
+                room: JanusId::Uint(3966653182028680),
                 description: Some("A brand new description!".to_string()),
-                id: Identifier::Uint(1337),
+                id: JanusId::Uint(1337),
                 private_id: 4113762326,
                 publishers: vec![],
                 attendees: vec![]
@@ -661,8 +659,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
-                room: Identifier::Uint(8146468481724441u64),
-                participant: Identifier::String("ok".to_string())
+                room: JanusId::Uint(8146468481724441u64),
+                participant: JanusId::String("ok".to_string())
             })
         )
     }
@@ -704,6 +702,7 @@ mod tests {
             sender: None,
             establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
+                trickle: Some(false),
                 sdp: "test_sdp".to_string(),
             })),
         };
@@ -711,7 +710,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEstablishment {
-                room: Identifier::Uint(1657434645789453u64),
+                room: JanusId::Uint(1657434645789453u64),
                 audio_codec: Some("opus".to_string()),
                 video_codec: Some("h264".to_string()),
                 streams: vec![
@@ -735,6 +734,7 @@ mod tests {
                 ],
                 establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
+                    trickle: Some(false),
                     sdp: "test_sdp".to_string(),
                 })
             })

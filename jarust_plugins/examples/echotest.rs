@@ -1,5 +1,5 @@
-use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
+use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
         .capacity(capacity)
         .build();
     let mut connection =
-        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
+        jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(CreateConnectionParams {

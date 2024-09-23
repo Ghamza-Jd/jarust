@@ -11,4 +11,4 @@ pub mod audio_bridge;
 pub mod video_room;
 
 pub mod common;
-pub use common::Identifier;
+pub use common::JanusId;

@@ -160,6 +160,7 @@ impl JaHandle {
         Ok(())
     }
 
+    /// Trickles a single ICE candidate to the Janus server
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn trickle_single_candidate(
         &self,
@@ -175,6 +176,7 @@ impl JaHandle {
         Ok(())
     }
 
+    /// Trickle multiple ICE candidate to the Janus server
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn trickle_candidates(
         &self,
@@ -190,6 +192,9 @@ impl JaHandle {
         Ok(())
     }
 
+    /// Complete trickle to tell janus server that you sent all the trickle candidates that were gathered.
+    ///
+    /// This should be send after [`trickle_single_candidate`] or [`trickle_candidates`]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn complete_trickle(&self, timeout: Duration) -> JaResult<()> {
         tracing::info!("Completing trickle");

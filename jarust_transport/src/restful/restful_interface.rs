@@ -187,7 +187,7 @@ impl JanusInterface for RestfulInterface {
         };
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let handle = jarust_rt::spawn_with_name("Long polling", {
+        let handle = jarust_rt::spawn("Long polling", {
             let client = self.inner.shared.client.clone();
             let url = url.clone();
 

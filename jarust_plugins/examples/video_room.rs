@@ -1,9 +1,9 @@
-use jarust::jaconfig::ApiInterface;
 use jarust::jaconfig::JaConfig;
+use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::msg_options::*;
-use jarust_plugins::Identifier;
+use jarust_plugins::JanusId;
 use jarust_transport::japrotocol::EstablishmentProtocol;
 use jarust_transport::japrotocol::Jsep;
 use jarust_transport::japrotocol::JsepType;
@@ -28,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         .capacity(32)
         .build();
     let mut connection =
-        jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await?;
+        jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
         .create_session(CreateConnectionParams {
             ka_interval: 10,
@@ -120,7 +120,7 @@ async fn main() -> anyhow::Result<()> {
         .join_as_publisher(
             room_id.clone(),
             VideoRoomPublisherJoinOptions {
-                id: Some(Identifier::Uint(1337)),
+                id: Some(JanusId::Uint(1337)),
                 display: Some("xX1337-StreamerXx".into()),
                 token: None,
             },
@@ -133,6 +133,7 @@ async fn main() -> anyhow::Result<()> {
         .publish(
             EstablishmentProtocol::JSEP(Jsep {
                 jsep_type: JsepType::Offer,
+                trickle: Some(false),
                 sdp: EXAMPLE_SDP_OFFER.to_string(),
             }),
             VideoRoomPublishOptions {

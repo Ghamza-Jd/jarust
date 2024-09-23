@@ -1,24 +1,24 @@
 use serde::Deserialize;
 
-use crate::Identifier;
+use crate::JanusId;
 
 use super::common::Participant;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomCreatedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub permanent: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomEditedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub permanent: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct RoomDestroyedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub permanent: bool,
 }
 
@@ -29,7 +29,7 @@ pub struct ListRoomsRsp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Room {
-    pub room: Identifier,
+    pub room: JanusId,
     pub description: String,
     pub pin_required: bool,
     pub sampling_rate: u64,
@@ -41,18 +41,18 @@ pub struct Room {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AllowedRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub allowed: Vec<String>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ExistsRoomRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub exists: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct ListParticipantsRsp {
-    pub room: Identifier,
+    pub room: JanusId,
     pub participants: Vec<Participant>,
 }

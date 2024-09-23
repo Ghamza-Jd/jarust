@@ -165,7 +165,7 @@ impl JanusInterface for WebSocketInterface {
         let (rsp_sender, mut rsp_receiver) = mpsc::unbounded_channel::<JaResponse>();
         let (ack_sender, mut ack_receiver) = mpsc::unbounded_channel::<JaResponse>();
 
-        let rsp_task = jarust_rt::spawn_with_name("Responses gathering task", {
+        let rsp_task = jarust_rt::spawn("Responses gathering task", {
             let rsp_map = rsp_map.clone();
             async move {
                 while let Some(rsp) = rsp_receiver.recv().await {
@@ -176,7 +176,7 @@ impl JanusInterface for WebSocketInterface {
             }
         });
 
-        let ack_task = jarust_rt::spawn_with_name("ACKs gathering task", {
+        let ack_task = jarust_rt::spawn("ACKs gathering task", {
             let ack_map = ack_map.clone();
             async move {
                 while let Some(rsp) = ack_receiver.recv().await {
@@ -187,7 +187,7 @@ impl JanusInterface for WebSocketInterface {
             }
         });
 
-        let demux_task = jarust_rt::spawn_with_name("Demultiplexing task", {
+        let demux_task = jarust_rt::spawn("Demultiplexing task", {
             let router = router.clone();
             let transaction_manager = transaction_manager.clone();
             let demuxer = Demuxer {

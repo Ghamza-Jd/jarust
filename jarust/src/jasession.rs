@@ -52,7 +52,7 @@ impl JaSession {
 
         let this = session.clone();
 
-        let keepalive_task = jarust_rt::spawn_with_name("keepalive", async move {
+        let keepalive_task = jarust_rt::spawn("keepalive", async move {
             let _ = this.keep_alive(params.ka_interval).await;
         });
 
@@ -125,7 +125,6 @@ impl Attach for JaSession {
 }
 
 impl Drop for Exclusive {
-    #[tracing::instrument(parent = None, level = tracing::Level::TRACE, skip(self))]
     fn drop(&mut self) {
         self.tasks.iter().for_each(|task| {
             task.cancel();

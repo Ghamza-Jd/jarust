@@ -7,7 +7,7 @@ pub struct JaConfig {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum ApiInterface {
+pub enum JanusAPI {
     WebSocket,
     Restful,
 }
@@ -93,9 +93,9 @@ impl<U, C> JaConfigBuilder<U, C> {
 
     /// Set the server root for the Janus server (default "janus")
     ///
-    /// It's overridable for WebSocket (it's not critical for ws)
+    /// It's overridable for WebSocket (it's not critical for WebSocket)
     ///
-    /// It's mandatory for Restful as it should match the server_root in the janus config file or it will result in 404s
+    /// It's mandatory for Restful as it should match the server_root in the Janus config file or it will result in 404 errors
     pub fn server_root(self, server_root: &str) -> Self {
         let Self {
             apisecret,

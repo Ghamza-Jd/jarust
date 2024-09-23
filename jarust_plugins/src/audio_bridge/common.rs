@@ -1,10 +1,10 @@
 use serde::Deserialize;
 
-use crate::Identifier;
+use crate::JanusId;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct Participant {
-    pub id: Identifier,
+    pub id: JanusId,
     pub display: Option<String>,
     pub setup: bool,
     pub muted: bool,

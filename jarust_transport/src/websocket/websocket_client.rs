@@ -66,7 +66,7 @@ impl WebSocketClient {
         let (sender, mut receiver) = stream.split();
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let task = jarust_rt::spawn_with_name("WebSocket incoming messages", async move {
+        let task = jarust_rt::spawn("WebSocket incoming messages", async move {
             while let Some(Ok(message)) = receiver.next().await {
                 if let Message::Text(text) = message {
                     let _ = tx.send(text.into());
