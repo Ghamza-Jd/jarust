@@ -18,8 +18,8 @@ async-trait.workspace = true
 bytes.workspace = true
 futures-util.workspace = true
 indexmap = "2.5.0"
-jarust_rt = { version = "0.5.0", path = "../jarust_rt" }
-jarust_transport = { version = "0.5.0", path = "../jarust_transport" }
+jarust_rt = { version = "0.6.0", path = "../jarust_rt" }
+jarust_transport = { version = "0.6.0", path = "../jarust_transport" }
 rand = "0.8.5"
 serde_json.workspace = true
 serde.workspace = true
