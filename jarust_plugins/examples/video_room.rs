@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
         exists.exists
     );
 
-    let rooms = handle.list(timeout).await?;
+    let rooms = handle.list_rooms(timeout).await?;
     tracing::info!("Rooms {:#?}", rooms);
 
     let allowed_enable = handle
