@@ -18,6 +18,11 @@ pub struct VideoRoomHandle {
 // synchronous methods
 //
 impl VideoRoomHandle {
+    /// Create a new video room dynamically with the given room number,
+    /// as an alternative to using the configuration file
+    ///
+    /// ### Note:
+    /// Random room number will be used if `room` is `None`
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room(
         &self,
@@ -34,6 +39,11 @@ impl VideoRoomHandle {
         .await
     }
 
+    /// Create a new audio room dynamically with the given configuration,
+    /// as an alternative to using the configuration file
+    ///
+    /// ### Note:
+    /// Random room number will be used if `room` is `None`
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
@@ -49,6 +59,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    // Destroy an existing video room, whether created dynamically or statically
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
@@ -66,6 +77,11 @@ impl VideoRoomHandle {
             .await
     }
 
+    /// Allows you to dynamically edit some room properties (e.g., the PIN)
+    ///
+    /// ### Note:
+    /// You won't be able to modify other more static properties,
+    /// like the room ID, the sampling rate, the extensions-related stuff and so on.
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
@@ -83,6 +99,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    /// Check whether a room exists
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn exists(&self, room: JanusId, timeout: Duration) -> JaResult<RoomExistsRsp> {
         tracing::info!(plugin = "videoroom", "Sending exists");
@@ -96,8 +113,9 @@ impl VideoRoomHandle {
             .await
     }
 
+    /// Get a list of the available rooms
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn list(&self, timeout: Duration) -> JaResult<Vec<Room>> {
+    pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<Room>> {
         tracing::info!(plugin = "videoroom", "Sending list");
         let response = self
             .handle
@@ -112,6 +130,7 @@ impl VideoRoomHandle {
         Ok(response.list)
     }
 
+    /// Allows you to edit who's allowed to join a room via ad-hoc tokens
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
@@ -144,6 +163,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    /// Kicks a participants out of a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick(
         &self,
@@ -161,6 +181,7 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
+    /// Enable or disable recording on all participants while the conference is in progress
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
@@ -176,6 +197,7 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
+    /// Get a list of the participants in a specific room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,

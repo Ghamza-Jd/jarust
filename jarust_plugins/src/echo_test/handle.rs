@@ -11,12 +11,14 @@ pub struct EchoTestHandle {
 }
 
 impl EchoTestHandle {
+    /// Start/update an echotest session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn start(&self, options: EchoTestStartOptions) -> JaResult<()> {
         tracing::info!(plugin = "echotest", "Sending start");
         self.handle.fire_and_forget(options.try_into()?).await
     }
 
+    /// Start/update an echotest session with establishment
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn start_with_est(
         &self,
