@@ -137,8 +137,8 @@ async fn main() -> anyhow::Result<()> {
                 sdp: EXAMPLE_SDP_OFFER.to_string(),
             }),
             VideoRoomPublishOptions {
-                audiocodec: Some("opus".to_string()),
-                videocodec: Some("h264".to_string()),
+                audiocodec: Some(VideoRoomAudioCodec::OPUS),
+                videocodec: Some(VideoRoomVideoCodec::H264),
                 bitrate: Some(3500),
                 record: Some(false),
                 descriptions: vec![VideoRoomPublishDescription {
