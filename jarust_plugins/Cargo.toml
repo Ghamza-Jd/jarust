@@ -24,10 +24,11 @@ tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 [features]
-default = ["echo_test", "audio_bridge", "video_room"]
+default = ["echo_test", "audio_bridge", "video_room", "streaming"]
 echo_test = []
 audio_bridge = []
 video_room = []
+streaming = []
 __experimental = []
 
 [dev-dependencies]

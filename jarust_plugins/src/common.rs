@@ -3,7 +3,7 @@ use serde::Serialize;
 
 impl_tryfrom_serde_value!(JanusId);
 
-/// Rooms and Participants Identifier.
+/// Mountpoints, Rooms and Participants Identifier.
 ///
 /// Identifier should be by default unsigned integer, unless configured otherwise in the plugin config.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]

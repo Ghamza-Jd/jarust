@@ -6,6 +6,7 @@
 //! - EchoTest plugin
 //! - AudioBridge plugin
 //! - VideoRoom plugin
+//! - Streaming plugin (minimal support)
 //!
 //! All of the plugins are hidden behind feature flags to allow you to cherry-pick your dependencies. By default, all plugins are enabled.
 //!
@@ -24,6 +25,9 @@ pub mod audio_bridge;
 
 #[cfg(feature = "video_room")]
 pub mod video_room;
+
+#[cfg(feature = "streaming")]
+pub mod streaming;
 
 pub mod common;
 pub use common::JanusId;

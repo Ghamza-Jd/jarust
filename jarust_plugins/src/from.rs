@@ -6,7 +6,7 @@
 ///
 /// ### Example:
 /// ```rust
-/// tryfrom_serde_value!(ChangeRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions);
+/// impl_tryfrom_serde_value!(ChangeRoomOptions EditRoomOptions DestroyRoomMsg JoinRoomOptions);
 /// ```
 #[macro_export]
 macro_rules! impl_tryfrom_serde_value {
