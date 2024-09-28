@@ -1,6 +1,5 @@
 use super::common::AudioBridgeParticipant;
 use crate::JanusId;
-use jarust::error::JaError;
 use jarust_interface::japrotocol::EstablishmentProtocol;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
@@ -71,7 +70,7 @@ pub enum AudioBridgeEvent {
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
-    type Error = JaError;
+    type Error = jarust_interface::Error;
 
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
@@ -129,7 +128,7 @@ impl TryFrom<JaResponse> for PluginEvent {
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
                 Ok(PluginEvent::GenericEvent(event))
             }
-            _ => Err(JaError::IncompletePacket),
+            _ => Err(Self::Error::IncompletePacket),
         }
     }
 }

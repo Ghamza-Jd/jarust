@@ -2,8 +2,8 @@ use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
 use crate::JanusId;
 use jarust::prelude::*;
-use jarust_rt::JaTask;
 use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
 use std::ops::Deref;
@@ -28,7 +28,7 @@ impl VideoRoomHandle {
         &self,
         room: Option<JanusId>,
         timeout: Duration,
-    ) -> JaResult<RoomCreatedRsp> {
+    ) -> jarust_interface::Result<RoomCreatedRsp> {
         self.create_room_with_config(
             VideoRoomCreateOptions {
                 room,
@@ -49,7 +49,7 @@ impl VideoRoomHandle {
         &self,
         options: VideoRoomCreateOptions,
         timeout: Duration,
-    ) -> JaResult<RoomCreatedRsp> {
+    ) -> jarust_interface::Result<RoomCreatedRsp> {
         tracing::info!(plugin = "videoroom", "Sending create");
         let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
@@ -66,7 +66,7 @@ impl VideoRoomHandle {
         room: JanusId,
         options: VideoRoomDestroyOptions,
         timeout: Duration,
-    ) -> JaResult<RoomDestroyedRsp> {
+    ) -> jarust_interface::Result<RoomDestroyedRsp> {
         tracing::info!(plugin = "videoroom", "Sending destroy");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
@@ -88,7 +88,7 @@ impl VideoRoomHandle {
         room: JanusId,
         options: VideoRoomEditOptions,
         timeout: Duration,
-    ) -> JaResult<RoomEditedRsp> {
+    ) -> jarust_interface::Result<RoomEditedRsp> {
         tracing::info!(plugin = "videoroom", "Sending edit");
         let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
@@ -101,7 +101,11 @@ impl VideoRoomHandle {
 
     /// Check whether a room exists
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn exists(&self, room: JanusId, timeout: Duration) -> JaResult<RoomExistsRsp> {
+    pub async fn exists(
+        &self,
+        room: JanusId,
+        timeout: Duration,
+    ) -> jarust_interface::Result<RoomExistsRsp> {
         tracing::info!(plugin = "videoroom", "Sending exists");
         let message = json!({
             "request": "exists",
@@ -115,7 +119,7 @@ impl VideoRoomHandle {
 
     /// Get a list of the available rooms
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<Room>> {
+    pub async fn list_rooms(&self, timeout: Duration) -> jarust_interface::Result<Vec<Room>> {
         tracing::info!(plugin = "videoroom", "Sending list");
         let response = self
             .handle
@@ -139,11 +143,11 @@ impl VideoRoomHandle {
         allowed: Vec<String>,
         options: VideoRoomAllowedOptions,
         timeout: Duration,
-    ) -> JaResult<AccessRsp> {
+    ) -> jarust_interface::Result<AccessRsp> {
         if (action == VideoRoomAllowedAction::Enable || action == VideoRoomAllowedAction::Disable)
             && !allowed.is_empty()
         {
-            return Err(JaError::InvalidJanusRequest {
+            return Err(jarust_interface::Error::InvalidJanusRequest {
                 reason: "An enable or disable 'allowed' request cannot have its allowed array set"
                     .to_string(),
             });
@@ -171,7 +175,7 @@ impl VideoRoomHandle {
         participant: JanusId,
         options: VideoRoomKickOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "videoroom", "Sending kick");
         let mut message: Value = options.try_into()?;
         message["request"] = "kick".into();
@@ -188,7 +192,7 @@ impl VideoRoomHandle {
         room: JanusId,
         options: VideoRoomEnableRecordingOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "videoroom", "Sending enable recording");
         let mut message: Value = options.try_into()?;
         message["request"] = "enable_recording".into();
@@ -203,7 +207,7 @@ impl VideoRoomHandle {
         &self,
         room: JanusId,
         timeout: Duration,
-    ) -> JaResult<ListParticipantsRsp> {
+    ) -> jarust_interface::Result<ListParticipantsRsp> {
         tracing::info!(plugin = "videoroom", "Sending list participants");
         self.handle
             .send_waiton_rsp::<ListParticipantsRsp>(
@@ -224,7 +228,7 @@ impl VideoRoomHandle {
         m_line: u64,
         options: VideoRoomModerateOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "moderate".into();
         message["room"] = serde_json::to_value(room)?;
@@ -240,7 +244,7 @@ impl VideoRoomHandle {
         room: JanusId,
         options: VideoRoomListForwardersOptions,
         timeout: Duration,
-    ) -> JaResult<ListForwardersRsp> {
+    ) -> jarust_interface::Result<ListForwardersRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "list_forwarders".into();
         message["room"] = serde_json::to_value(room)?;
@@ -256,7 +260,7 @@ impl VideoRoomHandle {
         room: JanusId,
         options: VideoRoomRtpForwardOptions,
         timeout: Duration,
-    ) -> JaResult<RtpForwardRsp> {
+    ) -> jarust_interface::Result<RtpForwardRsp> {
         let mut message = serde_json::to_value(options)?;
         message["request"] = "rtp_forward".into();
         message["room"] = serde_json::to_value(room)?;
@@ -273,7 +277,7 @@ impl VideoRoomHandle {
         publisher_id: JanusId,
         stream_id: u64,
         timeout: Duration,
-    ) -> JaResult<StopRtpForwardRsp> {
+    ) -> jarust_interface::Result<StopRtpForwardRsp> {
         self.handle
             .send_waiton_rsp::<StopRtpForwardRsp>(
                 json!({
@@ -308,7 +312,7 @@ impl VideoRoomHandle {
         options: VideoRoomPublisherJoinOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "publisher".into();
@@ -343,7 +347,7 @@ impl VideoRoomHandle {
         options: VideoRoomSubscriberJoinOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "subscriber".into();
@@ -369,7 +373,7 @@ impl VideoRoomHandle {
         &self,
         options: VideoRoomConfigurePublisherOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
@@ -382,7 +386,7 @@ impl VideoRoomHandle {
         &self,
         options: VideoRoomConfigureSubscriberOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
@@ -395,7 +399,7 @@ impl VideoRoomHandle {
         join_options: VideoRoomPublisherJoinOptions,
         configure_options: VideoRoomConfigurePublisherOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message: Value = JoinAndConfigureOptions {
             join_options,
             configure_options,
@@ -417,7 +421,7 @@ impl VideoRoomHandle {
         establishment_protocol: EstablishmentProtocol,
         options: VideoRoomPublishOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message: Value = options.try_into()?;
         message["request"] = "publish".into();
         self.handle
@@ -429,7 +433,7 @@ impl VideoRoomHandle {
     /// Stop publishing and tear down the related PeerConnection
     ///
     /// This request requires no arguments as the context is implicit.
-    pub async fn unpublish(&self, timeout: Duration) -> JaResult<()> {
+    pub async fn unpublish(&self, timeout: Duration) -> jarust_interface::Result<()> {
         self.handle
             .send_waiton_ack(json!({"request": "unpublish"}), timeout)
             .await?;
@@ -444,7 +448,7 @@ impl VideoRoomHandle {
         &self,
         establishment_protocol: EstablishmentProtocol,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         self.handle
             .send_waiton_ack_with_est(json!({"request": "start"}), establishment_protocol, timeout)
             .await?;
@@ -455,7 +459,7 @@ impl VideoRoomHandle {
         &self,
         streams: Vec<VideoRoomSubscriberJoinStream>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message = serde_json::to_value(streams)?;
         message["request"] = "subscribe".into();
 
@@ -468,7 +472,7 @@ impl VideoRoomHandle {
         &self,
         streams: Vec<VideoRoomSubscriberUnsubscribeStream>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message = serde_json::to_value(streams)?;
         message["request"] = "unsubscribe".into();
 
@@ -483,7 +487,7 @@ impl VideoRoomHandle {
         subscribe: Vec<VideoRoomSubscriberJoinStream>,
         unsubscribe: Vec<VideoRoomSubscriberUnsubscribeStream>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let message = json!({
             "request": "update",
             "subscribe": subscribe,
@@ -496,7 +500,7 @@ impl VideoRoomHandle {
     }
 
     #[cfg(feature = "__experimental")]
-    pub async fn pause(&self, timeout: Duration) -> JaResult<()> {
+    pub async fn pause(&self, timeout: Duration) -> jarust_interface::Result<()> {
         self.handle
             .send_waiton_ack(json!({"request": "pause"}), timeout)
             .await?;
@@ -508,7 +512,7 @@ impl VideoRoomHandle {
         &self,
         streams: Vec<VideoRoomSwitchStream>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         let mut message = serde_json::to_value(streams)?;
         message["request"] = "switch".into();
 
@@ -517,7 +521,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
-    pub async fn leave(&self, timeout: Duration) -> JaResult<()> {
+    pub async fn leave(&self, timeout: Duration) -> jarust_interface::Result<()> {
         self.handle
             .send_waiton_ack(json!({"request": "leave"}), timeout)
             .await?;

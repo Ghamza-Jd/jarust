@@ -1,4 +1,4 @@
-use crate::error::JaTransportError;
+use crate::error::Error;
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEstablishment;
 use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
@@ -6,9 +6,9 @@ use crate::handle_msg::HandleMessageWithTimeout;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::prelude::JaTransportResult;
 use crate::respones::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
+use crate::Result;
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
 use std::ops::Deref;
@@ -37,15 +37,15 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
-    ) -> JaTransportResult<Self>
+    ) -> Result<Self>
     where
         Self: Sized;
 
     /// Creates a new session with the janus server.
-    async fn create(&self, timeout: Duration) -> JaTransportResult<u64>;
+    async fn create(&self, timeout: Duration) -> Result<u64>;
 
     /// Gets the server info.
-    async fn server_info(&self, timeout: Duration) -> JaTransportResult<ServerInfoRsp>;
+    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp>;
 
     /// Attaches a plugin to the session.
     async fn attach(
@@ -53,22 +53,19 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         session_id: u64,
         plugin_id: String,
         timeout: Duration,
-    ) -> JaTransportResult<(u64, mpsc::UnboundedReceiver<JaResponse>)>;
+    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>)>;
 
     /// Send keep alive messages (to keep the connection and the client-server session alive).
-    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()>;
+    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<()>;
 
     /// Destroys the session.
-    async fn destory(&self, session_id: u64, timeout: Duration) -> JaTransportResult<()>;
+    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<()>;
 
     /// Sends a one-shot message
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> JaTransportResult<()>;
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<()>;
 
     /// Sends a message and waits for acknowledgment.
-    async fn send_msg_waiton_ack(
-        &self,
-        message: HandleMessageWithTimeout,
-    ) -> JaTransportResult<JaResponse>;
+    async fn send_msg_waiton_ack(&self, message: HandleMessageWithTimeout) -> Result<JaResponse>;
 
     /// Internal method to send a message and wait for the response. Ideally, this shouldn't be internal,
     /// but we can't have a generic return type for this method as it would be considered object-unsafe.
@@ -82,19 +79,19 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,
-    ) -> JaTransportResult<JaResponse>;
+    ) -> Result<JaResponse>;
 
     /// Sends a one-shot message with establishment.
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
-    ) -> JaTransportResult<()>;
+    ) -> Result<()>;
 
     /// Sends a message and waits for acknowledgment with establishment.
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
-    ) -> JaTransportResult<JaResponse>;
+    ) -> Result<JaResponse>;
 
     /// Returns the name of the interface (for the debug trait)
     fn name(&self) -> Box<str> {
@@ -124,10 +121,7 @@ impl JanusInterfaceImpl {
 
     /// Sends a message and waits for the response.
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn send_msg_waiton_rsp<R>(
-        &self,
-        message: HandleMessageWithTimeout,
-    ) -> JaTransportResult<R>
+    pub async fn send_msg_waiton_rsp<R>(&self, message: HandleMessageWithTimeout) -> Result<R>
     where
         R: DeserializeOwned,
     {
@@ -138,13 +132,13 @@ impl JanusInterfaceImpl {
                     Ok(result) => result,
                     Err(error) => {
                         tracing::error!("Failed to parse with error {error:#?}");
-                        return Err(JaTransportError::UnexpectedResponse);
+                        return Err(Error::UnexpectedResponse);
                     }
                 }
             }
             _ => {
                 tracing::error!("Request failed");
-                return Err(JaTransportError::UnexpectedResponse);
+                return Err(Error::UnexpectedResponse);
             }
         };
         Ok(result)

@@ -1,7 +1,7 @@
 use super::msg_options::EchoTestStartOptions;
 use jarust::prelude::*;
-use jarust_rt::JaTask;
 use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_rt::JaTask;
 use std::ops::Deref;
 use std::time::Duration;
 
@@ -13,7 +13,7 @@ pub struct EchoTestHandle {
 impl EchoTestHandle {
     /// Start/update an echotest session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn start(&self, options: EchoTestStartOptions) -> JaResult<()> {
+    pub async fn start(&self, options: EchoTestStartOptions) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "echotest", "Sending start");
         self.handle.fire_and_forget(options.try_into()?).await
     }
@@ -25,7 +25,7 @@ impl EchoTestHandle {
         options: EchoTestStartOptions,
         establishment: EstablishmentProtocol,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "echotest", "Sending start with establishment");
         self.send_waiton_ack_with_est(options.try_into()?, establishment, timeout)
             .await?;

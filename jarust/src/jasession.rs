@@ -68,7 +68,7 @@ impl JaSession {
     }
 
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
-    async fn keep_alive(self, ka_interval: u32) -> JaResult<()> {
+    async fn keep_alive(self, ka_interval: u32) -> jarust_interface::Result<()> {
         let duration = Duration::from_secs(ka_interval.into());
         let mut interval = time::interval(duration);
         let id = { self.inner.shared.id };
@@ -84,7 +84,7 @@ impl JaSession {
 impl JaSession {
     /// Destory the current session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
-    pub async fn destory(&self, timeout: Duration) -> JaResult<()> {
+    pub async fn destory(&self, timeout: Duration) -> jarust_interface::Result<()> {
         tracing::info!("Destroying session");
         let session_id = self.inner.shared.id;
         self.inner
@@ -103,7 +103,7 @@ impl Attach for JaSession {
     async fn attach(
         &self,
         params: AttachHandleParams,
-    ) -> JaResult<(JaHandle, mpsc::UnboundedReceiver<JaResponse>)> {
+    ) -> jarust_interface::Result<(JaHandle, mpsc::UnboundedReceiver<JaResponse>)> {
         tracing::info!(plugin = &params.plugin_id, "Attaching new handle");
         let session_id = self.inner.shared.id;
         let (handle_id, event_receiver) = self
