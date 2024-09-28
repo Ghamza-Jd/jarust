@@ -1,7 +1,7 @@
 use super::msg_options::EchoTestStartOptions;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
-use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstablishmentProtocol;
 use std::ops::Deref;
 use std::time::Duration;
 

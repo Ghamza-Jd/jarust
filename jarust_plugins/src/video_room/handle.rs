@@ -3,7 +3,7 @@ use crate::video_room::responses::*;
 use crate::JanusId;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
-use jarust_transport::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstablishmentProtocol;
 use serde_json::json;
 use serde_json::Value;
 use std::ops::Deref;

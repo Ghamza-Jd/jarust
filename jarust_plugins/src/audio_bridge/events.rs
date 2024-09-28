@@ -1,11 +1,11 @@
 use super::common::AudioBridgeParticipant;
 use crate::JanusId;
 use jarust::error::JaError;
-use jarust_transport::japrotocol::EstablishmentProtocol;
-use jarust_transport::japrotocol::GenericEvent;
-use jarust_transport::japrotocol::JaHandleEvent;
-use jarust_transport::japrotocol::JaResponse;
-use jarust_transport::japrotocol::ResponseType;
+use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::GenericEvent;
+use jarust_interface::japrotocol::JaHandleEvent;
+use jarust_interface::japrotocol::JaResponse;
+use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
@@ -139,13 +139,13 @@ mod tests {
     use super::PluginEvent;
     use crate::audio_bridge::events::AudioBridgeEvent;
     use crate::JanusId;
-    use jarust_transport::japrotocol::EstablishmentProtocol;
-    use jarust_transport::japrotocol::JaHandleEvent;
-    use jarust_transport::japrotocol::JaResponse;
-    use jarust_transport::japrotocol::Jsep;
-    use jarust_transport::japrotocol::JsepType;
-    use jarust_transport::japrotocol::PluginData;
-    use jarust_transport::japrotocol::ResponseType;
+    use jarust_interface::japrotocol::EstablishmentProtocol;
+    use jarust_interface::japrotocol::JaHandleEvent;
+    use jarust_interface::japrotocol::JaResponse;
+    use jarust_interface::japrotocol::Jsep;
+    use jarust_interface::japrotocol::JsepType;
+    use jarust_interface::japrotocol::PluginData;
+    use jarust_interface::japrotocol::ResponseType;
     use serde_json::json;
 
     #[test]

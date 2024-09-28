@@ -10,13 +10,13 @@ mod tests {
     use jarust::japlugin::AttachHandleParams;
     use jarust::prelude::Attach;
     use jarust::prelude::JaResponse;
-    use jarust_transport::error::JaTransportError;
-    use jarust_transport::janus_interface::ConnectionParams;
-    use jarust_transport::janus_interface::JanusInterface;
-    use jarust_transport::japrotocol::ErrorResponse;
-    use jarust_transport::japrotocol::JaData;
-    use jarust_transport::japrotocol::JaSuccessProtocol;
-    use jarust_transport::japrotocol::ResponseType;
+    use jarust_interface::error::JaTransportError;
+    use jarust_interface::janus_interface::ConnectionParams;
+    use jarust_interface::janus_interface::JanusInterface;
+    use jarust_interface::japrotocol::ErrorResponse;
+    use jarust_interface::japrotocol::JaData;
+    use jarust_interface::japrotocol::JaSuccessProtocol;
+    use jarust_interface::japrotocol::ResponseType;
     use std::time::Duration;
 
     #[tokio::test]
@@ -129,9 +129,6 @@ mod tests {
                 timeout: Duration::from_secs(5),
             })
             .await;
-        assert!(matches!(
-            result,
-            Err(JaError::JanusTransport(JaTransportError::JanusError { .. }))
-        ));
+        assert!(matches!(result, Err(JaError::JanusError { .. })));
     }
 }

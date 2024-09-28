@@ -5,7 +5,7 @@ use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::EchoTestStartOptions;
-use jarust_transport::tgenerator::RandomTransactionGenerator;
+use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     let env_filter = EnvFilter::from_default_env()
         .add_directive("jarust=trace".parse()?)
         .add_directive("jarust_plugins=trace".parse()?)
-        .add_directive("jarust_transport=trace".parse()?)
+        .add_directive("jarust_interface=trace".parse()?)
         .add_directive("jarust_rt=trace".parse()?)
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();

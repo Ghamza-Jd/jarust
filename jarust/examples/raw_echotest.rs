@@ -3,7 +3,7 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::Attach;
-use jarust_transport::tgenerator::RandomTransactionGenerator;
+use jarust_interface::tgenerator::RandomTransactionGenerator;
 use serde_json::json;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
