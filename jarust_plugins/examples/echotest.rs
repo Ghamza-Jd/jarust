@@ -1,11 +1,11 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
+use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::msg_options::EchoTestStartOptions;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -55,6 +55,9 @@ async fn main() -> anyhow::Result<()> {
                 ..
             }) => {
                 tracing::info!("establishment_protocol: {establishment_protocol:#?}");
+            }
+            PluginEvent::EchoTestEvent(EchoTestEvent::Error { error_code, error }) => {
+                tracing::warn!("error: {{ error_code: {error_code}, error: {error} }}");
             }
             PluginEvent::GenericEvent(event) => {
                 tracing::debug!("generic event: {event:#?}");
