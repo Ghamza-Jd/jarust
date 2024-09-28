@@ -3,7 +3,7 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::AudioBridgeMuteOptions;
-use jarust_transport::tgenerator::RandomTransactionGenerator;
+use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
     let env_filter = EnvFilter::from_default_env()
         .add_directive("jarust=trace".parse()?)
         .add_directive("jarust_plugins=trace".parse()?)
-        .add_directive("jarust_transport=trace".parse()?)
+        .add_directive("jarust_interface=trace".parse()?)
         .add_directive("jarust_rt=trace".parse()?)
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();

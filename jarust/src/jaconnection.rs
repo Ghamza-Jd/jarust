@@ -1,9 +1,9 @@
 use crate::jasession::JaSession;
 use crate::jasession::NewSessionParams;
 use crate::prelude::*;
-use jarust_transport::janus_interface::JanusInterface;
-use jarust_transport::janus_interface::JanusInterfaceImpl;
-use jarust_transport::respones::ServerInfoRsp;
+use jarust_interface::janus_interface::JanusInterface;
+use jarust_interface::janus_interface::JanusInterfaceImpl;
+use jarust_interface::respones::ServerInfoRsp;
 use std::sync::Arc;
 use std::time::Duration;
 

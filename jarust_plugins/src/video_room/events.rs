@@ -5,11 +5,10 @@ use crate::video_room::responses::Publisher;
 use crate::JanusId;
 use jarust::error::JaError;
 use jarust::prelude::JaResponse;
-use jarust_transport::error::JaTransportError;
-use jarust_transport::japrotocol::EstablishmentProtocol;
-use jarust_transport::japrotocol::GenericEvent;
-use jarust_transport::japrotocol::JaHandleEvent;
-use jarust_transport::japrotocol::ResponseType;
+use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::GenericEvent;
+use jarust_interface::japrotocol::JaHandleEvent;
+use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
@@ -354,10 +353,10 @@ impl TryFrom<JaResponse> for PluginEvent {
 
                     VideoRoomEventDto::Event(e) => match e {
                         VideoRoomEventEventType::ErrorEvent { error_code, error } => {
-                            Err(JaError::JanusTransport(JaTransportError::JanusError {
+                            Err(JaError::JanusError {
                                 code: error_code,
                                 reason: error,
-                            }))
+                            })
                         }
                         VideoRoomEventEventType::PublishersEvent { room, publishers } => {
                             Ok(PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
@@ -441,7 +440,7 @@ mod tests {
     use serde_json::json;
 
     use jarust::error::JaError;
-    use jarust_transport::japrotocol::{
+    use jarust_interface::japrotocol::{
         EstablishmentProtocol, JaHandleEvent, JaResponse, Jsep, JsepType, PluginData, ResponseType,
     };
 
