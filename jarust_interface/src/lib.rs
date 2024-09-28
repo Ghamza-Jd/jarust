@@ -1,10 +1,11 @@
 //! # Jarust Interface
 //!
-//! Jarust Interface abstracts the implementation details of the connection and the underlying transport, allowing
-//! customization of the transport layer. For example, dealing with WebSockets on major platforms can be over TCP, while in
-//! browsers, we have to use something like the web_sys crate.
+//! Jarust interface continas:
 //!
-//! It also enables choosing one of the built-in interfaces or bringing your own interface. The same goes for transaction generation.
+//! - Transport abstraction, you can use the built-in WebSocket interface, restful interface, or bring your own.
+//! - Transaction generation abstraction, you can use the built-in transaction generator or bring your own.
+//! - DTOs for the Janus API.
+//! - Errors
 //!
 
 pub mod error;
