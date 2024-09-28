@@ -21,7 +21,7 @@ pub enum Error {
     IncompletePacket,
     #[error("Transport is not opened")]
     TransportNotOpened,
-    #[error("Invalid Janus request, reason: {reason}")]
+    #[error("Invalid Janus request {{ reason: {reason} }}")]
     InvalidJanusRequest { reason: String },
     #[error("Can't send data in closed channel")]
     SendError,

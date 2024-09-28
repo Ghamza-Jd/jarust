@@ -17,6 +17,7 @@ use super::responses::AudioBridgeRoom;
 use super::responses::AudioBridgeRoomCreatedRsp;
 use super::responses::AudioBridgeRoomDestroyedRsp;
 use super::responses::AudioBridgeRoomEditedRsp;
+use crate::audio_bridge::responses::AudioBridgeRespone;
 use crate::JanusId;
 use jarust::prelude::*;
 use jarust_interface::japrotocol::EstablishmentProtocol;
@@ -41,7 +42,7 @@ impl AudioBridgeHandle {
         &self,
         room: Option<JanusId>,
         timeout: Duration,
-    ) -> Result<AudioBridgeRoomCreatedRsp, jarust_interface::Error> {
+    ) -> Result<AudioBridgeRoomCreatedRsp, super::Error> {
         self.create_room_with_config(
             AudioBridgeCreateRoomOptions {
                 room,
@@ -61,13 +62,14 @@ impl AudioBridgeHandle {
         &self,
         options: AudioBridgeCreateRoomOptions,
         timeout: Duration,
-    ) -> Result<AudioBridgeRoomCreatedRsp, jarust_interface::Error> {
+    ) -> Result<AudioBridgeRoomCreatedRsp, super::Error> {
         tracing::info!(plugin = "audiobridge", "Sending create room");
         let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
         self.handle
-            .send_waiton_rsp::<AudioBridgeRoomCreatedRsp>(message, timeout)
-            .await
+            .send_waiton_rsp::<AudioBridgeRespone<AudioBridgeRoomCreatedRsp>>(message, timeout)
+            .await?
+            .map_err()
     }
 
     /// Allows you to dynamically edit some room properties (e.g., the PIN)

@@ -15,16 +15,11 @@ doctest = false
 
 [dependencies]
 async-trait.workspace = true
-bytes.workspace = true
-futures-util.workspace = true
-indexmap = "2.5.0"
-jarust_rt = { version = "0.6.0", path = "../jarust_rt" }
 jarust_interface = { version = "0.6.0", path = "../jarust_interface" }
-rand = "0.8.5"
+jarust_rt = { version = "0.6.0", path = "../jarust_rt" }
 serde_json.workspace = true
 serde.workspace = true
-thiserror.workspace = true
-tokio = { workspace = true, features = ["sync", "time", "rt"] }
+tokio = { workspace = true, features = ["sync", "time"] }
 tracing.workspace = true
 
 [dev-dependencies]

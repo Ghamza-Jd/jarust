@@ -1,9 +1,9 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
+use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust_plugins::audio_bridge::msg_opitons::AudioBridgeMuteOptions;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -36,6 +36,10 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut events) = session.attach_audio_bridge(timeout).await?;
 
     let create_room_rsp = handle.create_room(None, timeout).await?;
+    // Try create a room that already exist
+    let create_room_rsp = handle
+        .create_room(Some(create_room_rsp.room), timeout)
+        .await?;
     let rooms = handle.list_rooms(timeout).await?;
 
     tracing::info!("Rooms {:#?}", rooms);
