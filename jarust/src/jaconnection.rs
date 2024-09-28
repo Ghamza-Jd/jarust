@@ -25,7 +25,9 @@ pub struct CreateConnectionParams {
 }
 
 impl JaConnection {
-    pub(crate) async fn open(interface: impl JanusInterface) -> jarust_interface::Result<Self> {
+    pub(crate) async fn open(
+        interface: impl JanusInterface,
+    ) -> Result<Self, jarust_interface::Error> {
         tracing::info!("Creating new connection");
         let interface = JanusInterfaceImpl::new(interface);
         let connection = Arc::new(InnerConnection { interface });
@@ -37,7 +39,7 @@ impl JaConnection {
     pub async fn create_session(
         &mut self,
         params: CreateConnectionParams,
-    ) -> jarust_interface::Result<JaSession> {
+    ) -> Result<JaSession, jarust_interface::Error> {
         tracing::info!("Creating new session");
         let session_id = self.inner.interface.create(params.timeout).await?;
         let session = JaSession::new(NewSessionParams {
@@ -55,7 +57,7 @@ impl JaConnection {
     pub async fn server_info(
         &mut self,
         timeout: Duration,
-    ) -> jarust_interface::Result<ServerInfoRsp> {
+    ) -> Result<ServerInfoRsp, jarust_interface::Error> {
         let res = self.inner.interface.server_info(timeout).await?;
         Ok(res)
     }

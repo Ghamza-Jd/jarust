@@ -3,7 +3,6 @@ use super::napmap::NapMap;
 use super::router::Router;
 use super::tmanager::TransactionManager;
 use super::websocket_client::WebSocketClient;
-use crate::error::Error;
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEstablishment;
 use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
@@ -17,7 +16,7 @@ use crate::japrotocol::ResponseType;
 use crate::respones::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
 use crate::tgenerator::TransactionGenerator;
-use crate::Result;
+use crate::Error;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
@@ -56,7 +55,7 @@ pub struct WebSocketInterface {
 
 impl WebSocketInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn send(&self, message: Value) -> Result<String> {
+    pub async fn send(&self, message: Value) -> Result<String, Error> {
         let (message, transaction) = self.decorate_request(message);
 
         let path =
@@ -70,7 +69,11 @@ impl WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, timeout))]
-    async fn poll_response(&self, transaction: &str, timeout: Duration) -> Result<JaResponse> {
+    async fn poll_response(
+        &self,
+        transaction: &str,
+        timeout: Duration,
+    ) -> Result<JaResponse, Error> {
         tracing::trace!("Polling response");
         match tokio::time::timeout(
             timeout,
@@ -97,7 +100,7 @@ impl WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, timeout))]
-    async fn poll_ack(&self, transaction: &str, timeout: Duration) -> Result<JaResponse> {
+    async fn poll_ack(&self, transaction: &str, timeout: Duration) -> Result<JaResponse, Error> {
         tracing::trace!("Polling ack");
         match tokio::time::timeout(
             timeout,
@@ -143,7 +146,7 @@ impl JanusInterface for WebSocketInterface {
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
-    ) -> Result<Self> {
+    ) -> Result<Self, Error> {
         tracing::debug!("Creating WebSocket Interface");
         let (router, _) = Router::new(&conn_params.server_root).await;
         let mut websocket = WebSocketClient::new();
@@ -216,7 +219,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn create(&self, timeout: Duration) -> Result<u64> {
+    async fn create(&self, timeout: Duration) -> Result<u64, Error> {
         let request = json!({
             "janus": "create"
         });
@@ -242,7 +245,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp> {
+    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp, Error> {
         let request = json!({
             "janus": "info"
         });
@@ -264,7 +267,7 @@ impl JanusInterface for WebSocketInterface {
         session_id: u64,
         plugin_id: String,
         timeout: Duration,
-    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
+    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>), Error> {
         let request = json!({
             "janus": "attach",
             "session_id": session_id,
@@ -299,7 +302,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<()> {
+    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<(), Error> {
         let request = json!({
             "janus": "keepalive",
             "session_id": session_id
@@ -310,7 +313,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<()> {
+    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<(), Error> {
         let request = json!({
             "janus": "destroy",
             "session_id": session_id
@@ -321,7 +324,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<()> {
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -333,7 +336,10 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn send_msg_waiton_ack(&self, message: HandleMessageWithTimeout) -> Result<JaResponse> {
+    async fn send_msg_waiton_ack(
+        &self,
+        message: HandleMessageWithTimeout,
+    ) -> Result<JaResponse, Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -347,7 +353,7 @@ impl JanusInterface for WebSocketInterface {
     async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,
-    ) -> Result<JaResponse> {
+    ) -> Result<JaResponse, Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -362,7 +368,7 @@ impl JanusInterface for WebSocketInterface {
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         let mut request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -385,7 +391,7 @@ impl JanusInterface for WebSocketInterface {
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
-    ) -> Result<JaResponse> {
+    ) -> Result<JaResponse, Error> {
         let mut request = json!({
             "janus": "message",
             "session_id": message.session_id,

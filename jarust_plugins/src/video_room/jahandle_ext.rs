@@ -14,7 +14,7 @@ pub trait VideoRoom: Attach {
     async fn attach_video_room(
         &self,
         timeout: Duration,
-    ) -> jarust_interface::Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
+    ) -> Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>), jarust_interface::Error> {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.videoroom".to_string(),

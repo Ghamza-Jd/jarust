@@ -1,4 +1,3 @@
-use crate::error::Error;
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEstablishment;
 use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
@@ -8,7 +7,7 @@ use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
 use crate::respones::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
-use crate::Result;
+use crate::Error;
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
 use std::ops::Deref;
@@ -37,15 +36,15 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
-    ) -> Result<Self>
+    ) -> Result<Self, Error>
     where
         Self: Sized;
 
     /// Creates a new session with the janus server.
-    async fn create(&self, timeout: Duration) -> Result<u64>;
+    async fn create(&self, timeout: Duration) -> Result<u64, Error>;
 
     /// Gets the server info.
-    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp>;
+    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp, Error>;
 
     /// Attaches a plugin to the session.
     async fn attach(
@@ -53,19 +52,22 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         session_id: u64,
         plugin_id: String,
         timeout: Duration,
-    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>)>;
+    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>), Error>;
 
     /// Send keep alive messages (to keep the connection and the client-server session alive).
-    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<()>;
+    async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
 
     /// Destroys the session.
-    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<()>;
+    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
 
     /// Sends a one-shot message
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<()>;
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error>;
 
     /// Sends a message and waits for acknowledgment.
-    async fn send_msg_waiton_ack(&self, message: HandleMessageWithTimeout) -> Result<JaResponse>;
+    async fn send_msg_waiton_ack(
+        &self,
+        message: HandleMessageWithTimeout,
+    ) -> Result<JaResponse, Error>;
 
     /// Internal method to send a message and wait for the response. Ideally, this shouldn't be internal,
     /// but we can't have a generic return type for this method as it would be considered object-unsafe.
@@ -79,19 +81,19 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,
-    ) -> Result<JaResponse>;
+    ) -> Result<JaResponse, Error>;
 
     /// Sends a one-shot message with establishment.
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
-    ) -> Result<()>;
+    ) -> Result<(), Error>;
 
     /// Sends a message and waits for acknowledgment with establishment.
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
-    ) -> Result<JaResponse>;
+    ) -> Result<JaResponse, Error>;
 
     /// Returns the name of the interface (for the debug trait)
     fn name(&self) -> Box<str> {
@@ -121,7 +123,10 @@ impl JanusInterfaceImpl {
 
     /// Sends a message and waits for the response.
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn send_msg_waiton_rsp<R>(&self, message: HandleMessageWithTimeout) -> Result<R>
+    pub async fn send_msg_waiton_rsp<R>(
+        &self,
+        message: HandleMessageWithTimeout,
+    ) -> Result<R, Error>
     where
         R: DeserializeOwned,
     {

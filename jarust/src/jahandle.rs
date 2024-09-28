@@ -42,7 +42,7 @@ impl JaHandle {
 
     /// Send a one-shot message
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn fire_and_forget(&self, body: Value) -> jarust_interface::Result<()> {
+    pub async fn fire_and_forget(&self, body: Value) -> Result<(), jarust_interface::Error> {
         tracing::debug!("Sending one-shot message");
         self.inner
             .interface
@@ -61,7 +61,7 @@ impl JaHandle {
         &self,
         body: Value,
         timeout: Duration,
-    ) -> jarust_interface::Result<R>
+    ) -> Result<R, jarust_interface::Error>
     where
         R: DeserializeOwned,
     {
@@ -85,7 +85,7 @@ impl JaHandle {
         &self,
         body: Value,
         timeout: Duration,
-    ) -> jarust_interface::Result<JaResponse> {
+    ) -> Result<JaResponse, jarust_interface::Error> {
         tracing::debug!("Sending message and waiting for ackowledgement");
         let ack = self
             .inner
@@ -107,7 +107,7 @@ impl JaHandle {
         body: Value,
         protocol: EstablishmentProtocol,
         timeout: Duration,
-    ) -> jarust_interface::Result<JaResponse> {
+    ) -> Result<JaResponse, jarust_interface::Error> {
         tracing::debug!("Sending message with establishment and waiting for ackowledgement");
         let ack = self
             .inner
@@ -129,7 +129,7 @@ impl JaHandle {
         &self,
         body: Value,
         protocol: EstablishmentProtocol,
-    ) -> jarust_interface::Result<()> {
+    ) -> Result<(), jarust_interface::Error> {
         tracing::debug!("Sending a one-shot message with establishment");
         self.inner
             .interface
@@ -147,7 +147,7 @@ impl JaHandle {
 impl JaHandle {
     /// Hang up the associated PeerConnection but keep the handle alive
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn hangup(&self, timeout: Duration) -> jarust_interface::Result<()> {
+    pub async fn hangup(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!("Hanging up");
         let request = json!({
             "janus": "hangup"
@@ -158,7 +158,7 @@ impl JaHandle {
 
     /// Destroy the plugin handle
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn detach(self, timeout: Duration) -> jarust_interface::Result<()> {
+    pub async fn detach(self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!("Detaching");
         let request = json!({
             "janus": "detach"
@@ -173,7 +173,7 @@ impl JaHandle {
         &self,
         candidate: Candidate,
         timeout: Duration,
-    ) -> jarust_interface::Result<()> {
+    ) -> Result<(), jarust_interface::Error> {
         tracing::info!("Trickling single candidate");
         let request = json!({
             "janus": "trickle",
@@ -189,7 +189,7 @@ impl JaHandle {
         &self,
         candidates: Vec<Candidate>,
         timeout: Duration,
-    ) -> jarust_interface::Result<()> {
+    ) -> Result<(), jarust_interface::Error> {
         tracing::info!("Trickling candidates");
         let request = json!({
             "janus": "trickle",
@@ -203,7 +203,7 @@ impl JaHandle {
     ///
     /// This should be send after [`trickle_single_candidate`](Self::trickle_single_candidate) or [`trickle_candidates`](Self::trickle_candidates)
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn complete_trickle(&self, timeout: Duration) -> jarust_interface::Result<()> {
+    pub async fn complete_trickle(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!("Completing trickle");
         let request = json!({
             "janus": "trickle",

@@ -1,6 +1,6 @@
-//! # Jarust Transport
+//! # Jarust Interface
 //!
-//! Jarust Transport abstracts the implementation details of the connection and the underlying transport, allowing
+//! Jarust Interface abstracts the implementation details of the connection and the underlying transport, allowing
 //! customization of the transport layer. For example, dealing with WebSockets on major platforms can be over TCP, while in
 //! browsers, we have to use something like the web_sys crate.
 //!
@@ -17,4 +17,3 @@ pub mod tgenerator;
 pub mod websocket;
 
 pub type Error = error::Error;
-pub type Result<T> = core::result::Result<T, Error>;
