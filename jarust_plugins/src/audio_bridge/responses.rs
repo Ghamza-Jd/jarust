@@ -3,24 +3,6 @@ use crate::JanusId;
 use serde::Deserialize;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-#[serde(untagged)]
-pub enum AudioBridgeRespone<T> {
-    Error { error_code: u16, error: String },
-    Response(T),
-}
-
-impl<T> AudioBridgeRespone<T> {
-    pub fn map_err(self) -> Result<T, super::Error> {
-        match self {
-            AudioBridgeRespone::Response(t) => Ok(t),
-            AudioBridgeRespone::Error { error, error_code } => {
-                Err(super::Error::AudioBridge { error_code, error })
-            }
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AudioBridgeRoomCreatedRsp {
     pub room: JanusId,
     pub permanent: bool,

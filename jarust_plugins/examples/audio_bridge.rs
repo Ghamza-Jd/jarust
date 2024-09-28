@@ -37,9 +37,13 @@ async fn main() -> anyhow::Result<()> {
 
     let create_room_rsp = handle.create_room(None, timeout).await?;
     // Try create a room that already exist
-    let create_room_rsp = handle
-        .create_room(Some(create_room_rsp.room), timeout)
-        .await?;
+    let error_room = handle
+        .create_room(Some(create_room_rsp.room.clone()), timeout)
+        .await;
+    if let Err(jarust_interface::Error::PluginResponseError { .. }) = error_room {
+        tracing::info!("Already created");
+    };
+
     let rooms = handle.list_rooms(timeout).await?;
 
     tracing::info!("Rooms {:#?}", rooms);
