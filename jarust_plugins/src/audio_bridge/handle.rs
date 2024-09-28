@@ -19,8 +19,8 @@ use super::responses::AudioBridgeRoomDestroyedRsp;
 use super::responses::AudioBridgeRoomEditedRsp;
 use crate::JanusId;
 use jarust::prelude::*;
-use jarust_rt::JaTask;
 use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
 use std::ops::Deref;
@@ -41,7 +41,7 @@ impl AudioBridgeHandle {
         &self,
         room: Option<JanusId>,
         timeout: Duration,
-    ) -> JaResult<AudioBridgeRoomCreatedRsp> {
+    ) -> jarust_interface::Result<AudioBridgeRoomCreatedRsp> {
         self.create_room_with_config(
             AudioBridgeCreateRoomOptions {
                 room,
@@ -61,7 +61,7 @@ impl AudioBridgeHandle {
         &self,
         options: AudioBridgeCreateRoomOptions,
         timeout: Duration,
-    ) -> JaResult<AudioBridgeRoomCreatedRsp> {
+    ) -> jarust_interface::Result<AudioBridgeRoomCreatedRsp> {
         tracing::info!(plugin = "audiobridge", "Sending create room");
         let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
@@ -77,7 +77,7 @@ impl AudioBridgeHandle {
         room: JanusId,
         options: AudioBridgeEditRoomOptions,
         timeout: Duration,
-    ) -> JaResult<AudioBridgeRoomEditedRsp> {
+    ) -> jarust_interface::Result<AudioBridgeRoomEditedRsp> {
         tracing::info!(plugin = "audiobridge", "Sending edit room");
         let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
@@ -95,7 +95,7 @@ impl AudioBridgeHandle {
         room: JanusId,
         options: AudioBridgeDestroyRoomMsg,
         timeout: Duration,
-    ) -> JaResult<AudioBridgeRoomDestroyedRsp> {
+    ) -> jarust_interface::Result<AudioBridgeRoomDestroyedRsp> {
         tracing::info!(plugin = "audiobridge", "Sending destory room");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
@@ -113,7 +113,7 @@ impl AudioBridgeHandle {
         options: AudioBridgeJoinRoomOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending join room");
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
@@ -131,7 +131,10 @@ impl AudioBridgeHandle {
 
     /// Lists all the available rooms.
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn list_rooms(&self, timeout: Duration) -> JaResult<Vec<AudioBridgeRoom>> {
+    pub async fn list_rooms(
+        &self,
+        timeout: Duration,
+    ) -> jarust_interface::Result<Vec<AudioBridgeRoom>> {
         tracing::info!(plugin = "audiobridge", "Sending list rooms");
         let message = json!({
             "request": "list"
@@ -150,7 +153,7 @@ impl AudioBridgeHandle {
         room: JanusId,
         options: AudioBridgeAllowedOptions,
         timeout: Duration,
-    ) -> JaResult<AudioBridgeAllowedRsp> {
+    ) -> jarust_interface::Result<AudioBridgeAllowedRsp> {
         tracing::info!(plugin = "audiobridge", "Sending allowed");
         let mut message: Value = options.try_into()?;
         message["request"] = "allowed".into();
@@ -162,7 +165,7 @@ impl AudioBridgeHandle {
 
     /// Allows you to check whether a specific audio conference room exists
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn exists(&self, room: JanusId, timeout: Duration) -> JaResult<bool> {
+    pub async fn exists(&self, room: JanusId, timeout: Duration) -> jarust_interface::Result<bool> {
         tracing::info!(plugin = "audiobridge", "Sending exists");
         let message = json!({
             "request": "exists",
@@ -182,7 +185,7 @@ impl AudioBridgeHandle {
         &self,
         room: JanusId,
         timeout: Duration,
-    ) -> JaResult<AudioBridgeListParticipantsRsp> {
+    ) -> jarust_interface::Result<AudioBridgeListParticipantsRsp> {
         tracing::info!(plugin = "audiobridge", "Sending list participants");
         let message = json!({
             "request": "listparticipants",
@@ -199,7 +202,7 @@ impl AudioBridgeHandle {
         &self,
         options: AudioBridgeConfigureOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending configure");
         let mut message: Value = options.try_into()?;
         message["request"] = "configure".into();
@@ -209,7 +212,7 @@ impl AudioBridgeHandle {
 
     /// Mute a participant
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn mute(&self, options: AudioBridgeMuteOptions) -> JaResult<()> {
+    pub async fn mute(&self, options: AudioBridgeMuteOptions) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending mute");
         let mut message: Value = options.try_into()?;
         message["request"] = "mute".into();
@@ -218,7 +221,7 @@ impl AudioBridgeHandle {
 
     /// Unmute a participant
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn unmute(&self, options: AudioBridgeMuteOptions) -> JaResult<()> {
+    pub async fn unmute(&self, options: AudioBridgeMuteOptions) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending unmute");
         let mut message: Value = options.try_into()?;
         message["request"] = "unmute".into();
@@ -227,7 +230,10 @@ impl AudioBridgeHandle {
 
     /// Mute a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn mute_room(&self, options: AudioBridgeMuteRoomOptions) -> JaResult<()> {
+    pub async fn mute_room(
+        &self,
+        options: AudioBridgeMuteRoomOptions,
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending mute room");
         let mut message: Value = options.try_into()?;
         message["request"] = "mute_room".into();
@@ -236,7 +242,10 @@ impl AudioBridgeHandle {
 
     /// Unmute a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn unmute_room(&self, options: AudioBridgeMuteRoomOptions) -> JaResult<()> {
+    pub async fn unmute_room(
+        &self,
+        options: AudioBridgeMuteRoomOptions,
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending unmute room");
         let mut message: Value = options.try_into()?;
         message["request"] = "unmute_room".into();
@@ -245,7 +254,7 @@ impl AudioBridgeHandle {
 
     /// Kicks a participants out of a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn kick(&self, options: AudioBridgeKickOptions) -> JaResult<()> {
+    pub async fn kick(&self, options: AudioBridgeKickOptions) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending kick");
         let mut message: Value = options.try_into()?;
         message["request"] = "kick".into();
@@ -254,7 +263,10 @@ impl AudioBridgeHandle {
 
     /// Kicks all pariticpants out of a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn kick_all(&self, options: AudioBridgeKickAllOptions) -> JaResult<()> {
+    pub async fn kick_all(
+        &self,
+        options: AudioBridgeKickAllOptions,
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending kick all");
         let mut message: Value = options.try_into()?;
         message["request"] = "kick_all".into();
@@ -263,7 +275,7 @@ impl AudioBridgeHandle {
 
     /// Leave an audio room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn leave(&self, timeout: Duration) -> JaResult<()> {
+    pub async fn leave(&self, timeout: Duration) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending leave");
         let message = json!({
             "request" : "leave"
@@ -279,7 +291,7 @@ impl AudioBridgeHandle {
         room: JanusId,
         options: AudioBridgeChangeRoomOptions,
         timeout: Duration,
-    ) -> JaResult<()> {
+    ) -> jarust_interface::Result<()> {
         tracing::info!(plugin = "audiobridge", "Sending change room");
         let mut message: Value = options.try_into()?;
         message["request"] = "changeroom".into();

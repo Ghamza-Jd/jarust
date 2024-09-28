@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use jarust::prelude::JaResponse;
 use jarust::GenerateTransaction;
-use jarust_interface::error::JaTransportError;
+use jarust_interface::error::Error;
 use jarust_interface::handle_msg::HandleMessage;
 use jarust_interface::handle_msg::HandleMessageWithEstablishment;
 use jarust_interface::handle_msg::HandleMessageWithEstablishmentAndTimeout;
@@ -10,7 +10,6 @@ use jarust_interface::janus_interface::ConnectionParams;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::japrotocol::JaSuccessProtocol;
 use jarust_interface::japrotocol::ResponseType;
-use jarust_interface::prelude::JaTransportResult;
 use jarust_interface::respones::ServerInfoRsp;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -59,7 +58,7 @@ impl JanusInterface for MockInterface {
     async fn make_interface(
         _: ConnectionParams,
         _: impl GenerateTransaction,
-    ) -> JaTransportResult<Self>
+    ) -> jarust_interface::Result<Self>
     where
         Self: Sized,
     {
@@ -70,14 +69,14 @@ impl JanusInterface for MockInterface {
         })
     }
 
-    async fn create(&self, _timeout: Duration) -> JaTransportResult<u64> {
+    async fn create(&self, _timeout: Duration) -> jarust_interface::Result<u64> {
         let Some(rsp) = self.inner.exclusive.lock().await.create_rsp.clone() else {
             panic!("Create response is not set");
         };
         let session_id = match rsp.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
             ResponseType::Error { error } => {
-                let what = JaTransportError::JanusError {
+                let what = Error::JanusError {
                     code: error.code,
                     reason: error.reason,
                 };
@@ -86,13 +85,13 @@ impl JanusInterface for MockInterface {
             }
             _ => {
                 tracing::error!("Unexpected response");
-                return Err(JaTransportError::UnexpectedResponse);
+                return Err(Error::UnexpectedResponse);
             }
         };
         Ok(session_id)
     }
 
-    async fn server_info(&self, _timeout: Duration) -> JaTransportResult<ServerInfoRsp> {
+    async fn server_info(&self, _timeout: Duration) -> jarust_interface::Result<ServerInfoRsp> {
         todo!("Server info is not implemented");
     }
 
@@ -101,14 +100,14 @@ impl JanusInterface for MockInterface {
         _session_id: u64,
         _plugin_id: String,
         _timeout: Duration,
-    ) -> JaTransportResult<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
+    ) -> jarust_interface::Result<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
         let Some(rsp) = self.inner.exclusive.lock().await.attach_rsp.clone() else {
             panic!("Attach response is not set");
         };
         let handle_id = match rsp.janus {
             ResponseType::Success(JaSuccessProtocol::Data { data }) => data.id,
             ResponseType::Error { error } => {
-                let what = JaTransportError::JanusError {
+                let what = Error::JanusError {
                     code: error.code,
                     reason: error.reason,
                 };
@@ -117,7 +116,7 @@ impl JanusInterface for MockInterface {
             }
             _ => {
                 tracing::error!("Unexpected response");
-                return Err(JaTransportError::UnexpectedResponse);
+                return Err(Error::UnexpectedResponse);
             }
         };
         let (tx, rx) = mpsc::unbounded_channel();
@@ -130,43 +129,47 @@ impl JanusInterface for MockInterface {
         Ok((handle_id, rx))
     }
 
-    async fn keep_alive(&self, _session_id: u64, _timeout: Duration) -> JaTransportResult<()> {
+    async fn keep_alive(
+        &self,
+        _session_id: u64,
+        _timeout: Duration,
+    ) -> jarust_interface::Result<()> {
         todo!("Keep alive is not implemented");
     }
 
-    async fn destory(&self, _session_id: u64, _timeout: Duration) -> JaTransportResult<()> {
+    async fn destory(&self, _session_id: u64, _timeout: Duration) -> jarust_interface::Result<()> {
         todo!("Destroy is not implemented");
     }
 
-    async fn fire_and_forget_msg(&self, _message: HandleMessage) -> JaTransportResult<()> {
+    async fn fire_and_forget_msg(&self, _message: HandleMessage) -> jarust_interface::Result<()> {
         todo!("Fire and forget is not implemented");
     }
 
     async fn send_msg_waiton_ack(
         &self,
         _message: HandleMessageWithTimeout,
-    ) -> JaTransportResult<JaResponse> {
+    ) -> jarust_interface::Result<JaResponse> {
         todo!("Send message wait on ack is not implemented");
     }
 
     async fn internal_send_msg_waiton_rsp(
         &self,
         _message: HandleMessageWithTimeout,
-    ) -> JaTransportResult<JaResponse> {
+    ) -> jarust_interface::Result<JaResponse> {
         todo!("Internal send message wait on response is not implemented");
     }
 
     async fn fire_and_forget_msg_with_est(
         &self,
         _message: HandleMessageWithEstablishment,
-    ) -> JaTransportResult<()> {
+    ) -> jarust_interface::Result<()> {
         todo!("Fire and forget with establishment is not implemented");
     }
 
     async fn send_msg_waiton_ack_with_est(
         &self,
         _message: HandleMessageWithEstablishmentAndTimeout,
-    ) -> JaTransportResult<JaResponse> {
+    ) -> jarust_interface::Result<JaResponse> {
         todo!("Send message wait on ack with establishment is not implemented");
     }
 }

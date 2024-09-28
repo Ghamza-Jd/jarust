@@ -1,6 +1,6 @@
-use crate::error::JaTransportError;
+use crate::error::Error;
 use crate::japrotocol::JaResponse;
-use crate::prelude::JaTransportResult;
+use crate::Result;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -73,30 +73,26 @@ impl Router {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self, message))]
-    async fn publish(&self, path: &str, message: JaResponse) -> JaTransportResult<()> {
+    async fn publish(&self, path: &str, message: JaResponse) -> Result<()> {
         let channel = {
             let guard = self.inner.exclusive.read().await;
             guard.routes.get(path).cloned()
         };
         if let Some(channel) = channel {
             if channel.send(message.clone()).is_err() {
-                return Err(JaTransportError::SendError);
+                return Err(Error::SendError);
             }
         }
         tracing::trace!("Published");
         Ok(())
     }
 
-    pub(crate) async fn pub_root(&self, message: JaResponse) -> JaTransportResult<()> {
+    pub(crate) async fn pub_root(&self, message: JaResponse) -> Result<()> {
         let path = self.inner.shared.root_path.clone();
         self.publish(&path, message).await
     }
 
-    pub(crate) async fn pub_subroute(
-        &self,
-        subroute: &str,
-        message: JaResponse,
-    ) -> JaTransportResult<()> {
+    pub(crate) async fn pub_subroute(&self, subroute: &str, message: JaResponse) -> Result<()> {
         let path = &format!("{}/{}", self.inner.shared.root_path, subroute);
         self.publish(path, message).await
     }

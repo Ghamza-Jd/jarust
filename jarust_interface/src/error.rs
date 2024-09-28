@@ -1,5 +1,5 @@
 #[derive(thiserror::Error, Debug)]
-pub enum JaTransportError {
+pub enum Error {
     /* Transformed Errors */
     #[cfg(not(target_family = "wasm"))]
     #[error("WebSocket error: {0}")]

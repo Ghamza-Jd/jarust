@@ -5,12 +5,10 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust::error::JaError;
     use jarust::jaconnection::CreateConnectionParams;
     use jarust::japlugin::AttachHandleParams;
     use jarust::prelude::Attach;
     use jarust::prelude::JaResponse;
-    use jarust_interface::error::JaTransportError;
     use jarust_interface::janus_interface::ConnectionParams;
     use jarust_interface::janus_interface::JanusInterface;
     use jarust_interface::japrotocol::ErrorResponse;
@@ -129,6 +127,9 @@ mod tests {
                 timeout: Duration::from_secs(5),
             })
             .await;
-        assert!(matches!(result, Err(JaError::JanusError { .. })));
+        assert!(matches!(
+            result,
+            Err(jarust_interface::Error::JanusError { .. })
+        ));
     }
 }

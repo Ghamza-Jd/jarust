@@ -1,6 +1,5 @@
 use crate::jasession::JaSession;
 use crate::jasession::NewSessionParams;
-use crate::prelude::*;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
 use jarust_interface::respones::ServerInfoRsp;
@@ -26,7 +25,7 @@ pub struct CreateConnectionParams {
 }
 
 impl JaConnection {
-    pub(crate) async fn open(interface: impl JanusInterface) -> JaResult<Self> {
+    pub(crate) async fn open(interface: impl JanusInterface) -> jarust_interface::Result<Self> {
         tracing::info!("Creating new connection");
         let interface = JanusInterfaceImpl::new(interface);
         let connection = Arc::new(InnerConnection { interface });
@@ -35,7 +34,10 @@ impl JaConnection {
 
     /// Creates a new session with janus server.
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn create_session(&mut self, params: CreateConnectionParams) -> JaResult<JaSession> {
+    pub async fn create_session(
+        &mut self,
+        params: CreateConnectionParams,
+    ) -> jarust_interface::Result<JaSession> {
         tracing::info!("Creating new session");
         let session_id = self.inner.interface.create(params.timeout).await?;
         let session = JaSession::new(NewSessionParams {
@@ -50,7 +52,10 @@ impl JaConnection {
 
     /// Retrieve Janus server info
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn server_info(&mut self, timeout: Duration) -> JaResult<ServerInfoRsp> {
+    pub async fn server_info(
+        &mut self,
+        timeout: Duration,
+    ) -> jarust_interface::Result<ServerInfoRsp> {
         let res = self.inner.interface.server_info(timeout).await?;
         Ok(res)
     }

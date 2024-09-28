@@ -3,7 +3,6 @@ use crate::video_room::responses::Attendee;
 use crate::video_room::responses::ConfiguredStream;
 use crate::video_room::responses::Publisher;
 use crate::JanusId;
-use jarust::error::JaError;
 use jarust::prelude::JaResponse;
 use jarust_interface::japrotocol::EstablishmentProtocol;
 use jarust_interface::japrotocol::GenericEvent;
@@ -262,7 +261,7 @@ pub enum VideoRoomEvent {
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
-    type Error = JaError;
+    type Error = jarust_interface::Error;
 
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
@@ -353,7 +352,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 
                     VideoRoomEventDto::Event(e) => match e {
                         VideoRoomEventEventType::ErrorEvent { error_code, error } => {
-                            Err(JaError::JanusError {
+                            Err(Self::Error::JanusError {
                                 code: error_code,
                                 reason: error,
                             })
@@ -430,24 +429,25 @@ impl TryFrom<JaResponse> for PluginEvent {
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
                 Ok(PluginEvent::GenericEvent(event))
             }
-            _ => Err(JaError::IncompletePacket),
+            _ => Err(Self::Error::IncompletePacket),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
-    use jarust::error::JaError;
-    use jarust_interface::japrotocol::{
-        EstablishmentProtocol, JaHandleEvent, JaResponse, Jsep, JsepType, PluginData, ResponseType,
-    };
-
     use super::PluginEvent;
     use crate::video_room::events::VideoRoomEvent;
     use crate::video_room::responses::ConfiguredStream;
     use crate::JanusId;
+    use jarust_interface::japrotocol::EstablishmentProtocol;
+    use jarust_interface::japrotocol::JaHandleEvent;
+    use jarust_interface::japrotocol::JaResponse;
+    use jarust_interface::japrotocol::Jsep;
+    use jarust_interface::japrotocol::JsepType;
+    use jarust_interface::japrotocol::PluginData;
+    use jarust_interface::japrotocol::ResponseType;
+    use serde_json::json;
 
     #[test]
     fn it_parse_joined_room() {
@@ -625,14 +625,17 @@ mod tests {
             session_id: None,
             sender: None,
         };
-        let result: Result<PluginEvent, JaError> = rsp.try_into();
+        let result: Result<PluginEvent, jarust_interface::Error> = rsp.try_into();
         assert!(result.is_err());
         //assert_eq!(result.err().is_some(), true);
         let ja_error = result.err();
         assert!(ja_error.is_some());
         assert_eq!(
-            ja_error.unwrap().to_string(),
-            "Transport: Janus error { code: 429, reason: Missing mandatory element (feed)}"
+            matches!(
+                ja_error.unwrap(),
+                jarust_interface::Error::JanusError { .. }
+            ),
+            true
         );
     }
 

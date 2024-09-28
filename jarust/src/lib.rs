@@ -22,7 +22,6 @@
 //! We have a separate crate for Janus plugins, [`jarust_plugins`](https://crates.io/crates/jarust_plugins).
 //!
 
-pub mod error;
 pub mod jaconfig;
 pub mod jaconnection;
 pub mod jahandle;
@@ -39,7 +38,6 @@ use jarust_interface::janus_interface::ConnectionParams;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::restful::RestfulInterface;
 use jarust_interface::websocket::WebSocketInterface;
-use prelude::JaResult;
 use tracing::Level;
 
 /// Creates a new connection with janus server from the provided configs.
@@ -58,7 +56,7 @@ pub async fn connect(
     jaconfig: JaConfig,
     api_interface: JanusAPI,
     transaction_generator: impl GenerateTransaction,
-) -> JaResult<JaConnection> {
+) -> jarust_interface::Result<JaConnection> {
     let conn_params = ConnectionParams {
         url: jaconfig.url,
         capacity: jaconfig.capacity,
@@ -93,6 +91,8 @@ pub async fn connect(
 
 /// Creates a new customized connection with janus servers.
 #[tracing::instrument(level = Level::TRACE, skip_all)]
-pub async fn custom_connect(interface: impl JanusInterface) -> JaResult<JaConnection> {
+pub async fn custom_connect(
+    interface: impl JanusInterface,
+) -> jarust_interface::Result<JaConnection> {
     JaConnection::open(interface).await
 }

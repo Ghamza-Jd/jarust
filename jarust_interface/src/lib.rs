@@ -11,8 +11,10 @@ pub mod error;
 pub mod handle_msg;
 pub mod janus_interface;
 pub mod japrotocol;
-pub mod prelude;
 pub mod respones;
 pub mod restful;
 pub mod tgenerator;
 pub mod websocket;
+
+pub type Error = error::Error;
+pub type Result<T> = core::result::Result<T, Error>;

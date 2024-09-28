@@ -8,13 +8,13 @@ use tokio::sync::mpsc;
 
 #[async_trait::async_trait]
 pub trait EchoTest: Attach {
-    type Event: TryFrom<JaResponse, Error = JaError> + Send + Sync + 'static;
+    type Event: TryFrom<JaResponse, Error = jarust_interface::Error> + Send + Sync + 'static;
     type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
 
     async fn attach_echo_test(
         &self,
         timeout: Duration,
-    ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
+    ) -> jarust_interface::Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.echotest".to_string(),
