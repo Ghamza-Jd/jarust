@@ -14,7 +14,7 @@ pub trait AudioBridge: Attach {
     async fn attach_audio_bridge(
         &self,
         timeout: Duration,
-    ) -> jarust_interface::Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
+    ) -> Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>), jarust_interface::Error> {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.audiobridge".to_string(),

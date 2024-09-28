@@ -22,5 +22,5 @@ pub trait Attach {
     async fn attach(
         &self,
         params: AttachHandleParams,
-    ) -> jarust_interface::Result<(JaHandle, mpsc::UnboundedReceiver<JaResponse>)>;
+    ) -> Result<(JaHandle, mpsc::UnboundedReceiver<JaResponse>), jarust_interface::Error>;
 }

@@ -1,4 +1,3 @@
-use crate::error::Error;
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEstablishment;
 use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
@@ -12,7 +11,7 @@ use crate::japrotocol::ResponseType;
 use crate::respones::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
 use crate::tgenerator::TransactionGenerator;
-use crate::Result;
+use crate::Error;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
@@ -66,7 +65,7 @@ impl JanusInterface for RestfulInterface {
     async fn make_interface(
         conn_params: ConnectionParams,
         transaction_generator: impl GenerateTransaction,
-    ) -> Result<Self> {
+    ) -> Result<Self, Error> {
         tracing::debug!("Creating new Restful Interface");
         let client = reqwest::Client::new();
         let transaction_generator = TransactionGenerator::new(transaction_generator);
@@ -87,7 +86,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn create(&self, timeout: Duration) -> Result<u64> {
+    async fn create(&self, timeout: Duration) -> Result<u64, Error> {
         let url = &self.inner.shared.url;
         let request = json!({"janus": "create"});
         let (request, _) = self.decorate_request(request);
@@ -123,7 +122,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp> {
+    async fn server_info(&self, timeout: Duration) -> Result<ServerInfoRsp, Error> {
         let url = &self.inner.shared.url;
         let response = self
             .inner
@@ -151,7 +150,7 @@ impl JanusInterface for RestfulInterface {
         session_id: u64,
         plugin_id: String,
         timeout: Duration,
-    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>)> {
+    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>), Error> {
         let url = &self.inner.shared.url;
         let request = json!({
             "janus": "attach",
@@ -213,12 +212,12 @@ impl JanusInterface for RestfulInterface {
         Ok((handle_id, rx))
     }
 
-    async fn keep_alive(&self, _: u64, _: Duration) -> Result<()> {
+    async fn keep_alive(&self, _: u64, _: Duration) -> Result<(), Error> {
         Ok(())
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<()> {
+    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<(), Error> {
         let url = &self.inner.shared.url;
         let request = json!({
             "janus": "destroy"
@@ -237,7 +236,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<()> {
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -258,7 +257,10 @@ impl JanusInterface for RestfulInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn send_msg_waiton_ack(&self, message: HandleMessageWithTimeout) -> Result<JaResponse> {
+    async fn send_msg_waiton_ack(
+        &self,
+        message: HandleMessageWithTimeout,
+    ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -285,7 +287,7 @@ impl JanusInterface for RestfulInterface {
     async fn internal_send_msg_waiton_rsp(
         &self,
         message: HandleMessageWithTimeout,
-    ) -> Result<JaResponse> {
+    ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -313,7 +315,7 @@ impl JanusInterface for RestfulInterface {
     async fn fire_and_forget_msg_with_est(
         &self,
         message: HandleMessageWithEstablishment,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -345,7 +347,7 @@ impl JanusInterface for RestfulInterface {
     async fn send_msg_waiton_ack_with_est(
         &self,
         message: HandleMessageWithEstablishmentAndTimeout,
-    ) -> Result<JaResponse> {
+    ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;

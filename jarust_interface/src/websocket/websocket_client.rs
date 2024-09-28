@@ -4,8 +4,7 @@ compile_error!("Feature \"rustls\" and feature \"native-tls\" cannot be enabled 
 #[cfg(not(any(feature = "use-rustls", feature = "use-native-tls")))]
 compile_error!("Either feature \"rustls\" or \"native-tls\" must be enabled for this crate");
 
-use crate::error::Error;
-use crate::Result;
+use crate::Error;
 use bytes::Bytes;
 use futures_util::stream::SplitSink;
 use futures_util::SinkExt;
@@ -53,7 +52,7 @@ impl WebSocketClient {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    pub async fn connect(&mut self, url: &str) -> Result<mpsc::UnboundedReceiver<Bytes>> {
+    pub async fn connect(&mut self, url: &str) -> Result<mpsc::UnboundedReceiver<Bytes>, Error> {
         tracing::debug!("Connecting to {url}");
         let mut request = url.into_client_request()?;
         let headers = request.headers_mut();
@@ -76,7 +75,7 @@ impl WebSocketClient {
         Ok(rx)
     }
 
-    pub async fn send(&mut self, data: &[u8], _: &str) -> Result<()> {
+    pub async fn send(&mut self, data: &[u8], _: &str) -> Result<(), Error> {
         let item = Message::Binary(data.to_vec());
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;
@@ -90,7 +89,7 @@ impl WebSocketClient {
 
 impl WebSocketClient {
     #[cfg(feature = "use-rustls")]
-    fn make_tls_client_config() -> Result<Arc<rustls::ClientConfig>> {
+    fn make_tls_client_config() -> Result<Arc<rustls::ClientConfig>, Error> {
         let mut root_store = RootCertStore::empty();
         let platform_certs = rustls_native_certs::load_native_certs().certs;
         root_store.add_parsable_certificates(platform_certs);
@@ -100,7 +99,9 @@ impl WebSocketClient {
         Ok(Arc::new(client_config))
     }
 
-    async fn connect_async(request: Request) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>> {
+    async fn connect_async(
+        request: Request,
+    ) -> Result<WebSocketStream<MaybeTlsStream<TcpStream>>, Error> {
         #[cfg(feature = "use-rustls")]
         {
             let connector = Connector::Rustls(WebSocketClient::make_tls_client_config()?);

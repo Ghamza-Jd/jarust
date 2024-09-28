@@ -56,7 +56,7 @@ pub async fn connect(
     jaconfig: JaConfig,
     api_interface: JanusAPI,
     transaction_generator: impl GenerateTransaction,
-) -> jarust_interface::Result<JaConnection> {
+) -> Result<JaConnection, jarust_interface::Error> {
     let conn_params = ConnectionParams {
         url: jaconfig.url,
         capacity: jaconfig.capacity,
@@ -85,7 +85,7 @@ pub async fn connect(
     jaconfig: JaConfig,
     api_interface: JanusAPI,
     transaction_generator: impl GenerateTransaction,
-) -> JaResult<JaConnection> {
+) -> Result<JaConnection, jarust_interface::Error> {
     todo!("WASM is not supported yet")
 }
 
@@ -93,6 +93,6 @@ pub async fn connect(
 #[tracing::instrument(level = Level::TRACE, skip_all)]
 pub async fn custom_connect(
     interface: impl JanusInterface,
-) -> jarust_interface::Result<JaConnection> {
+) -> Result<JaConnection, jarust_interface::Error> {
     JaConnection::open(interface).await
 }
