@@ -29,6 +29,8 @@ pub enum Error {
     UnexpectedResponse,
     #[error("Janus error {{ code: {code}, reason: {reason}}}")]
     JanusError { code: u16, reason: String },
+    #[error("Plugin response error {{ error_code: {error_code}, error: {error} }}")]
+    PluginResponseError { error_code: u16, error: String },
     #[error("Request timeout")]
     RequestTimeout,
 }

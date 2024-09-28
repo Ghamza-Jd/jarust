@@ -4,6 +4,7 @@ use jarust_interface::japrotocol::EstablishmentProtocol;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::JaResponse;
+use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
@@ -67,6 +68,10 @@ pub enum AudioBridgeEvent {
         room: u64,
         participants: Vec<AudioBridgeParticipant>,
     },
+    Error {
+        error_code: u16,
+        error: String,
+    },
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -75,55 +80,48 @@ impl TryFrom<JaResponse> for PluginEvent {
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
             ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => {
-                let audiobridge_event = from_value::<AudioBridgeEventDto>(plugin_data.data)?;
-                match audiobridge_event {
-                    AudioBridgeEventDto::RoomJoined {
-                        id,
-                        room,
-                        participants,
-                    } => match value.establishment_protocol {
-                        Some(establishment_protocol) => Ok(PluginEvent::AudioBridgeEvent(
-                            AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                                id,
-                                room,
-                                participants,
-                                establishment_protocol,
-                            },
-                        )),
-                        None => Ok(PluginEvent::AudioBridgeEvent(
-                            AudioBridgeEvent::RoomJoined {
-                                id,
-                                room,
-                                participants,
-                            },
-                        )),
-                    },
-
-                    AudioBridgeEventDto::RoomLeft { id, room } => {
-                        Ok(PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
+                let audiobridge_event = match plugin_data.data {
+                    PluginInnerData::Error { error_code, error } => {
+                        AudioBridgeEvent::Error { error_code, error }
+                    }
+                    PluginInnerData::Data(data) => match from_value::<AudioBridgeEventDto>(data)? {
+                        AudioBridgeEventDto::RoomJoined {
                             id,
                             room,
-                        }))
-                    }
-
-                    AudioBridgeEventDto::RoomChanged {
-                        id,
-                        room,
-                        participants,
-                    } => Ok(PluginEvent::AudioBridgeEvent(
-                        AudioBridgeEvent::RoomChanged {
+                            participants,
+                        } => match value.establishment_protocol {
+                            Some(establishment_protocol) => {
+                                AudioBridgeEvent::RoomJoinedWithEstabilshment {
+                                    id,
+                                    room,
+                                    participants,
+                                    establishment_protocol,
+                                }
+                            }
+                            None => AudioBridgeEvent::RoomJoined {
+                                id,
+                                room,
+                                participants,
+                            },
+                        },
+                        AudioBridgeEventDto::RoomLeft { id, room } => {
+                            AudioBridgeEvent::RoomLeft { id, room }
+                        }
+                        AudioBridgeEventDto::RoomChanged {
+                            id,
+                            room,
+                            participants,
+                        } => AudioBridgeEvent::RoomChanged {
                             id,
                             room,
                             participants,
                         },
-                    )),
-
-                    AudioBridgeEventDto::Event { room, participants } => {
-                        Ok(PluginEvent::AudioBridgeEvent(
-                            AudioBridgeEvent::ParticipantsUpdated { room, participants },
-                        ))
-                    }
-                }
+                        AudioBridgeEventDto::Event { room, participants } => {
+                            AudioBridgeEvent::ParticipantsUpdated { room, participants }
+                        }
+                    },
+                };
+                Ok(PluginEvent::AudioBridgeEvent(audiobridge_event))
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
                 Ok(PluginEvent::GenericEvent(event))
@@ -144,6 +142,7 @@ mod tests {
     use jarust_interface::japrotocol::Jsep;
     use jarust_interface::japrotocol::JsepType;
     use jarust_interface::japrotocol::PluginData;
+    use jarust_interface::japrotocol::PluginInnerData;
     use jarust_interface::japrotocol::ResponseType;
     use serde_json::json;
 
@@ -153,12 +152,12 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.audiobridge".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "audiobridge": "joined",
                         "room": 6846571539994870u64,
                         "id": 7513785212278430u64,
                         "participants": []
-                    }),
+                    })),
                 },
             }),
             establishment_protocol: None,
@@ -183,12 +182,12 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.audiobridge".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "audiobridge": "joined",
                         "room": 6846571539994870u64,
                         "id": 7513785212278430u64,
                         "participants": []
-                    }),
+                    })),
                 },
             }),
             establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
@@ -222,11 +221,11 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.audiobridge".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "audiobridge": "left",
                         "room": 6846571539994870u64,
                         "id": 7513785212278430u64
-                    }),
+                    })),
                 },
             }),
             establishment_protocol: None,
@@ -250,12 +249,12 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.audiobridge".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "audiobridge": "roomchanged",
                         "room": 6168266702836626u64,
                         "id": 3862697705388820u64,
                         "participants": []
-                    }),
+                    })),
                 },
             }),
             establishment_protocol: None,

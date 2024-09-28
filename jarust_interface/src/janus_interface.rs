@@ -4,6 +4,7 @@ use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
 use crate::handle_msg::HandleMessageWithTimeout;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
+use crate::japrotocol::PluginInnerData;
 use crate::japrotocol::ResponseType;
 use crate::respones::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
@@ -133,12 +134,20 @@ impl JanusInterfaceImpl {
         let response = self.internal_send_msg_waiton_rsp(message).await?;
         let result = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
-                match serde_json::from_value::<R>(plugin_data.data) {
-                    Ok(result) => result,
-                    Err(error) => {
-                        tracing::error!("Failed to parse with error {error:#?}");
-                        return Err(Error::UnexpectedResponse);
+                match plugin_data.data {
+                    PluginInnerData::Error { error_code, error } => {
+                        tracing::error!(
+                            "Plugin response error: {{ code: {error_code}, error: {error} }}"
+                        );
+                        return Err(Error::PluginResponseError { error_code, error });
                     }
+                    PluginInnerData::Data(data) => match serde_json::from_value::<R>(data) {
+                        Ok(result) => result,
+                        Err(error) => {
+                            tracing::error!("Failed to parse with error {error:#?}");
+                            return Err(Error::UnexpectedResponse);
+                        }
+                    },
                 }
             }
             _ => {

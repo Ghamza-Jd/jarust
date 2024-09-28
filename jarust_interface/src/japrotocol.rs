@@ -58,7 +58,17 @@ pub struct JaData {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PluginData {
     pub plugin: String,
-    pub data: Value,
+    pub data: PluginInnerData,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PluginInnerData {
+    Error { error_code: u16, error: String },
+    // Gotcha
+    // The pattern matching is done in the order of the variants,
+    // this field wraps a generic value, so it will always match.
+    Data(Value),
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -143,6 +153,8 @@ pub struct Candidate {
 
 #[cfg(test)]
 mod tests {
+    use crate::japrotocol::PluginInnerData;
+
     use super::EstablishmentProtocol;
     use super::GenericEvent;
     use super::JaData;
@@ -228,10 +240,10 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.echotest".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "echotest": "event",
                         "result": "ok"
-                    }),
+                    })),
                 },
             }),
             transaction: Some("c7bb120f-ed4e-4e00-b8de-bfc3e66f098e".to_string()),
@@ -277,6 +289,41 @@ mod tests {
             transaction: None,
             sender: Some(2676358135723942u64),
             session_id: Some(1942958911060866u64),
+            establishment_protocol: None,
+        };
+        assert_eq!(actual_event, expected);
+    }
+
+    #[test]
+    fn it_parse_error_event() {
+        let event = json!({
+           "janus": "success",
+           "session_id": 2158724686674557u64,
+           "transaction": "nNbmsbj33zLY",
+           "sender": 77797716144085u64,
+           "plugindata": {
+              "plugin": "janus.plugin.streaming",
+              "data": {
+                 "error_code": 456,
+                 "error": "Can't add 'rtp' stream, error creating data source stream"
+              }
+           }
+        });
+        let actual_event = serde_json::from_value::<JaResponse>(event).unwrap();
+        let expected = JaResponse {
+            janus: ResponseType::Success(JaSuccessProtocol::Plugin {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.streaming".to_string(),
+                    data: PluginInnerData::Error {
+                        error_code: 456,
+                        error: "Can't add 'rtp' stream, error creating data source stream"
+                            .to_string(),
+                    },
+                },
+            }),
+            transaction: Some("nNbmsbj33zLY".to_string()),
+            sender: Some(77797716144085u64),
+            session_id: Some(2158724686674557u64),
             establishment_protocol: None,
         };
         assert_eq!(actual_event, expected);
