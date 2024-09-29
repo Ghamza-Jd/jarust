@@ -8,13 +8,13 @@ use tokio::sync::mpsc;
 
 #[async_trait::async_trait]
 pub trait Streaming: Attach {
-    type Event: TryFrom<JaResponse, Error = JaError> + Send + Sync + 'static;
+    type Event: TryFrom<JaResponse, Error = jarust_interface::Error> + Send + Sync + 'static;
     type Handle: From<JaHandle> + Deref<Target = JaHandle> + PluginTask;
 
     async fn attach_streaming(
         &self,
         timeout: Duration,
-    ) -> JaResult<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>)> {
+    ) -> Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>), jarust_interface::Error> {
         let (handle, mut receiver) = self
             .attach(AttachHandleParams {
                 plugin_id: "janus.plugin.streaming".to_string(),

@@ -1,10 +1,10 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
+use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::streaming::jahandle_ext::Streaming;
 use jarust_plugins::streaming::msg_options::*;
 use jarust_plugins::JanusId;
-use jarust_transport::tgenerator::RandomTransactionGenerator;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
