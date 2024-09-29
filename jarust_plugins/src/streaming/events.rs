@@ -1,10 +1,9 @@
 use crate::JanusId;
-use jarust::error::JaError;
 use jarust::prelude::JaResponse;
-use jarust_transport::error::JaTransportError;
-use jarust_transport::japrotocol::GenericEvent;
-use jarust_transport::japrotocol::JaHandleEvent;
-use jarust_transport::japrotocol::ResponseType;
+use jarust_interface::japrotocol::GenericEvent;
+use jarust_interface::japrotocol::JaHandleEvent;
+use jarust_interface::japrotocol::PluginInnerData;
+use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
 
@@ -27,16 +26,6 @@ enum StreamingEventDto {
         #[serde(rename = "type")]
         mountpoint_type: String,
     },
-
-    #[serde(rename = "event")]
-    Event(StreamingEventEventType),
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-#[serde(untagged)]
-enum StreamingEventEventType {
-    #[serde(rename = "error")]
-    ErrorEvent { error_code: u16, error: String },
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -48,56 +37,56 @@ pub enum StreamingEvent {
         id: JanusId,
         mountpoint_type: String,
     },
+    Error {
+        error_code: u16,
+        error: String,
+    },
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
-    type Error = JaError;
+    type Error = jarust_interface::Error;
 
     fn try_from(value: JaResponse) -> Result<Self, Self::Error> {
         match value.janus {
             ResponseType::Event(JaHandleEvent::PluginEvent { plugin_data }) => {
-                let streaming_event = from_value::<StreamingEventDto>(plugin_data.data)?;
-                match streaming_event {
-                    StreamingEventDto::DestroyMountpoint { id } => Ok(PluginEvent::StreamingEvent(
-                        StreamingEvent::MountpointDestroyed { id },
-                    )),
-                    StreamingEventDto::CreateMountpoint {
-                        id,
-                        mountpoint_type,
-                    } => Ok(PluginEvent::StreamingEvent(
-                        StreamingEvent::MountpointCreated {
+                let streaming_event = match plugin_data.data {
+                    PluginInnerData::Error { error_code, error } => {
+                        StreamingEvent::Error { error_code, error }
+                    }
+                    PluginInnerData::Data(data) => match from_value::<StreamingEventDto>(data)? {
+                        StreamingEventDto::CreateMountpoint {
+                            id,
+                            mountpoint_type,
+                        } => StreamingEvent::MountpointCreated {
                             id,
                             mountpoint_type,
                         },
-                    )),
-                    StreamingEventDto::Event(e) => match e {
-                        StreamingEventEventType::ErrorEvent { error_code, error } => {
-                            Err(JaError::JanusTransport(JaTransportError::JanusError {
-                                code: error_code,
-                                reason: error,
-                            }))
+                        StreamingEventDto::DestroyMountpoint { id } => {
+                            StreamingEvent::MountpointDestroyed { id }
                         }
                     },
-                }
+                };
+                Ok(PluginEvent::StreamingEvent(streaming_event))
             }
             ResponseType::Event(JaHandleEvent::GenericEvent(event)) => {
                 Ok(PluginEvent::GenericEvent(event))
             }
-            _ => Err(JaError::IncompletePacket),
+            _ => Err(Self::Error::IncompletePacket),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use serde_json::json;
-
-    use jarust::error::JaError;
-    use jarust_transport::japrotocol::{JaHandleEvent, JaResponse, PluginData, ResponseType};
-
     use super::PluginEvent;
     use crate::streaming::events::StreamingEvent;
     use crate::JanusId;
+    use jarust_interface::japrotocol::JaHandleEvent;
+    use jarust_interface::japrotocol::JaResponse;
+    use jarust_interface::japrotocol::PluginData;
+    use jarust_interface::japrotocol::PluginInnerData;
+    use jarust_interface::japrotocol::ResponseType;
+    use serde_json::json;
 
     #[test]
     fn it_parse_mountpoint_created() {
@@ -105,11 +94,11 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.streaming".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "streaming": "created",
                         "id": 6380744183070564u64,
                         "type": "live",
-                    }),
+                    })),
                 },
             }),
             establishment_protocol: None,
@@ -133,10 +122,10 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.streaming".to_string(),
-                    data: json!({
+                    data: PluginInnerData::Data(json!({
                         "streaming": "destroyed",
                         "id": 6380744183070564u64,
-                    }),
+                    })),
                 },
             }),
             establishment_protocol: None,
@@ -159,11 +148,11 @@ mod tests {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {
                     plugin: "janus.plugin.streaming".to_string(),
-                    data: json!({
-                        "streaming": "event",
-                        "error_code": 456,
-                        "error": "Can't add 'rtp' stream, error creating data source stream"
-                    }),
+                    data: PluginInnerData::Error {
+                        error_code: 456,
+                        error: "Can't add 'rtp' stream, error creating data source stream"
+                            .to_string(),
+                    },
                 },
             }),
             establishment_protocol: None,
@@ -171,13 +160,13 @@ mod tests {
             session_id: None,
             sender: None,
         };
-
-        let result: Result<PluginEvent, JaError> = rsp.try_into();
-        assert!(result.is_err());
-        let ja_error = result.err();
-        assert!(ja_error.is_some());
+        let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
-            ja_error.unwrap().to_string(),
-            "Transport: Janus error { code: 456, reason: Can't add 'rtp' stream, error creating data source stream}");
+            event,
+            PluginEvent::StreamingEvent(StreamingEvent::Error {
+                error_code: 456,
+                error: "Can't add 'rtp' stream, error creating data source stream".to_string()
+            })
+        );
     }
 }

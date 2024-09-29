@@ -22,7 +22,7 @@ impl StreamingHandle {
         &self,
         mountpoint: Option<JanusId>,
         timeout: Duration,
-    ) -> JaResult<MountpointCreatedRsp> {
+    ) -> Result<MountpointCreatedRsp, jarust_interface::Error> {
         self.create_mountpoint_with_config(
             StreamingCreateOptions {
                 id: mountpoint,
@@ -38,7 +38,7 @@ impl StreamingHandle {
         &self,
         options: StreamingCreateOptions,
         timeout: Duration,
-    ) -> JaResult<MountpointCreatedRsp> {
+    ) -> Result<MountpointCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending create");
         let mut message: Value = options.try_into()?;
         message["request"] = "create".into();
@@ -54,7 +54,7 @@ impl StreamingHandle {
         mountpoint: JanusId,
         options: StreamingDestroyOptions,
         timeout: Duration,
-    ) -> JaResult<MountpointDestroyedRsp> {
+    ) -> Result<MountpointDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending destroy");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
@@ -66,7 +66,10 @@ impl StreamingHandle {
     }
 
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn list(&self, timeout: Duration) -> JaResult<Vec<MountpointListed>> {
+    pub async fn list(
+        &self,
+        timeout: Duration,
+    ) -> Result<Vec<MountpointListed>, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending list");
         let response = self
             .handle
