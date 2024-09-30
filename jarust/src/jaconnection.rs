@@ -3,17 +3,11 @@ use crate::jasession::NewSessionParams;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
 use jarust_interface::respones::ServerInfoRsp;
-use std::sync::Arc;
 use std::time::Duration;
-
-#[derive(Debug)]
-struct InnerConnection {
-    interface: JanusInterfaceImpl,
-}
 
 #[derive(Clone, Debug)]
 pub struct JaConnection {
-    inner: Arc<InnerConnection>,
+    interface: JanusInterfaceImpl,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
@@ -29,9 +23,9 @@ impl JaConnection {
         interface: impl JanusInterface,
     ) -> Result<Self, jarust_interface::Error> {
         tracing::info!("Creating new connection");
-        let interface = JanusInterfaceImpl::new(interface);
-        let connection = Arc::new(InnerConnection { interface });
-        Ok(Self { inner: connection })
+        Ok(Self {
+            interface: JanusInterfaceImpl::new(interface),
+        })
     }
 
     /// Creates a new session with janus server.
@@ -41,11 +35,11 @@ impl JaConnection {
         params: CreateConnectionParams,
     ) -> Result<JaSession, jarust_interface::Error> {
         tracing::info!("Creating new session");
-        let session_id = self.inner.interface.create(params.timeout).await?;
+        let session_id = self.interface.create(params.timeout).await?;
         let session = JaSession::new(NewSessionParams {
             session_id,
             ka_interval: params.ka_interval,
-            interface: self.inner.interface.clone(),
+            interface: self.interface.clone(),
         })
         .await;
         tracing::info!(id = session_id, "Session created");
@@ -58,7 +52,7 @@ impl JaConnection {
         &mut self,
         timeout: Duration,
     ) -> Result<ServerInfoRsp, jarust_interface::Error> {
-        let res = self.inner.interface.server_info(timeout).await?;
+        let res = self.interface.server_info(timeout).await?;
         Ok(res)
     }
 }
