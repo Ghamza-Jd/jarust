@@ -301,6 +301,10 @@ impl JanusInterface for WebSocketInterface {
         Ok((handle_id, receiver))
     }
 
+    fn has_keep_alive(&self) -> bool {
+        true
+    }
+
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<(), Error> {
         let request = json!({

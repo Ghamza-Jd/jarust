@@ -212,6 +212,10 @@ impl JanusInterface for RestfulInterface {
         Ok((handle_id, rx))
     }
 
+    fn has_keep_alive(&self) -> bool {
+        false
+    }
+
     async fn keep_alive(&self, _: u64, _: Duration) -> Result<(), Error> {
         Ok(())
     }

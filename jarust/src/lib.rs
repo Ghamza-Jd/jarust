@@ -1,4 +1,4 @@
-#! # Jarust
+//! # Jarust
 //!
 //! Jarust is a Rust adapter for [Janus WebRTC server](https://github.com/meetecho/janus-gateway).
 //!

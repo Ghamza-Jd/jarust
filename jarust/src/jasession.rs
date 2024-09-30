@@ -69,14 +69,21 @@ impl JaSession {
 
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     async fn keep_alive(self, ka_interval: u32) -> Result<(), jarust_interface::Error> {
+        if !self.inner.shared.interface.has_keep_alive() {
+            tracing::debug!("Keep-alive not supported");
+            return Ok(());
+        }
+
         let duration = Duration::from_secs(ka_interval.into());
         let mut interval = time::interval(duration);
         let id = { self.inner.shared.id };
         loop {
             interval.tick().await;
             tracing::debug!("Sending keep-alive");
-            let _ = self.inner.shared.interface.keep_alive(id, duration).await;
-            tracing::debug!("Ok");
+            match self.inner.shared.interface.keep_alive(id, duration).await {
+                Ok(_) => tracing::debug!("Keep-alive success"),
+                Err(e) => tracing::error!("Keep-alive failed: {:?}", e),
+            };
         }
     }
 }

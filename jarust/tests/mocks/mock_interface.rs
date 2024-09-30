@@ -23,6 +23,7 @@ use tokio::sync::Mutex;
 pub struct Exclusive {
     create_rsp: Option<JaResponse>,
     attach_rsp: Option<JaResponse>,
+    server_info_rsp: Option<ServerInfoRsp>,
     handles_rx: HashMap<u64, UnboundedSender<JaResponse>>,
 }
 
@@ -44,6 +45,10 @@ impl MockInterface {
 
     pub async fn mock_attach_rsp(&self, rsp: JaResponse) {
         self.inner.exclusive.lock().await.attach_rsp = Some(rsp);
+    }
+
+    pub async fn mocker_server_info_rsp(&self, rsp: ServerInfoRsp) {
+        self.inner.exclusive.lock().await.server_info_rsp = Some(rsp);
     }
 
     pub async fn mock_event(&self, handle_id: u64, rsp: JaResponse) {
@@ -95,7 +100,10 @@ impl JanusInterface for MockInterface {
         &self,
         _timeout: Duration,
     ) -> Result<ServerInfoRsp, jarust_interface::Error> {
-        todo!("Server info is not implemented");
+        let Some(rsp) = self.inner.exclusive.lock().await.server_info_rsp.clone() else {
+            panic!("Server info response is not set");
+        };
+        Ok(rsp)
     }
 
     async fn attach(
@@ -130,6 +138,10 @@ impl JanusInterface for MockInterface {
             .handles_rx
             .insert(handle_id, tx);
         Ok((handle_id, rx))
+    }
+
+    fn has_keep_alive(&self) -> bool {
+        true
     }
 
     async fn keep_alive(
