@@ -9,7 +9,6 @@ use jarust_interface::japrotocol::JaResponse;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
-use std::sync::Arc;
 use std::time::Duration;
 
 struct InnerHandle {
@@ -18,9 +17,8 @@ struct InnerHandle {
     interface: JanusInterfaceImpl,
 }
 
-#[derive(Clone)]
 pub struct JaHandle {
-    inner: Arc<InnerHandle>,
+    inner: InnerHandle,
 }
 
 pub struct NewHandleParams {
@@ -32,11 +30,11 @@ pub struct NewHandleParams {
 impl JaHandle {
     pub(crate) async fn new(params: NewHandleParams) -> Self {
         Self {
-            inner: Arc::new(InnerHandle {
+            inner: InnerHandle {
                 id: params.handle_id,
                 session_id: params.session_id,
                 interface: params.interface,
-            }),
+            },
         }
     }
 

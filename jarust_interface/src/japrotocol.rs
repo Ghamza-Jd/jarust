@@ -153,8 +153,6 @@ pub struct Candidate {
 
 #[cfg(test)]
 mod tests {
-    use crate::japrotocol::PluginInnerData;
-
     use super::EstablishmentProtocol;
     use super::GenericEvent;
     use super::JaData;
@@ -165,6 +163,7 @@ mod tests {
     use super::JsepType;
     use super::PluginData;
     use super::ResponseType;
+    use crate::japrotocol::PluginInnerData;
     use serde_json::json;
 
     #[test]

@@ -67,12 +67,3 @@ impl Drop for EchoTestHandle {
         self.cancel_task();
     }
 }
-
-impl Clone for EchoTestHandle {
-    fn clone(&self) -> Self {
-        Self {
-            handle: self.handle.clone(),
-            task: None,
-        }
-    }
-}
