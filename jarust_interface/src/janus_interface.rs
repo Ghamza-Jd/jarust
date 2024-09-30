@@ -55,6 +55,9 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         timeout: Duration,
     ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>), Error>;
 
+    /// Indicates if the interface has keep alive messages.
+    fn has_keep_alive(&self) -> bool;
+
     /// Send keep alive messages (to keep the connection and the client-server session alive).
     async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
 
