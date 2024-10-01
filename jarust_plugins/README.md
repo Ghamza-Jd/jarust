@@ -6,7 +6,7 @@ Current plugins:
 
 - [x] Echo test
 - [x] Audio bridge
-- [ ] Video room
+- [x] Video room
 - [ ] Streaming
 
 ## EchoTest Example

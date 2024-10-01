@@ -2,18 +2,10 @@
 
 The core of jarust.
 
-It handles:
+It under the hood it uses [jarust_interface](https://crates.io/crates/jarust_interface) to provide an abstract api
+for connecting, creating a session, attaching to a plugin, and then communicate with the plugin handle.
 
-- Connection
-- Sessions
-- Handles
-- Send messages
-- Receive events
-- Demultiplexing
-
-## Plugins
-
-Checkout the existing plugins: [jarust_plugins](https://crates.io/crates/jarust_plugins)
+It's also the building block for the plugin crate [jarust_plugins](https://crates.io/crates/jarust_plugins)
 
 ## Example usage
 

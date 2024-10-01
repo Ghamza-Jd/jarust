@@ -13,6 +13,8 @@ The supported Janus plugins currently are:
 
 - EchoTest
 - AudioBridge
+- VideoBridge
+- Streaming
 
 ## Examples
 
