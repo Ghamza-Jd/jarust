@@ -24,11 +24,12 @@ async fn main() -> anyhow::Result<()> {
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
-    let capacity = 32;
-    let config = JaConfig::builder()
-        .url("ws://localhost:8188/ws")
-        .capacity(capacity)
-        .build();
+    let config = JaConfig {
+        url: "ws://localhsot:8188/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
