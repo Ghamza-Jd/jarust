@@ -19,12 +19,12 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let timeout = std::time::Duration::from_secs(10);
-    let config = JaConfig::builder()
-        .url("ws://localhost:8188/ws")
-        .capacity(
-            32, /* Buffer size on the entire connection with janus */
-        )
-        .build();
+    let config = JaConfig {
+        url: "ws://localhsot:8188/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
