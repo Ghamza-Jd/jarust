@@ -48,14 +48,31 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Rooms {:#?}", rooms);
 
-    handle
-        .join_room(
-            create_room_rsp.room.clone(),
-            Default::default(),
-            None,
-            timeout,
-        )
-        .await?;
+    let join_room_options = AudioBridgeJoinRoomOptions {
+        room: create_room_rsp.room.clone(),
+        id: None,
+        group: None,
+        pin: None,
+        display: None,
+        token: None,
+        muted: None,
+        suspended: None,
+        pause_events: None,
+        codec: None,
+        bitrate: None,
+        quality: None,
+        expected_loss: None,
+        volume: None,
+        spatial_position: None,
+        secret: None,
+        audio_level_average: None,
+        audio_active_packets: None,
+        record: None,
+        filename: None,
+        generate_offer: None,
+    };
+
+    handle.join_room(join_room_options, None, timeout).await?;
 
     let list_participants_rsp = handle
         .list_participants(create_room_rsp.room, timeout)

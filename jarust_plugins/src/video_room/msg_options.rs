@@ -171,8 +171,10 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomEditOptions {
+    pub room: JanusId,
+
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -222,8 +224,10 @@ pub struct VideoRoomEditOptions {
     pub permanent: Option<bool>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomDestroyOptions {
+    pub room: JanusId,
+
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -233,8 +237,9 @@ pub struct VideoRoomDestroyOptions {
     pub permanent: Option<bool>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomPublisherJoinOptions {
+    pub room: JanusId,
     /// unique ID to register for the publisher;
     /// optional, will be chosen by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -249,8 +254,9 @@ pub struct VideoRoomPublisherJoinOptions {
     pub token: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomSubscriberJoinOptions {
+    pub room: JanusId,
     /// whether subscriptions should include a msid that references the publisher; false by default
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_msid: Option<bool>,
@@ -306,29 +312,39 @@ pub enum VideoRoomAllowedAction {
     Remove,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomAllowedOptions {
+    pub room: JanusId,
+    pub action: VideoRoomAllowedAction,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub allowed: Vec<String>,
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomKickOptions {
+    pub room: JanusId,
+    pub participant: JanusId,
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomModerateOptions {
+    pub room: JanusId,
+    pub participant: JanusId,
+    pub m_line: u64,
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomEnableRecordingOptions {
+    pub room: JanusId,
     /// whether participants in this room should be automatically recorded or not
     pub record: bool,
     /// room secret, mandatory if configured
@@ -336,8 +352,9 @@ pub struct VideoRoomEnableRecordingOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomListForwardersOptions {
+    room: JanusId,
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -403,7 +420,7 @@ pub struct VideoRoomConfigurePublisherStream {
     pub max_delay: Option<u64>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct JoinAndConfigureOptions {
     #[serde(flatten)]
     pub join_options: VideoRoomPublisherJoinOptions,
@@ -527,8 +544,9 @@ pub struct VideoRoomSwitchStream {
     pub sub_mid: String,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct VideoRoomRtpForwardOptions {
+    pub room: JanusId,
     /// unique numeric ID of the publisher to relay externally
     pub publisher_id: JanusId,
 
