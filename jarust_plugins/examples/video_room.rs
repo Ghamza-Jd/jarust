@@ -60,10 +60,20 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .edit_room(
-            room_id.clone(),
             VideoRoomEditOptions {
-                new_description: Some("A brand new description!".to_string()),
-                ..Default::default()
+                room: room_id.clone(),
+                secret: None,
+                new_description: None,
+                new_secret: None,
+                new_pin: None,
+                new_is_private: None,
+                new_require_pvtid: None,
+                new_bitrate: None,
+                new_fir_freq: None,
+                new_publishers: None,
+                new_lock_record: None,
+                new_rec_dir: None,
+                permanent: None,
             },
             timeout,
         )
@@ -80,48 +90,56 @@ async fn main() -> anyhow::Result<()> {
 
     let allowed_enable = handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Enable,
-            vec![],
-            Default::default(),
+            VideoRoomAllowedOptions {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Enable,
+                allowed: vec![],
+                secret: None,
+            },
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_enable.allowed);
     let allowed_add = handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Add,
-            vec!["teststring".to_string(), "removeme".to_string()],
-            Default::default(),
+            VideoRoomAllowedOptions {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Add,
+                allowed: vec!["teststring".to_string(), "removeme".to_string()],
+                secret: None,
+            },
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_add.allowed);
     let allowed_remove = handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Remove,
-            vec!["removeme".to_string()],
-            Default::default(),
+            VideoRoomAllowedOptions {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Remove,
+                allowed: vec!["removeme".to_string()],
+                secret: None,
+            },
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_remove.allowed);
     handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Disable,
-            vec![],
-            Default::default(),
+            VideoRoomAllowedOptions {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Disable,
+                allowed: vec![],
+                secret: None,
+            },
             timeout,
         )
         .await?;
 
     handle
         .join_as_publisher(
-            room_id.clone(),
             VideoRoomPublisherJoinOptions {
+                room: room_id.clone(),
                 id: Some(JanusId::Uint(1337)),
                 display: Some("xX1337-StreamerXx".into()),
                 token: None,
@@ -133,11 +151,6 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .publish(
-            EstablishmentProtocol::JSEP(Jsep {
-                jsep_type: JsepType::Offer,
-                trickle: Some(false),
-                sdp: EXAMPLE_SDP_OFFER.to_string(),
-            }),
             VideoRoomPublishOptions {
                 audiocodec: Some(VideoRoomAudioCodec::OPUS),
                 videocodec: Some(VideoRoomVideoCodec::H264),
@@ -149,6 +162,11 @@ async fn main() -> anyhow::Result<()> {
                 }],
                 ..Default::default()
             },
+            EstablishmentProtocol::JSEP(Jsep {
+                jsep_type: JsepType::Offer,
+                trickle: Some(false),
+                sdp: EXAMPLE_SDP_OFFER.to_string(),
+            }),
             timeout,
         )
         .await?;
@@ -172,7 +190,14 @@ async fn main() -> anyhow::Result<()> {
     );
 
     handle
-        .destroy_room(room_id, Default::default(), timeout)
+        .destroy_room(
+            VideoRoomDestroyOptions {
+                room: room_id,
+                secret: None,
+                permanent: None,
+            },
+            timeout,
+        )
         .await?;
 
     Ok(())

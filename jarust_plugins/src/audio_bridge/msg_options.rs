@@ -102,8 +102,10 @@ pub struct AudioBridgeCreateRoomOptions {
     pub groups: Option<Vec<String>>,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeEditRoomOptions {
+    pub room: JanusId,
+
     /// room secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
@@ -145,8 +147,10 @@ pub struct AudioBridgeDestroyRoomMsg {
     pub permanent: Option<bool>,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeJoinRoomOptions {
+    pub room: JanusId,
+
     /// Unique ID to assign to the participant, assigned by the plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<JanusId>,
@@ -245,6 +249,8 @@ pub struct AudioBridgeJoinRoomOptions {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeAllowedOptions {
+    pub room: JanusId,
+
     pub action: AudioBridgeAllowAction,
 
     /// Array of strings (tokens users might pass in "join", only for add|remove)
@@ -358,8 +364,10 @@ pub struct AudioBridgeKickAllOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct AudioBridgeChangeRoomOptions {
+    pub room: JanusId,
+
     /// numeric ID of the room to move to
     #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<JanusId>,

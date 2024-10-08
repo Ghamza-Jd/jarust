@@ -74,14 +74,12 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        room: JanusId,
         options: AudioBridgeEditRoomOptions,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomEditedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending edit room");
         let mut message: Value = options.try_into()?;
         message["request"] = "edit".into();
-        message["room"] = room.try_into()?;
         self.handle
             .send_waiton_rsp::<AudioBridgeRoomEditedRsp>(message, timeout)
             .await
@@ -109,7 +107,6 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn join_room(
         &self,
-        room: JanusId,
         options: AudioBridgeJoinRoomOptions,
         protocol: Option<EstablishmentProtocol>,
         timeout: Duration,
@@ -117,7 +114,6 @@ impl AudioBridgeHandle {
         tracing::info!(plugin = "audiobridge", "Sending join room");
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
-        message["room"] = room.try_into()?;
         match protocol {
             Some(protocol) => {
                 self.handle
@@ -150,14 +146,12 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
-        room: JanusId,
         options: AudioBridgeAllowedOptions,
         timeout: Duration,
     ) -> Result<AudioBridgeAllowedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending allowed");
         let mut message: Value = options.try_into()?;
         message["request"] = "allowed".into();
-        message["room"] = room.try_into()?;
         self.handle
             .send_waiton_rsp::<AudioBridgeAllowedRsp>(message, timeout)
             .await
@@ -301,14 +295,12 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn change_room(
         &self,
-        room: JanusId,
         options: AudioBridgeChangeRoomOptions,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending change room");
         let mut message: Value = options.try_into()?;
         message["request"] = "changeroom".into();
-        message["room"] = room.try_into()?;
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
     }
