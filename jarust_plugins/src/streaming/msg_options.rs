@@ -104,8 +104,11 @@ pub enum StreamingRtpMediaType {
 // Destroy Message
 //
 
-#[derive(Serialize, Default)]
+#[derive(Serialize)]
 pub struct StreamingDestroyOptions {
+    #[serde(rename = "id")]
+    pub mountpoint: JanusId,
+
     /// mountpoint secret, mandatory if configured
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,

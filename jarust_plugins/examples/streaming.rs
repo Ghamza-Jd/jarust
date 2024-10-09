@@ -72,7 +72,14 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Info: {:#?}", info);
 
     handle
-        .destroy_mountpoint(mountpoint_id, Default::default(), timeout)
+        .destroy_mountpoint(
+            StreamingDestroyOptions {
+                mountpoint: mountpoint_id,
+                secret: None,
+                permanent: None,
+            },
+            timeout,
+        )
         .await?;
 
     Ok(())
