@@ -51,14 +51,12 @@ impl StreamingHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_mountpoint(
         &self,
-        mountpoint: JanusId,
         options: StreamingDestroyOptions,
         timeout: Duration,
     ) -> Result<MountpointDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending destroy");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
-        message["id"] = mountpoint.try_into()?;
 
         self.handle
             .send_waiton_rsp::<MountpointDestroyedRsp>(message, timeout)
@@ -73,12 +71,7 @@ impl StreamingHandle {
         tracing::info!(plugin = "streaming", "Sending list");
         let response = self
             .handle
-            .send_waiton_rsp::<ListMountpointsRsp>(
-                json!({
-                    "request": "list"
-                }),
-                timeout,
-            )
+            .send_waiton_rsp::<ListMountpointsRsp>(json!({"request": "list"}), timeout)
             .await?;
 
         Ok(response.list)

@@ -90,14 +90,12 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
-        room: JanusId,
         options: AudioBridgeDestroyRoomMsg,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending destroy room");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
-        message["room"] = room.try_into()?;
         self.handle
             .send_waiton_rsp::<AudioBridgeRoomDestroyedRsp>(message, timeout)
             .await

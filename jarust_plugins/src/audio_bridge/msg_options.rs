@@ -139,8 +139,9 @@ pub struct AudioBridgeEditRoomOptions {
     pub permanent: Option<bool>,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeDestroyRoomMsg {
+    pub room: JanusId,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
