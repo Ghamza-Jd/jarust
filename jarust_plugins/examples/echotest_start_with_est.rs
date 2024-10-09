@@ -8,7 +8,8 @@ use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
-use jarust_plugins::echo_test::msg_options::EchoTestStartOptions;
+use jarust_plugins::echo_test::msg_options::EchoTestStartParams;
+use jarust_plugins::echo_test::msg_options::EchoTestStartParamsRequired;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -43,10 +44,13 @@ async fn main() -> anyhow::Result<()> {
 
     let rsp = handle
         .start_with_est(
-            EchoTestStartOptions::builder()
-                .audio(true)
-                .video(true)
-                .build(),
+            EchoTestStartParams {
+                required: EchoTestStartParamsRequired {
+                    audio: true,
+                    video: true,
+                },
+                optional: Default::default(),
+            },
             EstProto::JSEP(Jsep {
                 sdp: "".to_string(),
                 trickle: Some(false),

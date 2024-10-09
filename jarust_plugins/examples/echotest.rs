@@ -5,7 +5,8 @@ use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
-use jarust_plugins::echo_test::msg_options::EchoTestStartOptions;
+use jarust_plugins::echo_test::msg_options::EchoTestStartParams;
+use jarust_plugins::echo_test::msg_options::EchoTestStartParamsRequired;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -39,12 +40,13 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 
     handle
-        .start(
-            EchoTestStartOptions::builder()
-                .audio(true)
-                .video(true)
-                .build(),
-        )
+        .start(EchoTestStartParams {
+            required: EchoTestStartParamsRequired {
+                audio: true,
+                video: true,
+            },
+            optional: Default::default(),
+        })
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
