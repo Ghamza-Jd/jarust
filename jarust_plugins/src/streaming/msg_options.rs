@@ -6,13 +6,14 @@ impl_tryfrom_serde_value!(
 );
 
 //
-// Create Message
 // https://github.com/meetecho/janus-gateway/blob/v1.2.4/src/plugins/janus_streaming.c#L3311-L4175
 // TODO: only RTP type is supported
 //
-
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct StreamingCreateOptions {
+    #[serde(rename = "type")]
+    pub mountpoint_type: StreamingMountpointType,
+
     #[serde(skip_serializing_if = "Option::is_none")]
     pub admin_key: Option<String>,
 
@@ -42,17 +43,13 @@ pub struct StreamingCreateOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permanent: Option<bool>,
 
-    /// <rtp|live|ondemand|rtsp>
-    #[serde(rename = "type")]
-    pub mountpoint_type: String,
-
     // RTP only
     #[serde(skip_serializing_if = "Option::is_none")]
     pub media: Option<Vec<StreamingRtpMedia>>,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "lowercase")]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+#[serde(untagged, rename_all = "lowercase")]
 pub enum StreamingMountpointType {
     RTP,
     LIVE,
@@ -61,11 +58,11 @@ pub enum StreamingMountpointType {
 }
 
 // https://github.com/meetecho/janus-gateway/blob/v1.2.4/src/plugins/janus_streaming.c#L1100
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct StreamingRtpMedia {
     /// audio|video|data
     #[serde(rename = "type")]
-    pub media_type: String,
+    pub media_type: StreamingRtpMediaType,
 
     /// Unique mid to assign to this stream in negociated PeerConnections
     pub mid: String,
@@ -92,19 +89,15 @@ pub struct StreamingRtpMedia {
     // missing video only and data only parameters ?
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "lowercase")]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+#[serde(untagged, rename_all = "lowercase")]
 pub enum StreamingRtpMediaType {
     AUDIO,
     VIDEO,
     DATA,
 }
 
-//
-// Destroy Message
-//
-
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct StreamingDestroyOptions {
     #[serde(rename = "id")]
     pub mountpoint: JanusId,
