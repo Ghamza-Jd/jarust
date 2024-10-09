@@ -8,6 +8,35 @@ impl_tryfrom_serde_value!(
     AudioBridgeKickOptions AudioBridgeKickAllOptions AudioBridgeChangeRoomOptions
 );
 
+create_dto!(
+    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+    AudioBridgeCreateRoomParams,
+    optional {
+        /// Chosen by plugin if missing
+        room: JanusId,
+        /// Whether the room should be saved in the config file, default=false
+        permanent: bool,
+        description: String,
+        secret: String,
+        pin: String,
+        is_private: bool,
+        allowed: Vec<String>,
+        sampling_rate: u64,
+        spatial_audio: bool,
+        audiolevel_ext: bool,
+        audiolevel_event: bool,
+        audio_active_packets: u64,
+        default_expectedloss: u64,
+        default_bitrate: u64,
+        record: bool,
+        record_file: String,
+        record_dir: String,
+        mjrs: bool,
+        allow_rtp_participants: bool,
+        groups: Vec<String>
+    }
+);
+
 #[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct AudioBridgeCreateRoomOptions {
@@ -64,7 +93,7 @@ pub struct AudioBridgeCreateRoomOptions {
     pub audio_level_average: Option<u64>,
 
     /// percent of packets we expect participants may miss,
-    /// to help with FEC (default=0, max=20; automatically used for forwarders too
+    /// to help with FEC (default=0, max=20; automatically used for forwarders too)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub default_expectedloss: Option<u64>,
 
