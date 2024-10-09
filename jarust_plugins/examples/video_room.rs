@@ -47,12 +47,11 @@ async fn main() -> anyhow::Result<()> {
 
     let room_id = handle
         .create_room_with_config(
-            VideoRoomCreateOptions {
-                audiocodec: Some("opus".to_string()),
-                videocodec: Some("h264".to_string()),
-                notify_joining: Some(true),
-                ..Default::default()
-            },
+            VideoRoomCreateOptions::builder()
+                .audiocodec("opus".to_string())
+                .videocodec("h264".to_string())
+                .notify_joining(true)
+                .build(),
             timeout,
         )
         .await?
@@ -60,21 +59,9 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .edit_room(
-            VideoRoomEditOptions {
-                room: room_id.clone(),
-                secret: None,
-                new_description: None,
-                new_secret: None,
-                new_pin: None,
-                new_is_private: None,
-                new_require_pvtid: None,
-                new_bitrate: None,
-                new_fir_freq: None,
-                new_publishers: None,
-                new_lock_record: None,
-                new_rec_dir: None,
-                permanent: None,
-            },
+            VideoRoomEditOptions::builder()
+                .room(room_id.clone())
+                .build(),
             timeout,
         )
         .await?;
@@ -90,60 +77,55 @@ async fn main() -> anyhow::Result<()> {
 
     let allowed_enable = handle
         .allowed(
-            VideoRoomAllowedOptions {
-                room: room_id.clone(),
-                action: VideoRoomAllowedAction::Enable,
-                allowed: vec![],
-                secret: None,
-            },
+            VideoRoomAllowedOptions::builder()
+                .room(room_id.clone())
+                .action(VideoRoomAllowedAction::Enable)
+                .allowed(vec![])
+                .build(),
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_enable.allowed);
     let allowed_add = handle
         .allowed(
-            VideoRoomAllowedOptions {
-                room: room_id.clone(),
-                action: VideoRoomAllowedAction::Add,
-                allowed: vec!["teststring".to_string(), "removeme".to_string()],
-                secret: None,
-            },
+            VideoRoomAllowedOptions::builder()
+                .room(room_id.clone())
+                .action(VideoRoomAllowedAction::Add)
+                .allowed(vec!["teststring".to_string(), "removeme".to_string()])
+                .build(),
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_add.allowed);
     let allowed_remove = handle
         .allowed(
-            VideoRoomAllowedOptions {
-                room: room_id.clone(),
-                action: VideoRoomAllowedAction::Remove,
-                allowed: vec!["removeme".to_string()],
-                secret: None,
-            },
+            VideoRoomAllowedOptions::builder()
+                .room(room_id.clone())
+                .action(VideoRoomAllowedAction::Remove)
+                .allowed(vec!["removeme".to_string()])
+                .build(),
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_remove.allowed);
     handle
         .allowed(
-            VideoRoomAllowedOptions {
-                room: room_id.clone(),
-                action: VideoRoomAllowedAction::Disable,
-                allowed: vec![],
-                secret: None,
-            },
+            VideoRoomAllowedOptions::builder()
+                .room(room_id.clone())
+                .action(VideoRoomAllowedAction::Disable)
+                .allowed(vec![])
+                .build(),
             timeout,
         )
         .await?;
 
     handle
         .join_as_publisher(
-            VideoRoomPublisherJoinOptions {
-                room: room_id.clone(),
-                id: Some(JanusId::Uint(1337)),
-                display: Some("xX1337-StreamerXx".into()),
-                token: None,
-            },
+            VideoRoomPublisherJoinOptions::builder()
+                .room(room_id.clone())
+                .id(JanusId::Uint(1337))
+                .display("xX1337-StreamerXx".to_string())
+                .build(),
             None,
             timeout,
         )
@@ -151,17 +133,15 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .publish(
-            VideoRoomPublishOptions {
-                audiocodec: Some(VideoRoomAudioCodec::OPUS),
-                videocodec: Some(VideoRoomVideoCodec::H264),
-                bitrate: Some(3500),
-                record: Some(false),
-                descriptions: vec![VideoRoomPublishDescription {
-                    mid: "stream-0".to_string(),
-                    description: "The ultimate stream!!".to_string(),
-                }],
-                ..Default::default()
-            },
+            VideoRoomPublishOptions::builder()
+                .audiocodec(VideoRoomAudioCodec::OPUS)
+                .videocodec(VideoRoomVideoCodec::H264)
+                .bitrate(3500)
+                .descriptions(vec![VideoRoomPublishDescription::builder()
+                    .mid("stream-0".to_string())
+                    .description("The ultimate stream!!".to_string())
+                    .build()])
+                .build(),
             EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Offer,
                 trickle: Some(false),
@@ -191,11 +171,7 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .destroy_room(
-            VideoRoomDestroyOptions {
-                room: room_id,
-                secret: None,
-                permanent: None,
-            },
+            VideoRoomDestroyOptions::builder().room(room_id).build(),
             timeout,
         )
         .await?;

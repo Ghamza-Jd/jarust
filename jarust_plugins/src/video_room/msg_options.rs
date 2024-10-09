@@ -7,6 +7,7 @@ impl_tryfrom_serde_value!(
     VideoRoomConfigurePublisherOptions VideoRoomConfigureSubscriberOptions JoinAndConfigureOptions VideoRoomPublishOptions
 );
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomCreateOptions {
     /// unique numeric ID, chosen by plugin if missing
@@ -171,6 +172,7 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomEditOptions {
     pub room: JanusId,
@@ -224,6 +226,7 @@ pub struct VideoRoomEditOptions {
     pub permanent: Option<bool>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomDestroyOptions {
     pub room: JanusId,
@@ -237,6 +240,7 @@ pub struct VideoRoomDestroyOptions {
     pub permanent: Option<bool>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomPublisherJoinOptions {
     pub room: JanusId,
@@ -254,6 +258,7 @@ pub struct VideoRoomPublisherJoinOptions {
     pub token: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomSubscriberJoinOptions {
     pub room: JanusId,
@@ -274,6 +279,7 @@ pub struct VideoRoomSubscriberJoinOptions {
     pub streams: Vec<VideoRoomSubscriberJoinStream>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomSubscriberJoinStream {
     /// unique ID of publisher owning the stream to subscribe to
@@ -288,6 +294,7 @@ pub struct VideoRoomSubscriberJoinStream {
     pub crossrefid: Option<u64>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomSubscriberUnsubscribeStream {
     /// unique ID of publisher owning the stream to subscribe to
@@ -312,6 +319,7 @@ pub enum VideoRoomAllowedAction {
     Remove,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomAllowedOptions {
     pub room: JanusId,
@@ -323,6 +331,7 @@ pub struct VideoRoomAllowedOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomKickOptions {
     pub room: JanusId,
@@ -332,6 +341,7 @@ pub struct VideoRoomKickOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomModerateOptions {
     pub room: JanusId,
@@ -342,6 +352,7 @@ pub struct VideoRoomModerateOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomEnableRecordingOptions {
     pub room: JanusId,
@@ -352,6 +363,7 @@ pub struct VideoRoomEnableRecordingOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomListForwardersOptions {
     room: JanusId,
@@ -360,6 +372,7 @@ pub struct VideoRoomListForwardersOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomConfigurePublisherOptions {
     /// bitrate cap to return via REMB;
@@ -400,6 +413,7 @@ pub struct VideoRoomConfigurePublisherOptions {
 }
 
 // TODO: Check if it's okay to remove default
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomConfigurePublisherStream {
     pub mid: String,
@@ -421,6 +435,7 @@ pub struct VideoRoomConfigurePublisherStream {
     pub max_delay: Option<u64>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct JoinAndConfigureOptions {
     #[serde(flatten)]
@@ -429,6 +444,7 @@ pub struct JoinAndConfigureOptions {
     pub configure_options: VideoRoomConfigurePublisherOptions,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomPublishOptions {
     /// audio codec to prefer among the negotiated ones
@@ -470,6 +486,7 @@ pub struct VideoRoomPublishOptions {
 }
 
 // TODO: Check if it's okay to remove default
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomPublishDescription {
     /// unique mid of a stream being published
@@ -479,6 +496,7 @@ pub struct VideoRoomPublishDescription {
     pub description: String,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomConfigureSubscriberOptions {
     /// list of streams to configure
@@ -489,6 +507,7 @@ pub struct VideoRoomConfigureSubscriberOptions {
 }
 
 // TODO: Check if it's okay to remove default
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomConfigureSubscriberStream {
     /// mid of the m-line to refer to
@@ -535,6 +554,7 @@ pub struct VideoRoomConfigureSubscriberStream {
     pub max_delay: Option<u64>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomSwitchStream {
     /// unique ID of the publisher the new source is from
@@ -547,6 +567,7 @@ pub struct VideoRoomSwitchStream {
     pub sub_mid: String,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomRtpForwardOptions {
     pub room: JanusId,
@@ -572,6 +593,7 @@ pub struct VideoRoomRtpForwardOptions {
 }
 
 // TODO: Check if it's okay to remove default
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomRtpForwardStream {
     /// mid of publisher stream to forward
