@@ -1,6 +1,5 @@
 use crate::streaming::msg_options::*;
 use crate::streaming::responses::*;
-use crate::JanusId;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
 use serde_json::json;
@@ -19,22 +18,6 @@ pub struct StreamingHandle {
 impl StreamingHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_mountpoint(
-        &self,
-        mountpoint: Option<JanusId>,
-        timeout: Duration,
-    ) -> Result<MountpointCreatedRsp, jarust_interface::Error> {
-        self.create_mountpoint_with_config(
-            StreamingCreateOptions {
-                id: mountpoint,
-                ..Default::default()
-            },
-            timeout,
-        )
-        .await
-    }
-
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn create_mountpoint_with_config(
         &self,
         options: StreamingCreateOptions,
         timeout: Duration,
@@ -107,10 +90,7 @@ impl StreamingHandle {
     // recording
 }
 
-//
-// asynchronous methods
-//
-// TODO
+// TODO: async methods
 
 impl PluginTask for StreamingHandle {
     fn assign_task(&mut self, task: JaTask) {

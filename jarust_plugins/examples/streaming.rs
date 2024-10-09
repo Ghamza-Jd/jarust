@@ -43,21 +43,32 @@ async fn main() -> anyhow::Result<()> {
     });
 
     let mountpoint_id = handle
-        .create_mountpoint_with_config(
+        .create_mountpoint(
             StreamingCreateOptions {
                 id: Some(JanusId::Uint(1337)),
                 name: Some("stream name".to_string()),
                 description: Some("stream description".to_string()),
-                mountpoint_type: "rtp".to_string(),
+                mountpoint_type: StreamingMountpointType::RTP,
                 media: Some(Vec::from([StreamingRtpMedia {
-                    media_type: "video".to_string(),
+                    media_type: StreamingRtpMediaType::VIDEO,
                     mid: "v".to_string(),
                     port: 0,
                     pt: Some(100),
                     codec: Some("vp8".to_string()),
-                    ..Default::default()
+                    label: None,
+                    msid: None,
+                    mcast: None,
+                    iface: None,
+                    rtcpport: None,
+                    fmtp: None,
+                    skew: None,
                 }])),
-                ..Default::default()
+                admin_key: None,
+                metadata: None,
+                is_private: None,
+                secret: None,
+                pin: None,
+                permanent: None,
             },
             timeout,
         )

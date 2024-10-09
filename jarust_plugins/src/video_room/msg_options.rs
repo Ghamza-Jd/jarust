@@ -7,7 +7,7 @@ impl_tryfrom_serde_value!(
     VideoRoomConfigurePublisherOptions VideoRoomConfigureSubscriberOptions JoinAndConfigureOptions VideoRoomPublishOptions
 );
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomCreateOptions {
     /// unique numeric ID, chosen by plugin if missing
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -150,7 +150,7 @@ pub struct VideoRoomCreateOptions {
     pub dummy_streams: Option<bool>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomAudioCodec {
     OPUS,
@@ -161,7 +161,7 @@ pub enum VideoRoomAudioCodec {
     ISAC16,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomVideoCodec {
     VP8,
@@ -171,7 +171,7 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomEditOptions {
     pub room: JanusId,
 
@@ -224,7 +224,7 @@ pub struct VideoRoomEditOptions {
     pub permanent: Option<bool>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomDestroyOptions {
     pub room: JanusId,
 
@@ -237,7 +237,7 @@ pub struct VideoRoomDestroyOptions {
     pub permanent: Option<bool>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomPublisherJoinOptions {
     pub room: JanusId,
     /// unique ID to register for the publisher;
@@ -254,7 +254,7 @@ pub struct VideoRoomPublisherJoinOptions {
     pub token: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomSubscriberJoinOptions {
     pub room: JanusId,
     /// whether subscriptions should include a msid that references the publisher; false by default
@@ -274,7 +274,7 @@ pub struct VideoRoomSubscriberJoinOptions {
     pub streams: Vec<VideoRoomSubscriberJoinStream>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomSubscriberJoinStream {
     /// unique ID of publisher owning the stream to subscribe to
     pub feed: JanusId,
@@ -288,7 +288,7 @@ pub struct VideoRoomSubscriberJoinStream {
     pub crossrefid: Option<u64>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomSubscriberUnsubscribeStream {
     /// unique ID of publisher owning the stream to subscribe to
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -303,7 +303,7 @@ pub struct VideoRoomSubscriberUnsubscribeStream {
     pub sub_mid: Option<u64>,
 }
 
-#[derive(PartialEq, Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomAllowedAction {
     Enable,
@@ -312,7 +312,7 @@ pub enum VideoRoomAllowedAction {
     Remove,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomAllowedOptions {
     pub room: JanusId,
     pub action: VideoRoomAllowedAction,
@@ -323,7 +323,7 @@ pub struct VideoRoomAllowedOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomKickOptions {
     pub room: JanusId,
     pub participant: JanusId,
@@ -332,7 +332,7 @@ pub struct VideoRoomKickOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomModerateOptions {
     pub room: JanusId,
     pub participant: JanusId,
@@ -342,7 +342,7 @@ pub struct VideoRoomModerateOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomEnableRecordingOptions {
     pub room: JanusId,
     /// whether participants in this room should be automatically recorded or not
@@ -352,7 +352,7 @@ pub struct VideoRoomEnableRecordingOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomListForwardersOptions {
     room: JanusId,
     /// room secret, mandatory if configured
@@ -360,7 +360,7 @@ pub struct VideoRoomListForwardersOptions {
     pub secret: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomConfigurePublisherOptions {
     /// bitrate cap to return via REMB;
     /// overrides the global room value if present (unless `bitrate_cap` is set)
@@ -399,7 +399,8 @@ pub struct VideoRoomConfigurePublisherOptions {
     pub descriptions: Vec<VideoRoomPublishDescription>,
 }
 
-#[derive(Serialize, Default)]
+// TODO: Check if it's okay to remove default
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomConfigurePublisherStream {
     pub mid: String,
 
@@ -420,7 +421,7 @@ pub struct VideoRoomConfigurePublisherStream {
     pub max_delay: Option<u64>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct JoinAndConfigureOptions {
     #[serde(flatten)]
     pub join_options: VideoRoomPublisherJoinOptions,
@@ -428,7 +429,7 @@ pub struct JoinAndConfigureOptions {
     pub configure_options: VideoRoomConfigurePublisherOptions,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomPublishOptions {
     /// audio codec to prefer among the negotiated ones
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -468,7 +469,8 @@ pub struct VideoRoomPublishOptions {
     pub descriptions: Vec<VideoRoomPublishDescription>,
 }
 
-#[derive(Serialize, Default)]
+// TODO: Check if it's okay to remove default
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomPublishDescription {
     /// unique mid of a stream being published
     pub mid: String,
@@ -477,7 +479,7 @@ pub struct VideoRoomPublishDescription {
     pub description: String,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomConfigureSubscriberOptions {
     /// list of streams to configure
     pub streams: Vec<VideoRoomConfigureSubscriberStream>,
@@ -486,7 +488,8 @@ pub struct VideoRoomConfigureSubscriberOptions {
     pub restart: Option<bool>,
 }
 
-#[derive(Serialize, Default)]
+// TODO: Check if it's okay to remove default
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomConfigureSubscriberStream {
     /// mid of the m-line to refer to
     pub mid: String,
@@ -532,7 +535,7 @@ pub struct VideoRoomConfigureSubscriberStream {
     pub max_delay: Option<u64>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomSwitchStream {
     /// unique ID of the publisher the new source is from
     pub feed: JanusId,
@@ -544,7 +547,7 @@ pub struct VideoRoomSwitchStream {
     pub sub_mid: String,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct VideoRoomRtpForwardOptions {
     pub room: JanusId,
     /// unique numeric ID of the publisher to relay externally
@@ -568,7 +571,8 @@ pub struct VideoRoomRtpForwardOptions {
     pub srtp_crypto: Option<String>,
 }
 
-#[derive(Serialize, Default)]
+// TODO: Check if it's okay to remove default
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct VideoRoomRtpForwardStream {
     /// mid of publisher stream to forward
     pub mid: String,
