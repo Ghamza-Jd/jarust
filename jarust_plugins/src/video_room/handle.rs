@@ -2,7 +2,7 @@ use crate::video_room::msg_options::*;
 use crate::video_room::responses::*;
 use crate::JanusId;
 use jarust::prelude::*;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
@@ -277,14 +277,14 @@ impl VideoRoomHandle {
     pub async fn join_as_publisher(
         &self,
         options: VideoRoomPublisherJoinOptions,
-        protocol: Option<EstablishmentProtocol>,
+        estproto: Option<EstProto>,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "publisher".into();
 
-        match protocol {
+        match estproto {
             None => self.handle.send_waiton_ack(message, timeout).await?,
             Some(ep) => {
                 self.handle
@@ -310,14 +310,14 @@ impl VideoRoomHandle {
     pub async fn join_as_subscriber(
         &self,
         options: VideoRoomSubscriberJoinOptions,
-        protocol: Option<EstablishmentProtocol>,
+        estproto: Option<EstProto>,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "subscriber".into();
 
-        match protocol {
+        match estproto {
             None => self.handle.send_waiton_ack(message, timeout).await?,
             Some(ep) => {
                 self.handle
@@ -383,13 +383,13 @@ impl VideoRoomHandle {
     pub async fn publish(
         &self,
         options: VideoRoomPublishOptions,
-        establishment_protocol: EstablishmentProtocol,
+        estproto: EstProto,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         let mut message: Value = options.try_into()?;
         message["request"] = "publish".into();
         self.handle
-            .send_waiton_ack_with_est(message, establishment_protocol, timeout)
+            .send_waiton_ack_with_est(message, estproto, timeout)
             .await?;
         Ok(())
     }
@@ -410,11 +410,11 @@ impl VideoRoomHandle {
     /// which in this case MUST be associated with a JSEP SDP answer but otherwise requires no arguments.
     pub async fn start(
         &self,
-        establishment_protocol: EstablishmentProtocol,
+        estproto: EstProto,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         self.handle
-            .send_waiton_ack_with_est(json!({"request": "start"}), establishment_protocol, timeout)
+            .send_waiton_ack_with_est(json!({"request": "start"}), estproto, timeout)
             .await?;
         Ok(())
     }

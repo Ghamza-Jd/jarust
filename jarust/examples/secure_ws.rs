@@ -3,7 +3,7 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
 use jarust::japlugin::AttachHandleParams;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
@@ -73,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
                         "video": true,
                         "audio": true,
                     }),
-                    EstablishmentProtocol::JSEP(Jsep {
+                    EstProto::JSEP(Jsep {
                         sdp: "".to_string(),
                         trickle: Some(false),
                         jsep_type: JsepType::Offer,

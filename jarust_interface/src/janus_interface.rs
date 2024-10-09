@@ -1,6 +1,6 @@
 use crate::handle_msg::HandleMessage;
-use crate::handle_msg::HandleMessageWithEstablishment;
-use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use crate::handle_msg::HandleMessageWithEst;
+use crate::handle_msg::HandleMessageWithEstAndTimeout;
 use crate::handle_msg::HandleMessageWithTimeout;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
@@ -90,13 +90,13 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// Sends a one-shot message with establishment.
     async fn fire_and_forget_msg_with_est(
         &self,
-        message: HandleMessageWithEstablishment,
+        message: HandleMessageWithEst,
     ) -> Result<(), Error>;
 
     /// Sends a message and waits for acknowledgment with establishment.
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEstablishmentAndTimeout,
+        message: HandleMessageWithEstAndTimeout,
     ) -> Result<JaResponse, Error>;
 
     /// Returns the name of the interface (for the debug trait)

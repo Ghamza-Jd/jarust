@@ -1,7 +1,7 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
@@ -48,7 +48,7 @@ async fn main() -> anyhow::Result<()> {
                 video: true,
                 ..Default::default()
             },
-            EstablishmentProtocol::JSEP(Jsep {
+            EstProto::JSEP(Jsep {
                 sdp: "".to_string(),
                 trickle: Some(false),
                 jsep_type: JsepType::Offer,
@@ -64,11 +64,8 @@ async fn main() -> anyhow::Result<()> {
             PluginEvent::EchoTestEvent(EchoTestEvent::Result { result, .. }) => {
                 tracing::info!("result: {result}");
             }
-            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEstablishment {
-                establishment_protocol,
-                ..
-            }) => {
-                tracing::info!("establishment_protocol: {establishment_protocol:#?}");
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst { estproto, .. }) => {
+                tracing::info!("estproto: {estproto:#?}");
             }
             PluginEvent::EchoTestEvent(EchoTestEvent::Error { error_code, error }) => {
                 tracing::warn!("error: {{ error_code: {error_code}, error: {error} }}");
