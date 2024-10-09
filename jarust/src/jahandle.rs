@@ -1,10 +1,10 @@
 use jarust_interface::handle_msg::HandleMessage;
-use jarust_interface::handle_msg::HandleMessageWithEstablishment;
-use jarust_interface::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use jarust_interface::handle_msg::HandleMessageWithEst;
+use jarust_interface::handle_msg::HandleMessageWithEstAndTimeout;
 use jarust_interface::handle_msg::HandleMessageWithTimeout;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
 use jarust_interface::japrotocol::Candidate;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::JaResponse;
 use serde::de::DeserializeOwned;
 use serde_json::json;
@@ -103,18 +103,18 @@ impl JaHandle {
     pub async fn send_waiton_ack_with_est(
         &self,
         body: Value,
-        protocol: EstablishmentProtocol,
+        estproto: EstProto,
         timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
         tracing::debug!("Sending message with establishment and waiting for acknowledgement");
         let ack = self
             .inner
             .interface
-            .send_msg_waiton_ack_with_est(HandleMessageWithEstablishmentAndTimeout {
+            .send_msg_waiton_ack_with_est(HandleMessageWithEstAndTimeout {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
                 body,
-                protocol,
+                estproto,
                 timeout,
             })
             .await?;
@@ -126,16 +126,16 @@ impl JaHandle {
     pub async fn fire_and_forget_with_est(
         &self,
         body: Value,
-        protocol: EstablishmentProtocol,
+        estproto: EstProto,
     ) -> Result<(), jarust_interface::Error> {
         tracing::debug!("Sending a one-shot message with establishment");
         self.inner
             .interface
-            .fire_and_forget_msg_with_est(HandleMessageWithEstablishment {
+            .fire_and_forget_msg_with_est(HandleMessageWithEst {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
                 body,
-                protocol,
+                estproto,
             })
             .await?;
         Ok(())

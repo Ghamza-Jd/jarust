@@ -4,7 +4,7 @@ use crate::video_room::responses::ConfiguredStream;
 use crate::video_room::responses::Publisher;
 use crate::JanusId;
 use jarust::prelude::JaResponse;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::PluginInnerData;
@@ -142,14 +142,14 @@ pub enum VideoRoomEvent {
     },
 
     /// Sent to all participants if a new participant joins
-    RoomJoinedWithEstablishment {
+    RoomJoinedWithEst {
         /// unique ID of the new participant
         id: JanusId,
 
         /// display name of the new participant
         display: Option<String>,
 
-        establishment_protocol: EstablishmentProtocol,
+        estproto: EstProto,
     },
 
     /// Sent to all participants if a participant started publishing
@@ -201,12 +201,12 @@ pub enum VideoRoomEvent {
 
     /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
     /// [configure_publisher](super::handle::VideoRoomHandle::configure_publisher) request
-    ConfiguredWithEstablishment {
+    ConfiguredWithEst {
         room: JanusId,
         audio_codec: Option<String>,
         video_codec: Option<String>,
         streams: Vec<ConfiguredStream>,
-        establishment_protocol: EstablishmentProtocol,
+        estproto: EstProto,
     },
 
     /// When configuring the room to request the ssrc-audio-level RTP extension,
@@ -278,19 +278,15 @@ impl TryFrom<JaResponse> for PluginEvent {
                     }
                     PluginInnerData::Data(data) => match from_value::<EventDto>(data)? {
                         EventDto::DestroyRoom { room } => VideoRoomEvent::RoomDestroyed { room },
-                        EventDto::JoinedRoom { id, room, display } => {
-                            match value.establishment_protocol {
-                                Some(establishment_protocol) => {
-                                    VideoRoomEvent::RoomJoinedWithEstablishment {
-                                        id,
-                                        display,
-                                        establishment_protocol,
-                                    }
-                                }
+                        EventDto::JoinedRoom { id, room, display } => match value.estproto {
+                            Some(estproto) => VideoRoomEvent::RoomJoinedWithEst {
+                                id,
+                                display,
+                                estproto,
+                            },
 
-                                None => VideoRoomEvent::RoomJoined { id, room, display },
-                            }
-                        }
+                            None => VideoRoomEvent::RoomJoined { id, room, display },
+                        },
                         EventDto::NewPublisher { room, publishers } => {
                             VideoRoomEvent::NewPublisher { room, publishers }
                         }
@@ -351,13 +347,13 @@ impl TryFrom<JaResponse> for PluginEvent {
                             video_codec,
                             streams,
                         }) => {
-                            if let Some(establishment_protocol) = value.establishment_protocol {
-                                VideoRoomEvent::ConfiguredWithEstablishment {
+                            if let Some(estproto) = value.estproto {
+                                VideoRoomEvent::ConfiguredWithEst {
                                     room,
                                     audio_codec,
                                     video_codec,
                                     streams,
-                                    establishment_protocol,
+                                    estproto,
                                 }
                             } else {
                                 VideoRoomEvent::Configured {
@@ -404,7 +400,7 @@ mod tests {
     use crate::video_room::events::VideoRoomEvent;
     use crate::video_room::responses::ConfiguredStream;
     use crate::JanusId;
-    use jarust_interface::japrotocol::EstablishmentProtocol;
+    use jarust_interface::japrotocol::EstProto;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
     use jarust_interface::japrotocol::Jsep;
@@ -428,7 +424,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -458,7 +454,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+            estproto: Some(EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
@@ -470,10 +466,10 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEstablishment {
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEst {
                 id: JanusId::Uint(6380744183070564u64),
                 display: Some("Joiner McJoinface".to_string()),
-                establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
+                estproto: EstProto::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),
@@ -494,7 +490,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -521,7 +517,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -553,7 +549,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -584,7 +580,7 @@ mod tests {
                     },
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -612,7 +608,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             sender: None,
             session_id: None,
             transaction: None,
@@ -641,19 +637,19 @@ mod tests {
                        "video_codec": "h264",
                        "streams": [
                           {
-                             "type": "audio",
-                             "mindex": 0,
-                             "mid": "0",
-                             "codec": "opus",
-                             "stereo": true,
-                             "fec": true
+                            "type": "audio",
+                            "mindex": 0,
+                            "mid": "0",
+                            "codec": "opus",
+                            "stereo": true,
+                            "fec": true
                           },
                           {
-                             "type": "video",
-                             "mindex": 1,
-                             "mid": "1",
-                             "codec": "h264",
-                             "h264_profile": "42e01f"
+                            "type": "video",
+                            "mindex": 1,
+                            "mid": "1",
+                            "codec": "h264",
+                            "h264_profile": "42e01f"
                           }
                        ]
                     })),
@@ -662,7 +658,7 @@ mod tests {
             transaction: None,
             session_id: None,
             sender: None,
-            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+            estproto: Some(EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
@@ -671,7 +667,7 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEstablishment {
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEst {
                 room: JanusId::Uint(1657434645789453u64),
                 audio_codec: Some("opus".to_string()),
                 video_codec: Some("h264".to_string()),
@@ -694,7 +690,7 @@ mod tests {
                         ..Default::default()
                     }
                 ],
-                establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
+                estproto: EstProto::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),

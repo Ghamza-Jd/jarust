@@ -1,6 +1,6 @@
 use super::msg_options::EchoTestStartOptions;
 use jarust::prelude::*;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_rt::JaTask;
 use std::ops::Deref;
 use std::time::Duration;
@@ -26,11 +26,11 @@ impl EchoTestHandle {
     pub async fn start_with_est(
         &self,
         options: EchoTestStartOptions,
-        establishment: EstablishmentProtocol,
+        estproto: EstProto,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "echotest", "Sending start with establishment");
-        self.send_waiton_ack_with_est(options.try_into()?, establishment, timeout)
+        self.send_waiton_ack_with_est(options.try_into()?, estproto, timeout)
             .await?;
         Ok(())
     }

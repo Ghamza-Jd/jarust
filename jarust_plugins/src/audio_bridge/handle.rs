@@ -19,7 +19,7 @@ use super::responses::AudioBridgeRoomDestroyedRsp;
 use super::responses::AudioBridgeRoomEditedRsp;
 use crate::JanusId;
 use jarust::prelude::*;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;
@@ -106,13 +106,13 @@ impl AudioBridgeHandle {
     pub async fn join_room(
         &self,
         options: AudioBridgeJoinRoomOptions,
-        protocol: Option<EstablishmentProtocol>,
+        estproto: Option<EstProto>,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending join room");
         let mut message: Value = options.try_into()?;
         message["request"] = "join".into();
-        match protocol {
+        match estproto {
             Some(protocol) => {
                 self.handle
                     .send_waiton_ack_with_est(message, protocol, timeout)

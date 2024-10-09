@@ -1,10 +1,10 @@
 use crate::handle_msg::HandleMessage;
-use crate::handle_msg::HandleMessageWithEstablishment;
-use crate::handle_msg::HandleMessageWithEstablishmentAndTimeout;
+use crate::handle_msg::HandleMessageWithEst;
+use crate::handle_msg::HandleMessageWithEstAndTimeout;
 use crate::handle_msg::HandleMessageWithTimeout;
 use crate::janus_interface::ConnectionParams;
 use crate::janus_interface::JanusInterface;
-use crate::japrotocol::EstablishmentProtocol;
+use crate::japrotocol::EstProto;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
@@ -318,7 +318,7 @@ impl JanusInterface for RestfulInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg_with_est(
         &self,
-        message: HandleMessageWithEstablishment,
+        message: HandleMessageWithEst,
     ) -> Result<(), Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
@@ -328,11 +328,11 @@ impl JanusInterface for RestfulInterface {
             "janus": "message",
             "body": message.body,
         });
-        match message.protocol {
-            EstablishmentProtocol::JSEP(jsep) => {
+        match message.estproto {
+            EstProto::JSEP(jsep) => {
                 request["jsep"] = serde_json::to_value(jsep)?;
             }
-            EstablishmentProtocol::RTP(rtp) => {
+            EstProto::RTP(rtp) => {
                 request["rtp"] = serde_json::to_value(rtp)?;
             }
         };
@@ -350,7 +350,7 @@ impl JanusInterface for RestfulInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEstablishmentAndTimeout,
+        message: HandleMessageWithEstAndTimeout,
     ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
@@ -360,11 +360,11 @@ impl JanusInterface for RestfulInterface {
             "janus": "message",
             "body": message.body,
         });
-        match message.protocol {
-            EstablishmentProtocol::JSEP(jsep) => {
+        match message.estproto {
+            EstProto::JSEP(jsep) => {
                 request["jsep"] = serde_json::to_value(jsep)?;
             }
-            EstablishmentProtocol::RTP(rtp) => {
+            EstProto::RTP(rtp) => {
                 request["rtp"] = serde_json::to_value(rtp)?;
             }
         };
