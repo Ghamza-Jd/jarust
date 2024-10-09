@@ -9,6 +9,7 @@ impl_tryfrom_serde_value!(
 // https://github.com/meetecho/janus-gateway/blob/v1.2.4/src/plugins/janus_streaming.c#L3311-L4175
 // TODO: only RTP type is supported
 //
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct StreamingCreateOptions {
     #[serde(rename = "type")]
@@ -58,6 +59,7 @@ pub enum StreamingMountpointType {
 }
 
 // https://github.com/meetecho/janus-gateway/blob/v1.2.4/src/plugins/janus_streaming.c#L1100
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct StreamingRtpMedia {
     /// audio|video|data
@@ -97,6 +99,7 @@ pub enum StreamingRtpMediaType {
     DATA,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct StreamingDestroyOptions {
     #[serde(rename = "id")]

@@ -22,13 +22,21 @@ serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
+bon = { version = "2.3.0", optional = true }
 
 [features]
-default = ["echo_test", "audio_bridge", "video_room", "streaming"]
+default = [
+    "echo_test",
+    "audio_bridge",
+    "video_room",
+    "streaming",
+    "option_builder",
+]
 echo_test = []
 audio_bridge = []
 video_room = []
 streaming = []
+option_builder = ["bon"]
 __experimental = []
 
 [dev-dependencies]

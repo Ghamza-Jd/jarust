@@ -8,6 +8,7 @@ impl_tryfrom_serde_value!(
     AudioBridgeKickOptions AudioBridgeKickAllOptions AudioBridgeChangeRoomOptions
 );
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
 pub struct AudioBridgeCreateRoomOptions {
     /// unique numeric ID, chosen by plugin if missing
@@ -102,6 +103,7 @@ pub struct AudioBridgeCreateRoomOptions {
     pub groups: Option<Vec<String>>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeEditRoomOptions {
     pub room: JanusId,
@@ -139,6 +141,7 @@ pub struct AudioBridgeEditRoomOptions {
     pub permanent: Option<bool>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeDestroyRoomMsg {
     pub room: JanusId,
@@ -148,6 +151,7 @@ pub struct AudioBridgeDestroyRoomMsg {
     pub permanent: Option<bool>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeJoinRoomOptions {
     pub room: JanusId,
@@ -248,6 +252,7 @@ pub struct AudioBridgeJoinRoomOptions {
     pub generate_offer: Option<bool>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct AudioBridgeAllowedOptions {
     pub room: JanusId,
@@ -271,6 +276,7 @@ pub enum AudioBridgeAllowAction {
     Remove,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Serialize, Default)]
 pub struct AudioBridgeConfigureOptions {
     /// whether to unmute or mute
@@ -319,6 +325,7 @@ pub struct AudioBridgeConfigureOptions {
     pub group: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Serialize)]
 pub struct AudioBridgeMuteOptions {
     /// unique numeric ID
@@ -332,6 +339,7 @@ pub struct AudioBridgeMuteOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Serialize)]
 pub struct AudioBridgeMuteRoomOptions {
     /// unique numeric ID
@@ -342,6 +350,7 @@ pub struct AudioBridgeMuteRoomOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Serialize)]
 pub struct AudioBridgeKickOptions {
     /// unique numeric ID
@@ -355,6 +364,7 @@ pub struct AudioBridgeKickOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Serialize)]
 pub struct AudioBridgeKickAllOptions {
     /// unique numeric ID
@@ -365,6 +375,7 @@ pub struct AudioBridgeKickAllOptions {
     pub secret: Option<String>,
 }
 
+#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Serialize)]
 pub struct AudioBridgeChangeRoomOptions {
     pub room: JanusId,

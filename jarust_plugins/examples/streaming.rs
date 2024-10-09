@@ -84,11 +84,9 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .destroy_mountpoint(
-            StreamingDestroyOptions {
-                mountpoint: mountpoint_id,
-                secret: None,
-                permanent: None,
-            },
+            StreamingDestroyOptions::builder()
+                .mountpoint(mountpoint_id)
+                .build(),
             timeout,
         )
         .await?;

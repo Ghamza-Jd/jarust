@@ -39,11 +39,12 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 
     handle
-        .start(EchoTestStartOptions {
-            audio: true,
-            video: true,
-            ..Default::default()
-        })
+        .start(
+            EchoTestStartOptions::builder()
+                .audio(true)
+                .video(true)
+                .build(),
+        )
         .await?;
 
     while let Some(event) = event_receiver.recv().await {
