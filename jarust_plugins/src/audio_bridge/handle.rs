@@ -43,7 +43,7 @@ impl AudioBridgeHandle {
         timeout: Duration,
     ) -> Result<AudioBridgeRoomCreatedRsp, jarust_interface::Error> {
         self.create_room_with_config(
-            AudioBridgeCreateRoomOptions {
+            AudioBridgeCreateRoomParams {
                 room,
                 ..Default::default()
             },
@@ -59,11 +59,11 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
-        options: AudioBridgeCreateRoomOptions,
+        params: AudioBridgeCreateRoomParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending create room");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "create".into();
         self.handle
             .send_waiton_rsp::<AudioBridgeRoomCreatedRsp>(message, timeout)
@@ -74,11 +74,11 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        options: AudioBridgeEditRoomOptions,
+        params: AudioBridgeEditRoomParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomEditedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending edit room");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "edit".into();
         self.handle
             .send_waiton_rsp::<AudioBridgeRoomEditedRsp>(message, timeout)

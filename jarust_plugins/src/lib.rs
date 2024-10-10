@@ -18,7 +18,7 @@
 mod from;
 
 #[macro_use]
-mod create_dto;
+mod make_dto;
 
 #[cfg(feature = "echo_test")]
 pub mod echo_test;

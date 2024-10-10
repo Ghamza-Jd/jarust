@@ -1,8 +1,5 @@
-// TODO:
-// - Accept trailting commas for fields
-
-macro_rules! create_dto {
-    // matches => Name, required { ..fields }, optional { ..fields }
+macro_rules! make_dto {
+    // matches => Name, required { }, optional { }
     (
         $(#[$main_attr:meta])* $main:ident,
         required { $( $(#[$rfield_attr:meta])* $rfield:ident: $mtype:ty ),* $(,)? },
@@ -10,6 +7,7 @@ macro_rules! create_dto {
     ) => {
         paste::paste! {
             $(#[$main_attr])*
+            #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
             pub struct [<$main Required>] {
                 $(
                     $(#[$rfield_attr])*
@@ -18,7 +16,7 @@ macro_rules! create_dto {
             }
 
             $(#[$main_attr])*
-            #[derive(Default)]
+            #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, serde::Serialize)]
             pub struct [<$main Optional>] {
                 $(
                     $(#[$ofield_attr])*
@@ -28,6 +26,7 @@ macro_rules! create_dto {
             }
 
             $(#[$main_attr])*
+            #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
             pub struct $main {
                 #[serde(flatten)]
                 pub required: [<$main Required>],
@@ -39,12 +38,13 @@ macro_rules! create_dto {
         }
     };
 
-    // matches => Name, required { ..fields }
+    // matches => Name, required { }
     (
         $(#[$main_attr:meta])* $main:ident,
         required { $( $(#[$rfield_attr:meta])* $rfield:ident: $mtype:ty ),* $(,)? }
     ) => {
         $(#[$main_attr])*
+        #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
         pub struct $main {
             $(
                 $(#[$rfield_attr])*
@@ -55,13 +55,13 @@ macro_rules! create_dto {
         impl_tryfrom_serde_value!($main);
     };
 
-    // matches => Name, optional { ..fields }
+    // matches => Name, optional { }
     (
         $(#[$main_attr:meta])* $main:ident,
         optional { $( $(#[$ofield_attr:meta])* $ofield:ident: $otype:ty ),* $(,)? }
     ) => {
         $(#[$main_attr])*
-        #[derive(Default)]
+        #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, serde::Serialize)]
         pub struct $main {
             $(
                 $(#[$ofield_attr])*
