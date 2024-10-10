@@ -1,14 +1,4 @@
-use super::msg_options::AudioBridgeAllowedOptions;
-use super::msg_options::AudioBridgeChangeRoomOptions;
-use super::msg_options::AudioBridgeConfigureOptions;
-use super::msg_options::AudioBridgeCreateRoomOptions;
-use super::msg_options::AudioBridgeDestroyRoomMsg;
-use super::msg_options::AudioBridgeEditRoomOptions;
-use super::msg_options::AudioBridgeJoinRoomOptions;
-use super::msg_options::AudioBridgeKickAllOptions;
-use super::msg_options::AudioBridgeKickOptions;
-use super::msg_options::AudioBridgeMuteOptions;
-use super::msg_options::AudioBridgeMuteRoomOptions;
+use super::params::*;
 use super::responses::AudioBridgeAllowedRsp;
 use super::responses::AudioBridgeExistsRoomRsp;
 use super::responses::AudioBridgeListParticipantsRsp;
@@ -94,7 +84,7 @@ impl AudioBridgeHandle {
         timeout: Duration,
     ) -> Result<AudioBridgeRoomDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending destroy room");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "destroy".into();
         self.handle
             .send_waiton_rsp::<AudioBridgeRoomDestroyedRsp>(message, timeout)

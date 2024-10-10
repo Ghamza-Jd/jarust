@@ -3,7 +3,9 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust_plugins::audio_bridge::msg_options::AudioBridgeMuteOptions;
+use jarust_plugins::audio_bridge::params::AudioBridgeJoinRoomParams;
+use jarust_plugins::audio_bridge::params::AudioBridgeJoinRoomParamsOptional;
+use jarust_plugins::audio_bridge::params::AudioBridgeMuteParams;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
