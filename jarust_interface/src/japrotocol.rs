@@ -20,7 +20,7 @@ pub struct JaResponse {
 pub enum ResponseType {
     #[serde(rename = "error")]
     Error { error: ErrorResponse },
-    // Wrapped in a box so the entire enum isn't as large as this varient
+    // Wrapped in a box so the entire enum isn't as large as this variant
     // e.g: Ack that doesn't contain any data will have allocate the same space as ServerInfo
     #[serde(rename = "server_info")]
     ServerInfo(Box<ServerInfoRsp>),

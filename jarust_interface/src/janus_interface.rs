@@ -62,7 +62,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn keep_alive(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
 
     /// Destroys the session.
-    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
+    async fn destroy(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
 
     /// Sends a one-shot message
     async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error>;
@@ -80,7 +80,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// make this internal, and the public method that uses this one will have a generic return type.
     /// See [`JanusInterfaceImpl::send_msg_waiton_rsp`] for the public method.
     ///
-    /// Check this stack overflow asnwer for the technicalities:
+    /// Check this stack overflow answer for the technicalities:
     /// [Why are trait methods with generic type parameters are object unsafe](https://stackoverflow.com/questions/67767207/why-are-trait-methods-with-generic-type-parameters-object-unsafe)
     async fn internal_send_msg_waiton_rsp(
         &self,

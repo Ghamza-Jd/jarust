@@ -152,7 +152,7 @@ impl JanusInterface for MockInterface {
         todo!("Keep alive is not implemented");
     }
 
-    async fn destory(
+    async fn destroy(
         &self,
         _session_id: u64,
         _timeout: Duration,

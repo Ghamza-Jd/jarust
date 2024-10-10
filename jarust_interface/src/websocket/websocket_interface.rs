@@ -317,7 +317,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn destory(&self, session_id: u64, timeout: Duration) -> Result<(), Error> {
+    async fn destroy(&self, session_id: u64, timeout: Duration) -> Result<(), Error> {
         let request = json!({
             "janus": "destroy",
             "session_id": session_id

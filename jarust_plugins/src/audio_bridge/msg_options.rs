@@ -235,8 +235,8 @@ pub struct AudioBridgeJoinRoomOptions {
     /// additional attributes in the request, unless it's needed for application related purposes (e.g., to start muted).
     ///
     /// Notice that this does have an impact on renegotiations, e.g., for ICE restarts or changes in the media direction.
-    /// As a policy, plugins in Janus tend to enforce the same negotiation pattern used to setup the PeerConnection i
-    /// nitially for renegotiations too, as it reduces the risk of issues like glare: this means that users will NOT be
+    /// As a policy, plugins in Janus tend to enforce the same negotiation pattern used to setup the PeerConnection
+    /// initially for renegotiations too, as it reduces the risk of issues like glare: this means that users will NOT be
     /// able to send an SDP offer to the AudioBridge plugin to update an existing PeerConnection, if that PeerConnection
     /// had previously been originated by a plugin offer instead. The plugin will treat this as an error.
     #[serde(skip_serializing_if = "Option::is_none")]

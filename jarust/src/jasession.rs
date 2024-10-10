@@ -89,15 +89,15 @@ impl JaSession {
 }
 
 impl JaSession {
-    /// Destory the current session
+    /// Destroy the current session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
-    pub async fn destory(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
+    pub async fn destroy(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!("Destroying session");
         let session_id = self.inner.shared.id;
         self.inner
             .shared
             .interface
-            .destory(session_id, timeout)
+            .destroy(session_id, timeout)
             .await?;
         Ok(())
     }

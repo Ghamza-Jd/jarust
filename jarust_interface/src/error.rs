@@ -25,7 +25,7 @@ pub enum Error {
     InvalidJanusRequest { reason: String },
     #[error("Can't send data in closed channel")]
     SendError,
-    #[error("Received an unnexpected response")]
+    #[error("Received an unexpected response")]
     UnexpectedResponse,
     #[error("Janus error {{ code: {code}, reason: {reason}}}")]
     JanusError { code: u16, reason: String },
