@@ -9,7 +9,6 @@ use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
 use jarust_plugins::echo_test::params::EchoTestStartParams;
-use jarust_plugins::echo_test::params::EchoTestStartParamsRequired;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -45,11 +44,9 @@ async fn main() -> anyhow::Result<()> {
     let rsp = handle
         .start_with_est(
             EchoTestStartParams {
-                required: EchoTestStartParamsRequired {
-                    audio: true,
-                    video: true,
-                },
-                optional: Default::default(),
+                audio: true,
+                video: true,
+                bitrate: None,
             },
             EstProto::JSEP(Jsep {
                 sdp: "".to_string(),

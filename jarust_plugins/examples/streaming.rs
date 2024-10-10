@@ -85,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
     handle
         .destroy_mountpoint(
             StreamingDestroyParams {
-                required: StreamingDestroyParamsRequired { id: mountpoint_id },
+                id: mountpoint_id,
                 optional: Default::default(),
             },
             timeout,

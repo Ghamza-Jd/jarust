@@ -2,154 +2,90 @@ use crate::JanusId;
 use serde::Serialize;
 
 impl_tryfrom_serde_value!(
-    VideoRoomCreateOptions VideoRoomDestroyOptions VideoRoomEditOptions VideoRoomAllowedOptions VideoRoomAllowedAction
+    VideoRoomDestroyOptions VideoRoomAllowedOptions VideoRoomAllowedAction
     VideoRoomKickOptions VideoRoomEnableRecordingOptions VideoRoomPublisherJoinOptions VideoRoomSubscriberJoinOptions
     VideoRoomConfigurePublisherOptions VideoRoomConfigureSubscriberOptions JoinAndConfigureOptions VideoRoomPublishOptions
 );
 
-#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
-pub struct VideoRoomCreateOptions {
-    /// unique numeric ID, chosen by plugin if missing
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<JanusId>,
-
-    /// whether the room should be saved in the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-
-    /// pretty name of the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-
-    /// password required to edit/destroy the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-
-    /// password required to join the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pin: Option<String>,
-
-    /// whether the room should appear in a list request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_private: Option<bool>,
-
-    /// array of string tokens users can use to join this room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed: Option<Vec<String>>,
-
-    /// whether subscriptions are required to provide a valid private_id to associate with a publisher, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub require_pvtid: Option<bool>,
-
-    /// whether access to the room requires signed tokens; default=false, only works if signed tokens are used in the core as well
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub signed_tokens: Option<bool>,
-
-    /// max number of concurrent senders (e.g., 6 for a video conference or 1 for a webinar, default=3)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub publishers: Option<u64>,
-
-    /// max video bitrate for senders (e.g., 128000)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
-
-    /// whether the above cap should act as a limit to dynamic bitrate changes by publishers, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate_cap: Option<bool>,
-
-    /// send a FIR to publishers every fir_freq seconds (0=disable)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fir_freq: Option<u64>,
-
-    /// audio codec to force on publishers, default=opus
-    /// can be a comma separated list in order of preference, e.g., `opus,pcmu`
-    /// opus|g722|pcmu|pcma|isac32|isac16
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiocodec: Option<String>,
-
-    /// video codec to force on publishers, default=vp8
-    /// can be a comma separated list in order of preference, e.g., `vp9,vp8,h264`
-    /// vp8|vp9|h264|av1|h265
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub videocodec: Option<String>,
-
-    /// VP9-specific profile to prefer (e.g., "2" for "profile-id=2")
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub vp9_profile: Option<String>,
-
-    /// H.264-specific profile to prefer (e.g., "42e01f" for "profile-level-id=42e01f")
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub h264_profile: Option<String>,
-
-    /// whether inband FEC must be negotiated; only works for Opus, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub opus_fec: Option<bool>,
-
-    /// whether DTX must be negotiated; only works for Opus, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub opus_dtx: Option<bool>,
-
-    /// whether the ssrc-audio-level RTP extension must be negotiated for new joins, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_ext: Option<bool>,
-
-    /// whether to emit event to other users or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_event: Option<bool>,
-
-    /// number of packets with audio level (default=100, 2 seconds)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_active_packets: Option<u64>,
-
-    /// average value of audio level (127=muted, 0='too loud', default=25)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_level_average: Option<u64>,
-
-    /// whether the video-orientation RTP extension must be negotiated/used or not for new publishers, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub videoorient_ext: Option<bool>,
-
-    /// whether the playout-delay RTP extension must be negotiated/used or not for new publishers, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playoutdelay_ext: Option<bool>,
-
-    /// whether the transport wide CC RTP extension must be negotiated/used or not for new publishers, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transport_wide_cc_ext: Option<bool>,
-
-    /// whether to record the room or not, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<bool>,
-
-    /// folder where recordings should be stored, when enabled
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record_dir: Option<String>,
-
-    /// whether recording can only be started/stopped if the secret is provided, or using the global enable_recording request, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lock_record: Option<bool>,
-
-    /// optional, whether to notify all participants when a new participant joins the room. default=false
-    /// The Videoroom plugin by design only notifies new feeds (publishers), and enabling this may result in extra notification traffic.
-    /// This flag is particularly useful when enabled with `require_pvtid` for admin to manage listening-only participants.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub notify_joining: Option<bool>,
-
-    /// whether all participants are required to publish and subscribe using end-to-end media encryption, e.g., via Insertable Streams; default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub require_e2ee: Option<bool>,
-
-    /// whether a dummy publisher should be created in this room, with one separate m-line for each codec supported in the room;
-    /// this is useful when there's a need to create subscriptions with placeholders for some or all m-lines, even when they aren't used yet; default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dummy_publisher: Option<bool>,
-
-    /// in case `dummy_publisher` is set to `true`, array of codecs to offer, optionally with a fmtp attribute to match (codec/fmtp properties).
-    /// If not provided, all codecs enabled in the room are offered, with no fmtp. Notice that the fmtp is parsed, and only a few codecs are supported.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dummy_streams: Option<bool>,
-}
+make_dto!(
+    VideoRoomCreateParams,
+    optional {
+        /// Room ID, chosen by plugin if missing
+        room: JanusId,
+        /// whether the room should be saved in the config file, default=false
+        permanent: bool,
+        /// pretty name of the room
+        description: String,
+        /// password required to edit/destroy the room
+        secret: String,
+        /// password required to join the room
+        pin: String,
+        /// whether the room should appear in a list request
+        is_private: bool,
+        /// array of string tokens users can use to join this room
+        allowed: Vec<String>,
+        /// whether subscriptions are required to provide a valid private_id to associate with a publisher, default=false
+        require_pvtid: bool,
+        /// whether access to the room requires signed tokens; default=false, only works if signed tokens are used in the core as well
+        signed_tokens: bool,
+        /// max number of concurrent senders (e.g., 6 for a video conference or 1 for a webinar, default=3)
+        publishers: u64,
+        /// max video bitrate for senders (e.g., 128000)
+        bitrate: u64,
+        /// whether the above cap should act as a limit to dynamic bitrate changes by publishers, default=false
+        bitrate_cap: bool,
+        /// send a FIR to publishers every fir_freq seconds (0=disable)
+        fir_freq: u64,
+        /// audio codec to force on publishers, default=opus
+        /// can be a comma separated list in order of preference, e.g., `opus,pcmu`
+        /// opus|g722|pcmu|pcma|isac32|isac16
+        audiocodec: String,
+        /// video codec to force on publishers, default=vp8
+        /// can be a comma separated list in order of preference, e.g., `vp9,vp8,h264`
+        /// vp8|vp9|h264|av1|h265
+        videocodec: String,
+        /// VP9-specific profile to prefer (e.g., "2" for "profile-id=2")
+        vp9_profile: String,
+        /// H.264-specific profile to prefer (e.g., "42e01f" for "profile-level-id=42e01f")
+        h264_profile: String,
+        /// whether inband FEC must be negotiated; only works for Opus, default=true
+        opus_fec: bool,
+        /// whether DTX must be negotiated; only works for Opus, default=false
+        opus_dtx: bool,
+        /// whether the ssrc-audio-level RTP extension must be negotiated for new joins, default=true
+        audiolevel_ext: bool,
+        /// whether to emit event to other users or not
+        audiolevel_event: bool,
+        /// number of packets with audio level (default=100, 2 seconds)
+        audio_active_packets: u64,
+        /// average value of audio level (127=muted, 0='too loud', default=25)
+        audio_level_average: u64,
+        /// whether the video-orientation RTP extension must be negotiated/used or not for new publishers, default=true
+        videoorient_ext: bool,
+        /// whether the playout-delay RTP extension must be negotiated/used or not for new publishers, default=true
+        playoutdelay_ext: bool,
+        /// whether the transport wide CC RTP extension must be negotiated/used or not for new publishers, default=true
+        transport_wide_cc_ext: bool,
+        /// whether to record the room or not, default=false
+        record: bool,
+        /// folder where recordings should be stored, when enabled
+        record_dir: String,
+        /// whether recording can only be started/stopped if the secret is provided, or using the global enable_recording request, default=false
+        lock_record: bool,
+        /// optional, whether to notify all participants when a new participant joins the room. default=false
+        /// The Videoroom plugin by design only notifies new feeds (publishers), and enabling this may result in extra notification traffic.
+        /// This flag is particularly useful when enabled with `require_pvtid` for admin to manage listening-only participants.
+        notify_joining: bool,
+        /// whether all participants are required to publish and subscribe using end-to-end media encryption, e.g., via Insertable Streams; default=false
+        require_e2ee: bool,
+        /// whether a dummy publisher should be created in this room, with one separate m-line for each codec supported in the room;
+        /// this is useful when there's a need to create subscriptions with placeholders for some or all m-lines, even when they aren't used yet; default=false
+        dummy_publisher: bool,
+        /// in case `dummy_publisher` is set to `true`, array of codecs to offer, optionally with a fmtp attribute to match (codec/fmtp properties).
+        /// If not provided, all codecs enabled in the room are offered, with no fmtp. Notice that the fmtp is parsed, and only a few codecs are supported.
+        dummy_streams: bool,
+    }
+);
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -172,59 +108,36 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
-#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct VideoRoomEditOptions {
-    pub room: JanusId,
-
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-
-    /// new pretty name of the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_description: Option<String>,
-
-    /// new password required to edit/destroy the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_secret: Option<String>,
-
-    /// new PIN required to join the room, PIN will be removed if set to an empty string
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_pin: Option<String>,
-
-    /// whether the room should appear in a list request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_is_private: Option<bool>,
-
-    /// whether the room should require `private_id` from subscribers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_require_pvtid: Option<bool>,
-
-    /// new bitrate cap to force on all publishers (except those with custom overrides)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_bitrate: Option<u64>,
-
-    /// new period for regular PLI keyframe requests to publishers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_fir_freq: Option<u64>,
-
-    /// new cap on the number of concurrent active WebRTC publishers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_publishers: Option<u64>,
-
-    /// whether recording state can only be changed when providing the room secret
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_lock_record: Option<bool>,
-
-    /// the new path where the next .mjr files should be saved
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_rec_dir: Option<String>,
-
-    /// whether the room should be also removed from the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-}
+make_dto!(
+    VideoRoomEditParams,
+    required { room: JanusId },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String,
+        /// new pretty name of the room
+        new_description: String,
+        /// new password required to edit/destroy the room
+        new_secret: String,
+        /// new PIN required to join the room, PIN will be removed if set to an empty string
+        new_pin: String,
+        /// whether the room should appear in a list request
+        new_is_private: bool,
+        /// whether the room should require `private_id` from subscribers
+        new_require_pvtid: bool,
+        /// new bitrate cap to force on all publishers (except those with custom overrides)
+        new_bitrate: u64,
+        /// new period for regular PLI keyframe requests to publishers
+        new_fir_freq: u64,
+        /// new cap on the number of concurrent active WebRTC publishers
+        new_publishers: u64,
+        /// whether recording state can only be changed when providing the room secret
+        new_lock_record: bool,
+        /// the new path where the next .mjr files should be saved
+        new_rec_dir: String,
+        /// whether the room should be also removed from the config file, default=false
+        permanent: bool,
+    }
+);
 
 #[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]

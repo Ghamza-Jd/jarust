@@ -47,11 +47,12 @@ async fn main() -> anyhow::Result<()> {
 
     let room_id = handle
         .create_room_with_config(
-            VideoRoomCreateOptions::builder()
-                .audiocodec("opus".to_string())
-                .videocodec("h264".to_string())
-                .notify_joining(true)
-                .build(),
+            VideoRoomCreateParams {
+                audiocodec: Some("opus".to_string()),
+                videocodec: Some("h264".to_string()),
+                notify_joining: Some(true),
+                ..Default::default()
+            },
             timeout,
         )
         .await?
@@ -59,9 +60,10 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .edit_room(
-            VideoRoomEditOptions::builder()
-                .room(room_id.clone())
-                .build(),
+            VideoRoomEditParams {
+                room: room_id.clone(),
+                optional: Default::default(),
+            },
             timeout,
         )
         .await?;

@@ -30,7 +30,7 @@ impl VideoRoomHandle {
         timeout: Duration,
     ) -> Result<RoomCreatedRsp, jarust_interface::Error> {
         self.create_room_with_config(
-            VideoRoomCreateOptions {
+            VideoRoomCreateParams {
                 room,
                 ..Default::default()
             },
@@ -47,11 +47,11 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
-        options: VideoRoomCreateOptions,
+        params: VideoRoomCreateParams,
         timeout: Duration,
     ) -> Result<RoomCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending create");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "create".into();
 
         self.handle
@@ -83,11 +83,11 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        options: VideoRoomEditOptions,
+        params: VideoRoomEditParams,
         timeout: Duration,
     ) -> Result<RoomEditedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending edit");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "edit".into();
 
         self.handle

@@ -49,9 +49,7 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Rooms {:#?}", rooms);
 
     let join_room_params = AudioBridgeJoinRoomParams {
-        required: AudioBridgeJoinRoomParamsRequired {
-            room: create_room_rsp.room.clone(),
-        },
+        room: create_room_rsp.room.clone(),
         optional: AudioBridgeJoinRoomParamsOptional {
             display: Some("value".to_string()),
             ..Default::default()
@@ -74,21 +72,17 @@ async fn main() -> anyhow::Result<()> {
     if let Some(PE::AudioBridgeEvent(ABE::RoomJoined { id, room, .. })) = events.recv().await {
         handle
             .mute(AudioBridgeMuteParams {
-                required: AudioBridgeMuteParamsRequired {
-                    id: id.clone(),
-                    room: room.clone(),
-                },
-                optional: Default::default(),
+                id: id.clone(),
+                room: room.clone(),
+                secret: None,
             })
             .await?;
 
         handle
             .unmute(AudioBridgeMuteParams {
-                required: AudioBridgeMuteParamsRequired {
-                    id: id.clone(),
-                    room: room.clone(),
-                },
-                optional: Default::default(),
+                id: id.clone(),
+                room: room.clone(),
+                secret: None,
             })
             .await?;
     };
