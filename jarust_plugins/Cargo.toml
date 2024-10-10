@@ -24,6 +24,7 @@ tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 paste = "1.0.15"
 # TODO: Check if we should settle bon or create a custom dto generator macro
+# Answer: Will be removing bon in favour of the in-house make_dto macro
 bon = { version = "2.3.0", optional = true }
 
 [features]

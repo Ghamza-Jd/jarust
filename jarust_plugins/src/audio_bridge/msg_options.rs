@@ -2,173 +2,83 @@ use crate::JanusId;
 use serde::Serialize;
 
 impl_tryfrom_serde_value!(
-    AudioBridgeCreateRoomOptions AudioBridgeEditRoomOptions AudioBridgeDestroyRoomMsg
+    AudioBridgeDestroyRoomMsg
     AudioBridgeJoinRoomOptions AudioBridgeAllowedOptions AudioBridgeAllowAction
     AudioBridgeConfigureOptions AudioBridgeMuteOptions AudioBridgeMuteRoomOptions
     AudioBridgeKickOptions AudioBridgeKickAllOptions AudioBridgeChangeRoomOptions
 );
 
-create_dto!(
-    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+make_dto!(
     AudioBridgeCreateRoomParams,
     optional {
-        /// Chosen by plugin if missing
+        /// Room identifier, chosen by plugin if missing
         room: JanusId,
         /// Whether the room should be saved in the config file, default=false
         permanent: bool,
+        /// pretty name of the room
         description: String,
+        /// password required to edit/destroy the room
         secret: String,
+        /// password required to join the room
         pin: String,
+        /// whether the room should appear in a list request
         is_private: bool,
+        /// array of string tokens users can use to join this room
         allowed: Vec<String>,
+        /// sampling rate of the room, 16000 by default
         sampling_rate: u64,
+        /// whether the mix should spatially place users, default=false
         spatial_audio: bool,
+        /// whether the ssrc-audio-level RTP extension must be negotiated for new joins, default=true
         audiolevel_ext: bool,
+        /// whether to emit event to other users or not
         audiolevel_event: bool,
+        /// number of packets with audio level (default=100, 2 seconds)
         audio_active_packets: u64,
+        /// percent of packets we expect participants may miss,
+        /// to help with FEC (default=0, max=20; automatically used for forwarders too)
         default_expectedloss: u64,
+        /// bitrate in bps to use for the all participants
+        /// (default=0, which means libopus decides; automatically used for forwarders too)
         default_bitrate: u64,
+        /// whether to record the room or not, default=false
         record: bool,
+        /// /path/to/the/recording.wav
         record_file: String,
+        /// /path/to/; makes record_file a relative path, if provided
         record_dir: String,
+        /// whether all participants in the room should be individually recorded to mjr files, default=false
         mjrs: bool,
+        /// whether participants should be allowed to join via plain RTP as well, default=false
         allow_rtp_participants: bool,
+        /// non-hierarchical array of string group names to use to gat participants,
+        /// for external forwarding purposes only
         groups: Vec<String>
     }
 );
 
-#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Serialize)]
-pub struct AudioBridgeCreateRoomOptions {
-    /// unique numeric ID, chosen by plugin if missing
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<JanusId>,
-
-    /// whether the room should be saved in the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-
-    /// pretty name of the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-
-    /// password required to edit/destroy the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-
-    /// password required to join the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pin: Option<String>,
-
-    /// whether the room should appear in a list request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_private: Option<bool>,
-
-    /// array of string tokens users can use to join this room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed: Option<Vec<String>>,
-
-    /// sampling rate of the room, 16000 by default
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sampling_rate: Option<u64>,
-
-    /// whether the mix should spatially place users, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub spatial_audio: Option<bool>,
-
-    /// whether the ssrc-audio-level RTP extension must be negotiated for new joins, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_ext: Option<bool>,
-
-    /// whether to emit event to other users or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_event: Option<bool>,
-
-    /// number of packets with audio level (default=100, 2 seconds)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_active_packets: Option<u64>,
-
-    /// average value of audio level (127=muted, 0='too loud', default=25)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_level_average: Option<u64>,
-
-    /// percent of packets we expect participants may miss,
-    /// to help with FEC (default=0, max=20; automatically used for forwarders too)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_expectedloss: Option<u64>,
-
-    /// bitrate in bps to use for the all participants
-    /// (default=0, which means libopus decides; automatically used for forwarders too)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_bitrate: Option<u64>,
-
-    /// whether to record the room or not, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<bool>,
-
-    /// /path/to/the/recording.wav
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record_file: Option<String>,
-
-    /// /path/to/; makes record_file a relative path, if provided
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record_dir: Option<String>,
-
-    /// whether all participants in the room should be individually recorded to mjr files, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mjrs: Option<bool>,
-
-    /// /path/to/
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mjrs_dir: Option<String>,
-
-    /// whether participants should be allowed to join via plain RTP as well, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allow_rtp_participants: Option<bool>,
-
-    /// non-hierarchical array of string group names to use to gat participants,
-    /// for external forwarding purposes only
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub groups: Option<Vec<String>>,
-}
-
-#[cfg_attr(feature = "option_builder", derive(bon::Builder))]
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-pub struct AudioBridgeEditRoomOptions {
-    pub room: JanusId,
-
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-
-    /// new pretty name of the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_description: Option<String>,
-
-    /// new password required to edit/destroy the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_secret: Option<String>,
-
-    /// new PIN required to join the room, PIN will be removed if set to an empty string
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_pin: Option<String>,
-
-    /// whether the room should appear in a list request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_is_private: Option<bool>,
-
-    /// new path where new recording files should be saved
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_record_dir: Option<String>,
-
-    /// new path where new MJR files should be saved
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_mjrs_dir: Option<String>,
-
-    /// whether the room should be also removed from the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-}
+make_dto!(
+    AudioBridgeEditRoomParams,
+    required { room: JanusId },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String,
+        /// new pretty name of the room
+        new_description: String,
+        /// new password required to edit/destroy the room
+        new_secret: String,
+        /// new PIN required to join the room, PIN will be removed if set to an empty string
+        new_pin: String,
+        /// whether the room should appear in a list request
+        new_is_private: bool,
+        /// new path where new recording files should be saved
+        new_record_dir: String,
+        /// new path where new MJR files should be saved
+        new_mjrs_dir: String,
+        /// whether the room should be also removed from the config file, default=false
+        permanent: bool
+    }
+);
 
 #[cfg_attr(feature = "option_builder", derive(bon::Builder))]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]

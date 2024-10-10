@@ -1,4 +1,4 @@
-use super::msg_options::EchoTestStartParams;
+use super::params::EchoTestStartParams;
 use jarust::prelude::*;
 use jarust_interface::japrotocol::EstProto;
 use jarust_rt::JaTask;

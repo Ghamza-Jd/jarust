@@ -1,7 +1,4 @@
-use serde::Serialize;
-
-create_dto!(
-    #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+make_dto!(
     EchoTestStartParams,
     required {
         audio: bool,
