@@ -1,4 +1,4 @@
-use crate::streaming::msg_options::*;
+use crate::streaming::params::*;
 use crate::streaming::responses::*;
 use jarust::prelude::*;
 use jarust_rt::JaTask;
@@ -19,11 +19,11 @@ impl StreamingHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_mountpoint(
         &self,
-        options: StreamingCreateOptions,
+        params: StreamingCreateParams,
         timeout: Duration,
     ) -> Result<MountpointCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending create");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "create".into();
 
         self.handle
@@ -34,11 +34,11 @@ impl StreamingHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_mountpoint(
         &self,
-        options: StreamingDestroyOptions,
+        params: StreamingDestroyParams,
         timeout: Duration,
     ) -> Result<MountpointDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending destroy");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "destroy".into();
 
         self.handle

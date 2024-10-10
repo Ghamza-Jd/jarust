@@ -3,7 +3,7 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::streaming::jahandle_ext::Streaming;
-use jarust_plugins::streaming::msg_options::*;
+use jarust_plugins::streaming::params::*;
 use jarust_plugins::JanusId;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
@@ -84,9 +84,10 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .destroy_mountpoint(
-            StreamingDestroyOptions::builder()
-                .mountpoint(mountpoint_id)
-                .build(),
+            StreamingDestroyParams {
+                required: StreamingDestroyParamsRequired { id: mountpoint_id },
+                optional: Default::default(),
+            },
             timeout,
         )
         .await?;
