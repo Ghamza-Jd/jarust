@@ -92,13 +92,13 @@ impl StreamingHandle {
         timeout: Duration,
     ) -> Result<MountpointInfo, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending info");
-        let options = StreamingInfoOptions {
-            secret,
-            ..Default::default()
-        };
-        let mut message: Value = options.try_into()?;
-        message["request"] = "info".into();
-        message["id"] = mountpoint.try_into()?;
+        let mut message: Value = json!({
+            "request": "info",
+            "id": mountpoint,
+        });
+        if let Some(secret) = secret {
+            message["secret"] = secret.into();
+        }
         let response = self
             .handle
             .send_waiton_rsp::<MountpointInfoRsp>(message, timeout)
