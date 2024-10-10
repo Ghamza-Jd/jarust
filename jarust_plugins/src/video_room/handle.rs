@@ -63,11 +63,11 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
-        options: VideoRoomDestroyOptions,
+        params: VideoRoomDestroyParams,
         timeout: Duration,
     ) -> Result<RoomDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending destroy");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "destroy".into();
 
         self.handle
@@ -132,12 +132,12 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
-        options: VideoRoomAllowedOptions,
+        params: VideoRoomAllowedParams,
         timeout: Duration,
     ) -> Result<AccessRsp, jarust_interface::Error> {
-        if (options.action == VideoRoomAllowedAction::Enable
-            || options.action == VideoRoomAllowedAction::Disable)
-            && !options.allowed.is_empty()
+        if (params.action == VideoRoomAllowedAction::Enable
+            || params.action == VideoRoomAllowedAction::Disable)
+            && !params.allowed.is_empty()
         {
             return Err(jarust_interface::Error::InvalidJanusRequest {
                 reason: "An enable or disable 'allowed' request cannot have its allowed array set"
@@ -146,7 +146,7 @@ impl VideoRoomHandle {
         }
 
         tracing::info!(plugin = "videoroom", "Sending allowed");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "allowed".into();
 
         self.handle
@@ -158,11 +158,11 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick(
         &self,
-        options: VideoRoomKickOptions,
+        params: VideoRoomKickParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending kick");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "kick".into();
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
@@ -172,11 +172,11 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
-        options: VideoRoomEnableRecordingOptions,
+        params: VideoRoomEnableRecordingParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending enable recording");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "enable_recording".into();
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
@@ -201,10 +201,10 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn moderate(
         &self,
-        options: VideoRoomModerateOptions,
+        params: VideoRoomModerateParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message = serde_json::to_value(params)?;
         message["request"] = "moderate".into();
 
         self.handle.send_waiton_rsp::<()>(message, timeout).await
@@ -213,10 +213,10 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn list_forwarders(
         &self,
-        options: VideoRoomListForwardersOptions,
+        params: VideoRoomListForwardersParams,
         timeout: Duration,
     ) -> Result<ListForwardersRsp, jarust_interface::Error> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message = serde_json::to_value(params)?;
         message["request"] = "list_forwarders".into();
 
         self.handle
@@ -227,10 +227,10 @@ impl VideoRoomHandle {
     #[cfg(feature = "__experimental")]
     pub async fn rtp_forward(
         &self,
-        options: VideoRoomRtpForwardOptions,
+        params: VideoRoomRtpForwardParams,
         timeout: Duration,
     ) -> Result<RtpForwardRsp, jarust_interface::Error> {
-        let mut message = serde_json::to_value(options)?;
+        let mut message = serde_json::to_value(params)?;
         message["request"] = "rtp_forward".into();
 
         self.handle
@@ -276,11 +276,11 @@ impl VideoRoomHandle {
     /// and optionally a list of passive attendees (but only if the room was configured with notify_joining set to TRUE)
     pub async fn join_as_publisher(
         &self,
-        options: VideoRoomPublisherJoinOptions,
+        params: VideoRoomPublisherJoinParams,
         estproto: Option<EstProto>,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "publisher".into();
 
@@ -309,11 +309,11 @@ impl VideoRoomHandle {
     /// (which is impossible in rooms configured with require_pvtid).
     pub async fn join_as_subscriber(
         &self,
-        options: VideoRoomSubscriberJoinOptions,
+        params: VideoRoomSubscriberJoinParams,
         estproto: Option<EstProto>,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "join".into();
         message["ptype"] = "subscriber".into();
 
@@ -335,10 +335,10 @@ impl VideoRoomHandle {
     /// Notice that the configure request can also be used in renegotiations, to provide an updated SDP with changes to the published media.
     pub async fn configure_publisher(
         &self,
-        options: VideoRoomConfigurePublisherOptions,
+        params: VideoRoomConfigurePublisherParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
@@ -348,10 +348,10 @@ impl VideoRoomHandle {
     /// e.g., in terms of what should and should not be sent at a specific time.
     pub async fn configure_subscriber(
         &self,
-        options: VideoRoomConfigureSubscriberOptions,
+        params: VideoRoomConfigureSubscriberParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "configure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
@@ -360,15 +360,10 @@ impl VideoRoomHandle {
     /// A combination of [VideoRoomHandle::join_as_publisher()] and [VideoRoomHandle::configure_publisher()]
     pub async fn join_and_configure(
         &self,
-        join_options: VideoRoomPublisherJoinOptions,
-        configure_options: VideoRoomConfigurePublisherOptions,
+        join_and_configure_params: VideoRoomJoinAndConfigureParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message: Value = JoinAndConfigureOptions {
-            join_options,
-            configure_options,
-        }
-        .try_into()?;
+        let mut message: Value = join_and_configure_params.try_into()?;
         message["request"] = "joinandconfigure".into();
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
@@ -382,11 +377,11 @@ impl VideoRoomHandle {
     /// As soon as the PeerConnection has been established, the publisher will become active, and a new active feed other participants can subscribe to.
     pub async fn publish(
         &self,
-        options: VideoRoomPublishOptions,
+        params: VideoRoomPublishParams,
         estproto: EstProto,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "publish".into();
         self.handle
             .send_waiton_ack_with_est(message, estproto, timeout)
