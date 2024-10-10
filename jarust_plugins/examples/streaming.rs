@@ -44,31 +44,26 @@ async fn main() -> anyhow::Result<()> {
 
     let mountpoint_id = handle
         .create_mountpoint(
-            StreamingCreateOptions {
-                id: Some(JanusId::Uint(1337)),
-                name: Some("stream name".to_string()),
-                description: Some("stream description".to_string()),
+            StreamingCreateParams {
                 mountpoint_type: StreamingMountpointType::RTP,
-                media: Some(Vec::from([StreamingRtpMedia {
-                    media_type: StreamingRtpMediaType::VIDEO,
-                    mid: "v".to_string(),
-                    port: 0,
-                    pt: Some(100),
-                    codec: Some("vp8".to_string()),
-                    label: None,
-                    msid: None,
-                    mcast: None,
-                    iface: None,
-                    rtcpport: None,
-                    fmtp: None,
-                    skew: None,
-                }])),
-                admin_key: None,
-                metadata: None,
-                is_private: None,
-                secret: None,
-                pin: None,
-                permanent: None,
+                optional: StreamingCreateParamsOptional {
+                    id: Some(JanusId::Uint(1337)),
+                    name: Some(String::from("stream name")),
+                    description: Some(String::from("stream description")),
+                    media: Some(vec![StreamingRtpMedia {
+                        required: StreamingRtpMediaRequired {
+                            media_type: StreamingRtpMediaType::VIDEO,
+                            mid: String::from("v"),
+                            port: 0,
+                        },
+                        optional: StreamingRtpMediaOptional {
+                            pt: Some(100),
+                            codec: Some(String::from("vp8")),
+                            ..Default::default()
+                        },
+                    }]),
+                    ..Default::default()
+                },
             },
             timeout,
         )
