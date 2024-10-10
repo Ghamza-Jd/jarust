@@ -1,6 +1,6 @@
 //! # Jarust Interface
 //!
-//! Jarust interface continas:
+//! Jarust interface contains:
 //!
 //! - Transport abstraction, you can use the built-in WebSocket interface, restful interface, or bring your own.
 //! - Transaction generation abstraction, you can use the built-in transaction generator or bring your own.

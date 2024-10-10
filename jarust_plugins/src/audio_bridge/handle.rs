@@ -1,14 +1,14 @@
-use super::msg_opitons::AudioBridgeAllowedOptions;
-use super::msg_opitons::AudioBridgeChangeRoomOptions;
-use super::msg_opitons::AudioBridgeConfigureOptions;
-use super::msg_opitons::AudioBridgeCreateRoomOptions;
-use super::msg_opitons::AudioBridgeDestroyRoomMsg;
-use super::msg_opitons::AudioBridgeEditRoomOptions;
-use super::msg_opitons::AudioBridgeJoinRoomOptions;
-use super::msg_opitons::AudioBridgeKickAllOptions;
-use super::msg_opitons::AudioBridgeKickOptions;
-use super::msg_opitons::AudioBridgeMuteOptions;
-use super::msg_opitons::AudioBridgeMuteRoomOptions;
+use super::msg_options::AudioBridgeAllowedOptions;
+use super::msg_options::AudioBridgeChangeRoomOptions;
+use super::msg_options::AudioBridgeConfigureOptions;
+use super::msg_options::AudioBridgeCreateRoomOptions;
+use super::msg_options::AudioBridgeDestroyRoomMsg;
+use super::msg_options::AudioBridgeEditRoomOptions;
+use super::msg_options::AudioBridgeJoinRoomOptions;
+use super::msg_options::AudioBridgeKickAllOptions;
+use super::msg_options::AudioBridgeKickOptions;
+use super::msg_options::AudioBridgeMuteOptions;
+use super::msg_options::AudioBridgeMuteRoomOptions;
 use super::responses::AudioBridgeAllowedRsp;
 use super::responses::AudioBridgeExistsRoomRsp;
 use super::responses::AudioBridgeListParticipantsRsp;
@@ -96,7 +96,7 @@ impl AudioBridgeHandle {
         options: AudioBridgeDestroyRoomMsg,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomDestroyedRsp, jarust_interface::Error> {
-        tracing::info!(plugin = "audiobridge", "Sending destory room");
+        tracing::info!(plugin = "audiobridge", "Sending destroy room");
         let mut message: Value = options.try_into()?;
         message["request"] = "destroy".into();
         message["room"] = room.try_into()?;
@@ -274,7 +274,7 @@ impl AudioBridgeHandle {
         self.handle.fire_and_forget(message).await
     }
 
-    /// Kicks all pariticpants out of a room
+    /// Kicks all participants out of a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick_all(
         &self,

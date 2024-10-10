@@ -25,7 +25,7 @@ pub struct ServerInfoRsp {
     pub ipv6: bool,
     pub ice_lite: bool,
     pub ice_tcp: bool,
-    pub ice_nomination: String, /* could be enum when we know the varients */
+    pub ice_nomination: String, /* could be enum when we know the variants */
     pub ice_keepalive_conncheck: bool,
     pub full_trickle: bool,
     pub mdns_enabled: bool,

@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 use std::ops::Deref;
 
-/// GenerateTransaction can be provided to an interface for generating messages transcations.
+/// GenerateTransaction can be provided to an interface for generating messages transactions.
 ///
 /// The more they're unique the better, especially when choosing with WebSockets interface as demultiplexing heavily relies on transaction ids.
 pub trait GenerateTransaction: Send + Sync + Debug + 'static {

@@ -438,11 +438,11 @@ pub struct VideoRoomPublishOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display: Option<String>,
 
-    /// if provided, overrided the room audio_level_average for this user
+    /// if provided, override the room audio_level_average for this user
     #[serde(skip_serializing_if = "Option::is_none")]
     pub audio_level_average: Option<u64>,
 
-    /// if provided, overrided the room audio_active_packets for this user
+    /// if provided, override the room audio_active_packets for this user
     #[serde(skip_serializing_if = "Option::is_none")]
     pub audio_active_packets: Option<u64>,
 

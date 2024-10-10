@@ -77,14 +77,14 @@ impl JaHandle {
         Ok(res)
     }
 
-    /// Send a message and wait for ackowledgement
+    /// Send a message and wait for acknowledgement
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_ack(
         &self,
         body: Value,
         timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
-        tracing::debug!("Sending message and waiting for ackowledgement");
+        tracing::debug!("Sending message and waiting for acknowledgement");
         let ack = self
             .inner
             .interface
@@ -98,7 +98,7 @@ impl JaHandle {
         Ok(ack)
     }
 
-    /// Send a message with a specific establishment protocol and wait for ackowledgement
+    /// Send a message with a specific establishment protocol and wait for acknowledgement
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_ack_with_est(
         &self,
@@ -106,7 +106,7 @@ impl JaHandle {
         protocol: EstablishmentProtocol,
         timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
-        tracing::debug!("Sending message with establishment and waiting for ackowledgement");
+        tracing::debug!("Sending message with establishment and waiting for acknowledgement");
         let ack = self
             .inner
             .interface
