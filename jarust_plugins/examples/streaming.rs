@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
                 media: Some(Vec::from([StreamingRtpMedia {
                     media_type: "video".to_string(),
                     mid: "v".to_string(),
-                    port: 5005,
+                    port: 0,
                     pt: Some(100),
                     codec: Some("vp8".to_string()),
                     ..Default::default()
@@ -65,6 +65,9 @@ async fn main() -> anyhow::Result<()> {
 
     let mountpoints = handle.list(timeout).await?;
     tracing::info!("Mountpoints {:#?}", mountpoints);
+
+    let info = handle.info(JanusId::Uint(1337), None, timeout).await?;
+    tracing::info!("Info: {:#?}", info);
 
     handle
         .destroy_mountpoint(mountpoint_id, Default::default(), timeout)

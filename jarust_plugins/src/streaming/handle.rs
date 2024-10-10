@@ -84,8 +84,30 @@ impl StreamingHandle {
         Ok(response.list)
     }
 
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
+    pub async fn info(
+        &self,
+        mountpoint: JanusId,
+        secret: Option<String>,
+        timeout: Duration,
+    ) -> Result<MountpointInfo, jarust_interface::Error> {
+        tracing::info!(plugin = "streaming", "Sending info");
+        let options = StreamingInfoOptions {
+            secret,
+            ..Default::default()
+        };
+        let mut message: Value = options.try_into()?;
+        message["request"] = "info".into();
+        message["id"] = mountpoint.try_into()?;
+        let response = self
+            .handle
+            .send_waiton_rsp::<MountpointInfoRsp>(message, timeout)
+            .await?;
+
+        Ok(response.info)
+    }
+
     // TODO:
-    // info
     // edit
     // enable
     // disable

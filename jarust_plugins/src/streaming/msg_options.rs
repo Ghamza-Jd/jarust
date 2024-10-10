@@ -2,7 +2,7 @@ use crate::JanusId;
 use serde::Serialize;
 
 impl_tryfrom_serde_value!(
-    StreamingCreateOptions StreamingDestroyOptions
+    StreamingCreateOptions StreamingDestroyOptions StreamingInfoOptions
 );
 
 //
@@ -113,4 +113,15 @@ pub struct StreamingDestroyOptions {
     /// whether the mountpoint should be also removed from the config file, default=false
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permanent: Option<bool>,
+}
+
+//
+// Info Message
+//
+
+#[derive(Serialize, Default)]
+pub struct StreamingInfoOptions {
+    /// mountpoint secret, mandatory if configured to access sensitive info
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
 }
