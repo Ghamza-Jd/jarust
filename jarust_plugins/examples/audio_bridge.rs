@@ -48,12 +48,17 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Rooms {:#?}", rooms);
 
-    let join_room_options = AudioBridgeJoinRoomOptions::builder()
-        .room(create_room_rsp.room.clone())
-        .display("value".to_string())
-        .build();
+    let join_room_params = AudioBridgeJoinRoomParams {
+        required: AudioBridgeJoinRoomParamsRequired {
+            room: create_room_rsp.room.clone(),
+        },
+        optional: AudioBridgeJoinRoomParamsOptional {
+            display: Some("value".to_string()),
+            ..Default::default()
+        },
+    };
 
-    handle.join_room(join_room_options, None, timeout).await?;
+    handle.join_room(join_room_params, None, timeout).await?;
 
     let list_participants_rsp = handle
         .list_participants(create_room_rsp.room, timeout)
@@ -68,18 +73,22 @@ async fn main() -> anyhow::Result<()> {
     use jarust_plugins::audio_bridge::events::PluginEvent as PE;
     if let Some(PE::AudioBridgeEvent(ABE::RoomJoined { id, room, .. })) = events.recv().await {
         handle
-            .mute(AudioBridgeMuteOptions {
-                id: id.clone(),
-                room: room.clone(),
-                secret: None,
+            .mute(AudioBridgeMuteParams {
+                required: AudioBridgeMuteParamsRequired {
+                    id: id.clone(),
+                    room: room.clone(),
+                },
+                optional: Default::default(),
             })
             .await?;
 
         handle
-            .unmute(AudioBridgeMuteOptions {
-                id,
-                room,
-                secret: None,
+            .unmute(AudioBridgeMuteParams {
+                required: AudioBridgeMuteParamsRequired {
+                    id: id.clone(),
+                    room: room.clone(),
+                },
+                optional: Default::default(),
             })
             .await?;
     };
