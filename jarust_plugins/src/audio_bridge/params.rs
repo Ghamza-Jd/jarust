@@ -167,8 +167,6 @@ pub enum AudioBridgeAllowAction {
     Remove,
 }
 
-impl_tryfrom_serde_value!(AudioBridgeAllowAction);
-
 make_dto!(
     AudioBridgeConfigureParams,
     optional {
