@@ -14,9 +14,3 @@ pub enum JanusId {
     /// Unsigned Integer Identifier
     Uint(u64),
 }
-
-impl Default for JanusId {
-    fn default() -> Self {
-        Self::Uint(0)
-    }
-}

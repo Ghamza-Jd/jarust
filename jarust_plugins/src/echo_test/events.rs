@@ -1,4 +1,4 @@
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::JaResponse;
@@ -25,10 +25,10 @@ pub enum EchoTestEvent {
         echotest: String,
         result: String,
     },
-    ResultWithEstablishment {
+    ResultWithEst {
         echotest: String,
         result: String,
-        establishment_protocol: EstablishmentProtocol,
+        estproto: EstProto,
     },
     Error {
         error_code: u16,
@@ -47,18 +47,14 @@ impl TryFrom<JaResponse> for PluginEvent {
                         EchoTestEvent::Error { error_code, error }
                     }
                     PluginInnerData::Data(data) => match from_value::<EchoTestEventDto>(data)? {
-                        EchoTestEventDto::Result { echotest, result } => {
-                            match value.establishment_protocol {
-                                Some(establishment_protocol) => {
-                                    EchoTestEvent::ResultWithEstablishment {
-                                        echotest,
-                                        result,
-                                        establishment_protocol,
-                                    }
-                                }
-                                None => EchoTestEvent::Result { echotest, result },
-                            }
-                        }
+                        EchoTestEventDto::Result { echotest, result } => match value.estproto {
+                            Some(estproto) => EchoTestEvent::ResultWithEst {
+                                echotest,
+                                result,
+                                estproto,
+                            },
+                            None => EchoTestEvent::Result { echotest, result },
+                        },
                     },
                 };
                 Ok(PluginEvent::EchoTestEvent(echotest_event))
@@ -75,7 +71,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 mod tests {
     use super::PluginEvent;
     use crate::echo_test::events::EchoTestEvent;
-    use jarust_interface::japrotocol::EstablishmentProtocol;
+    use jarust_interface::japrotocol::EstProto;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
     use jarust_interface::japrotocol::Jsep;
@@ -97,7 +93,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -124,7 +120,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+            estproto: Some(EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
@@ -136,10 +132,10 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEstablishment {
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst {
                 echotest: "event".to_string(),
                 result: "ok".to_string(),
-                establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
+                estproto: EstProto::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string()
@@ -160,7 +156,7 @@ mod tests {
                     },
                 },
             }),
-            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+            estproto: Some(EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),

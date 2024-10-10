@@ -40,7 +40,7 @@ mod tests {
             transaction: Some("abc123".to_string()),
             session_id: None,
             sender: None,
-            establishment_protocol: None,
+            estproto: None,
         };
         interface.mock_create_rsp(response).await;
 
@@ -59,7 +59,7 @@ mod tests {
             transaction: Some("mock-attach-plugin-transaction".to_string()),
             session_id: Some(session_id),
             sender: None,
-            establishment_protocol: None,
+            estproto: None,
         };
         interface.mock_attach_rsp(response).await;
 
@@ -95,7 +95,7 @@ mod tests {
             transaction: Some("abc123".to_string()),
             session_id: None,
             sender: None,
-            establishment_protocol: None,
+            estproto: None,
         };
         interface.mock_create_rsp(response).await;
 
@@ -117,7 +117,7 @@ mod tests {
             transaction: Some("mock-attach-plugin-transaction".to_string()),
             session_id: Some(session_id),
             sender: None,
-            establishment_protocol: None,
+            estproto: None,
         };
         interface.mock_attach_rsp(response).await;
 

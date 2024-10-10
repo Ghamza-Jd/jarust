@@ -3,7 +3,7 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
 use jarust::japlugin::AttachHandleParams;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
@@ -21,11 +21,12 @@ async fn main() -> anyhow::Result<()> {
         .add_directive(format!("{filename}=info").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
-    let capacity = 32;
-    let config = JaConfig::builder()
-        .url("wss://janus.conf.meetecho.com/ws")
-        .capacity(capacity)
-        .build();
+    let config = JaConfig {
+        url: "wss://janus.conf.meetecho.com/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
@@ -72,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
                         "video": true,
                         "audio": true,
                     }),
-                    EstablishmentProtocol::JSEP(Jsep {
+                    EstProto::JSEP(Jsep {
                         sdp: "".to_string(),
                         trickle: Some(false),
                         jsep_type: JsepType::Offer,

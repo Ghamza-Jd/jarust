@@ -1,156 +1,89 @@
 use crate::JanusId;
 use serde::Serialize;
 
-impl_tryfrom_serde_value!(
-    VideoRoomCreateOptions VideoRoomDestroyOptions VideoRoomEditOptions VideoRoomAllowedOptions VideoRoomAllowedAction
-    VideoRoomKickOptions VideoRoomEnableRecordingOptions VideoRoomPublisherJoinOptions VideoRoomSubscriberJoinOptions
-    VideoRoomConfigurePublisherOptions VideoRoomConfigureSubscriberOptions JoinAndConfigureOptions VideoRoomPublishOptions
+impl_tryfrom_serde_value!(VideoRoomAllowedAction);
+
+make_dto!(
+    VideoRoomCreateParams,
+    optional {
+        /// Room ID, chosen by plugin if missing
+        room: JanusId,
+        /// whether the room should be saved in the config file, default=false
+        permanent: bool,
+        /// pretty name of the room
+        description: String,
+        /// password required to edit/destroy the room
+        secret: String,
+        /// password required to join the room
+        pin: String,
+        /// whether the room should appear in a list request
+        is_private: bool,
+        /// array of string tokens users can use to join this room
+        allowed: Vec<String>,
+        /// whether subscriptions are required to provide a valid private_id to associate with a publisher, default=false
+        require_pvtid: bool,
+        /// whether access to the room requires signed tokens; default=false, only works if signed tokens are used in the core as well
+        signed_tokens: bool,
+        /// max number of concurrent senders (e.g., 6 for a video conference or 1 for a webinar, default=3)
+        publishers: u64,
+        /// max video bitrate for senders (e.g., 128000)
+        bitrate: u64,
+        /// whether the above cap should act as a limit to dynamic bitrate changes by publishers, default=false
+        bitrate_cap: bool,
+        /// send a FIR to publishers every fir_freq seconds (0=disable)
+        fir_freq: u64,
+        /// audio codec to force on publishers, default=opus
+        /// can be a comma separated list in order of preference, e.g., `opus,pcmu`
+        /// opus|g722|pcmu|pcma|isac32|isac16
+        audiocodec: String,
+        /// video codec to force on publishers, default=vp8
+        /// can be a comma separated list in order of preference, e.g., `vp9,vp8,h264`
+        /// vp8|vp9|h264|av1|h265
+        videocodec: String,
+        /// VP9-specific profile to prefer (e.g., "2" for "profile-id=2")
+        vp9_profile: String,
+        /// H.264-specific profile to prefer (e.g., "42e01f" for "profile-level-id=42e01f")
+        h264_profile: String,
+        /// whether inband FEC must be negotiated; only works for Opus, default=true
+        opus_fec: bool,
+        /// whether DTX must be negotiated; only works for Opus, default=false
+        opus_dtx: bool,
+        /// whether the ssrc-audio-level RTP extension must be negotiated for new joins, default=true
+        audiolevel_ext: bool,
+        /// whether to emit event to other users or not
+        audiolevel_event: bool,
+        /// number of packets with audio level (default=100, 2 seconds)
+        audio_active_packets: u64,
+        /// average value of audio level (127=muted, 0='too loud', default=25)
+        audio_level_average: u64,
+        /// whether the video-orientation RTP extension must be negotiated/used or not for new publishers, default=true
+        videoorient_ext: bool,
+        /// whether the playout-delay RTP extension must be negotiated/used or not for new publishers, default=true
+        playoutdelay_ext: bool,
+        /// whether the transport wide CC RTP extension must be negotiated/used or not for new publishers, default=true
+        transport_wide_cc_ext: bool,
+        /// whether to record the room or not, default=false
+        record: bool,
+        /// folder where recordings should be stored, when enabled
+        record_dir: String,
+        /// whether recording can only be started/stopped if the secret is provided, or using the global enable_recording request, default=false
+        lock_record: bool,
+        /// optional, whether to notify all participants when a new participant joins the room. default=false
+        /// The Videoroom plugin by design only notifies new feeds (publishers), and enabling this may result in extra notification traffic.
+        /// This flag is particularly useful when enabled with `require_pvtid` for admin to manage listening-only participants.
+        notify_joining: bool,
+        /// whether all participants are required to publish and subscribe using end-to-end media encryption, e.g., via Insertable Streams; default=false
+        require_e2ee: bool,
+        /// whether a dummy publisher should be created in this room, with one separate m-line for each codec supported in the room;
+        /// this is useful when there's a need to create subscriptions with placeholders for some or all m-lines, even when they aren't used yet; default=false
+        dummy_publisher: bool,
+        /// in case `dummy_publisher` is set to `true`, array of codecs to offer, optionally with a fmtp attribute to match (codec/fmtp properties).
+        /// If not provided, all codecs enabled in the room are offered, with no fmtp. Notice that the fmtp is parsed, and only a few codecs are supported.
+        dummy_streams: bool,
+    }
 );
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomCreateOptions {
-    /// unique numeric ID, chosen by plugin if missing
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub room: Option<JanusId>,
-
-    /// whether the room should be saved in the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-
-    /// pretty name of the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-
-    /// password required to edit/destroy the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-
-    /// password required to join the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pin: Option<String>,
-
-    /// whether the room should appear in a list request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_private: Option<bool>,
-
-    /// array of string tokens users can use to join this room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed: Option<Vec<String>>,
-
-    /// whether subscriptions are required to provide a valid private_id to associate with a publisher, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub require_pvtid: Option<bool>,
-
-    /// whether access to the room requires signed tokens; default=false, only works if signed tokens are used in the core as well
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub signed_tokens: Option<bool>,
-
-    /// max number of concurrent senders (e.g., 6 for a video conference or 1 for a webinar, default=3)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub publishers: Option<u64>,
-
-    /// max video bitrate for senders (e.g., 128000)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
-
-    /// whether the above cap should act as a limit to dynamic bitrate changes by publishers, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate_cap: Option<bool>,
-
-    /// send a FIR to publishers every fir_freq seconds (0=disable)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fir_freq: Option<u64>,
-
-    /// audio codec to force on publishers, default=opus
-    /// can be a comma separated list in order of preference, e.g., `opus,pcmu`
-    /// opus|g722|pcmu|pcma|isac32|isac16
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiocodec: Option<String>,
-
-    /// video codec to force on publishers, default=vp8
-    /// can be a comma separated list in order of preference, e.g., `vp9,vp8,h264`
-    /// vp8|vp9|h264|av1|h265
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub videocodec: Option<String>,
-
-    /// VP9-specific profile to prefer (e.g., "2" for "profile-id=2")
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub vp9_profile: Option<String>,
-
-    /// H.264-specific profile to prefer (e.g., "42e01f" for "profile-level-id=42e01f")
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub h264_profile: Option<String>,
-
-    /// whether inband FEC must be negotiated; only works for Opus, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub opus_fec: Option<bool>,
-
-    /// whether DTX must be negotiated; only works for Opus, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub opus_dtx: Option<bool>,
-
-    /// whether the ssrc-audio-level RTP extension must be negotiated for new joins, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_ext: Option<bool>,
-
-    /// whether to emit event to other users or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_event: Option<bool>,
-
-    /// number of packets with audio level (default=100, 2 seconds)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_active_packets: Option<u64>,
-
-    /// average value of audio level (127=muted, 0='too loud', default=25)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_level_average: Option<u64>,
-
-    /// whether the video-orientation RTP extension must be negotiated/used or not for new publishers, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub videoorient_ext: Option<bool>,
-
-    /// whether the playout-delay RTP extension must be negotiated/used or not for new publishers, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub playoutdelay_ext: Option<bool>,
-
-    /// whether the transport wide CC RTP extension must be negotiated/used or not for new publishers, default=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub transport_wide_cc_ext: Option<bool>,
-
-    /// whether to record the room or not, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<bool>,
-
-    /// folder where recordings should be stored, when enabled
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record_dir: Option<String>,
-
-    /// whether recording can only be started/stopped if the secret is provided, or using the global enable_recording request, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lock_record: Option<bool>,
-
-    /// optional, whether to notify all participants when a new participant joins the room. default=false
-    /// The Videoroom plugin by design only notifies new feeds (publishers), and enabling this may result in extra notification traffic.
-    /// This flag is particularly useful when enabled with `require_pvtid` for admin to manage listening-only participants.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub notify_joining: Option<bool>,
-
-    /// whether all participants are required to publish and subscribe using end-to-end media encryption, e.g., via Insertable Streams; default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub require_e2ee: Option<bool>,
-
-    /// whether a dummy publisher should be created in this room, with one separate m-line for each codec supported in the room;
-    /// this is useful when there's a need to create subscriptions with placeholders for some or all m-lines, even when they aren't used yet; default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dummy_publisher: Option<bool>,
-
-    /// in case `dummy_publisher` is set to `true`, array of codecs to offer, optionally with a fmtp attribute to match (codec/fmtp properties).
-    /// If not provided, all codecs enabled in the room are offered, with no fmtp. Notice that the fmtp is parsed, and only a few codecs are supported.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dummy_streams: Option<bool>,
-}
-
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomAudioCodec {
     OPUS,
@@ -161,7 +94,7 @@ pub enum VideoRoomAudioCodec {
     ISAC16,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomVideoCodec {
     VP8,
@@ -171,133 +104,106 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomEditOptions {
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
+make_dto!(
+    VideoRoomEditParams,
+    required { room: JanusId },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String,
+        /// new pretty name of the room
+        new_description: String,
+        /// new password required to edit/destroy the room
+        new_secret: String,
+        /// new PIN required to join the room, PIN will be removed if set to an empty string
+        new_pin: String,
+        /// whether the room should appear in a list request
+        new_is_private: bool,
+        /// whether the room should require `private_id` from subscribers
+        new_require_pvtid: bool,
+        /// new bitrate cap to force on all publishers (except those with custom overrides)
+        new_bitrate: u64,
+        /// new period for regular PLI keyframe requests to publishers
+        new_fir_freq: u64,
+        /// new cap on the number of concurrent active WebRTC publishers
+        new_publishers: u64,
+        /// whether recording state can only be changed when providing the room secret
+        new_lock_record: bool,
+        /// the new path where the next .mjr files should be saved
+        new_rec_dir: String,
+        /// whether the room should be also removed from the config file, default=false
+        permanent: bool,
+    }
+);
 
-    /// new pretty name of the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_description: Option<String>,
+make_dto!(
+    VideoRoomDestroyParams,
+    required { room: JanusId },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String,
+        /// whether the room should be also removed from the config file, default=false
+        permanent: bool
+    }
+);
 
-    /// new password required to edit/destroy the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_secret: Option<String>,
+make_dto!(
+    VideoRoomPublisherJoinParams,
+    required {
+        /// unique ID to register for the publisher;
+        /// optional, will be chosen by the plugin if missing
+        room: JanusId
+    },
+    optional {
+        /// display name for the publisher
+        display: String,
+        /// invitation token, in case the room has an ACL
+        token: String
+    }
+);
 
-    /// new PIN required to join the room, PIN will be removed if set to an empty string
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_pin: Option<String>,
+make_dto!(
+    VideoRoomSubscriberJoinParams,
+    required { room: JanusId },
+    optional {
+        /// whether subscriptions should include a msid that references the publisher; false by default
+        use_msid: bool,
+        /// whether a new SDP offer is sent automatically when a subscribed publisher leaves; true by default
+        autoupdate: bool,
+        /// unique ID of the publisher that originated this request;
+        /// optional, unless mandated by the room configuration
+        private_id: JanusId,
+        /// list of media streams to subscribe to
+        streams: Vec<VideoRoomSubscriberJoinStream>
+    }
+);
 
-    /// whether the room should appear in a list request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_is_private: Option<bool>,
+make_dto!(
+    VideoRoomSubscriberJoinStream,
+    required {
+        /// unique ID of publisher owning the stream to subscribe to
+        feed: JanusId
+    },
+    optional {
+        /// unique mid of the publisher stream to subscribe to
+        mid: String,
+        /// id to map this subscription with entries in streams list
+        crossrefid: u64
+    }
+);
 
-    /// whether the room should require `private_id` from subscribers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_require_pvtid: Option<bool>,
+make_dto!(
+    VideoRoomSubscriberUnsubscribeStream,
+    optional {
+        /// unique ID of publisher owning the stream to subscribe to
+        feed: JanusId,
+        /// unique mid of the publisher stream to subscribe to
+        mid: String,
+        /// id to map this subscription with entries in streams list
+        sub_mid: u64
+    }
+);
 
-    /// new bitrate cap to force on all publishers (except those with custom overrides)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_bitrate: Option<u64>,
-
-    /// new period for regular PLI keyframe requests to publishers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_fir_freq: Option<u64>,
-
-    /// new cap on the number of concurrent active WebRTC publishers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_publishers: Option<u64>,
-
-    /// whether recording state can only be changed when providing the room secret
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_lock_record: Option<bool>,
-
-    /// the new path where the next .mjr files should be saved
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_rec_dir: Option<String>,
-
-    /// whether the room should be also removed from the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomDestroyOptions {
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-
-    /// whether the room should be also removed from the config file, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub permanent: Option<bool>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomPublisherJoinOptions {
-    /// unique ID to register for the publisher;
-    /// optional, will be chosen by the plugin if missing
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<JanusId>,
-
-    /// display name for the publisher
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display: Option<String>,
-
-    /// invitation token, in case the room has an ACL
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub token: Option<String>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomSubscriberJoinOptions {
-    /// whether subscriptions should include a msid that references the publisher; false by default
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub use_msid: Option<bool>,
-
-    /// whether a new SDP offer is sent automatically when a subscribed publisher leaves; true by default
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub autoupdate: Option<bool>,
-
-    /// unique ID of the publisher that originated this request;
-    /// optional, unless mandated by the room configuration
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub private_id: Option<JanusId>,
-
-    /// list of media streams to subscribe to
-    pub streams: Vec<VideoRoomSubscriberJoinStream>,
-}
-
-#[derive(Serialize)]
-pub struct VideoRoomSubscriberJoinStream {
-    /// unique ID of publisher owning the stream to subscribe to
-    pub feed: JanusId,
-
-    /// unique mid of the publisher stream to subscribe to
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mid: Option<String>,
-
-    /// id to map this subscription with entries in streams list
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub crossrefid: Option<u64>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomSubscriberUnsubscribeStream {
-    /// unique ID of publisher owning the stream to subscribe to
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub feed: Option<JanusId>,
-
-    /// unique mid of the publisher stream to subscribe to
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mid: Option<String>,
-
-    /// id to map this subscription with entries in streams list
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sub_mid: Option<u64>,
-}
-
-#[derive(PartialEq, Serialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomAllowedAction {
     Enable,
@@ -306,304 +212,240 @@ pub enum VideoRoomAllowedAction {
     Remove,
 }
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomAllowedOptions {
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-}
+make_dto!(
+    VideoRoomAllowedParams,
+    required {
+        room: JanusId,
+        action: VideoRoomAllowedAction,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        allowed: Vec<String>
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomKickOptions {
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-}
+make_dto!(
+    VideoRoomKickParams,
+    required {
+        room: JanusId,
+        participant: JanusId
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomModerateOptions {
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-}
+#[cfg(feature = "__experimental")]
+make_dto!(
+    VideoRoomModerateParams,
+    required {
+        room: JanusId,
+        participant: JanusId,
+        m_line: u64
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomEnableRecordingOptions {
-    /// whether participants in this room should be automatically recorded or not
-    pub record: bool,
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-}
+make_dto!(
+    VideoRoomEnableRecordingParams,
+    required {
+        room: JanusId,
+        /// whether participants in this room should be automatically recorded or not
+        record: bool,
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomListForwardersOptions {
-    /// room secret, mandatory if configured
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secret: Option<String>,
-}
+make_dto!(
+    VideoRoomListForwardersParams,
+    required { room: JanusId },
+    optional { secret: String }
+);
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomConfigurePublisherOptions {
-    /// bitrate cap to return via REMB;
-    /// overrides the global room value if present (unless `bitrate_cap` is set)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
+make_dto!(VideoRoomConfigurePublisherParams, optional {
+    bitrate: u64,
+    keyframe: bool,
+    record: bool,
+    filename: String,
+    display: String,
+    audio_active_packets: u64,
+    audio_level_average: u64,
+    streams: Vec<VideoRoomConfigurePublisherStream>,
+    descriptions: Vec<VideoRoomPublishDescription>
+});
 
-    /// whether we should send this publisher a keyframe request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub keyframe: Option<bool>,
+make_dto!(
+    VideoRoomConfigurePublisherStream,
+    required { mid: String },
+    optional {
+        /// whether we should send this publisher a keyframe request
+        keyframe: bool,
+        /// depending on whether the media addressed by the above mid should be relayed or not
+        send: bool,
+        /// minimum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
+        min_delay: u64,
+        /// maximum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
+        max_delay: u64
+    }
+);
 
-    /// whether this publisher should be recorded or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<bool>,
+make_dto!(
+    VideoRoomJoinAndConfigureParams,
+    required {
+        #[serde(flatten)]
+        join_params: VideoRoomPublisherJoinParams,
+        #[serde(flatten)]
+        configure_params: VideoRoomConfigurePublisherParams
+    }
+);
 
-    /// if recording, the base path/file to use for the recording files
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filename: Option<String>,
+make_dto!(
+    VideoRoomPublishParams,
+    optional {
+        /// audio codec to prefer among the negotiated ones
+        audiocodec: VideoRoomAudioCodec,
+        /// video codec to prefer among the negotiated ones
+        videocoded: VideoRoomVideoCodec,
+        /// bitrate cap to return via REMB
+        /// overrides the global room value if present
+        bitrate: u64,
+        /// whether this publisher should be recorded or not
+        record: bool,
+        /// if recording, the base path/file to use for the recording files
+        filename: String,
+        /// display name to use in the room
+        display: String,
+        /// if provided, overrided the room audio_level_average for this user
+        audio_level_average: u64,
+        /// if provided, overrided the room audio_active_packets for this user
+        audio_active_packets: u64,
+        /// descriptions (names) for the published streams
+        descriptions: Vec<VideoRoomPublishDescription>
+    }
+);
 
-    /// new display name to use in the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display: Option<String>,
+make_dto!(
+    VideoRoomPublishDescription,
+    required {
+        /// unique mid of a stream being published
+        mid: String,
+        /// text description of the stream (e.g., My front webcam)
+        description: String
+    }
+);
 
-    /// new `audio_active_packets` to overwrite in the room one
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_active_packets: Option<u64>,
-
-    /// new `audio_level_average` to overwrite the room one
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_level_average: Option<u64>,
-
+make_dto!(VideoRoomConfigureSubscriberParams,
+    required {
     /// list of streams to configure
-    pub streams: Vec<VideoRoomConfigurePublisherStream>,
+        streams: Vec<VideoRoomConfigureSubscriberStream>
+    },
+    optional {
+        /// trigger an ICE restart
+        restart: bool
+    }
+);
 
-    /// descriptions (names) for the published streams
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub descriptions: Vec<VideoRoomPublishDescription>,
-}
+make_dto!(
+    VideoRoomConfigureSubscriberStream,
+    required {
+        /// mid of the m-line to refer to
+        mid: String
+    },
+    optional {
+        /// depending on whether the mindex media should be relayed or not
+        send: bool,
+        /// substream to receive (0-2), in case simulcasting is enabled
+        substream: u64,
+        /// temporal layers to receive (0-2), in case simulcasting is enabled
+        temporal: u64,
+        /// How much time (in us, default 250000) without receiving packets will make us drop to the substream below
+        fallback: u64,
+        /// spatial layer to receive (0-2), in case SVC is enabled
+        spacial_layer: u64,
+        /// temporal layers to receive (0-2), in case SVC is enabled
+        temporal_layer: u64,
+        /// if provided, overrides the room `audio_level_average` for this user
+        audio_level_average: u64,
+        /// if provided, overrides the room `audio_active_packets` for this user
+        audio_active_packets: u64,
+        /// minimum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
+        min_delay: u64,
+        /// maximum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
+        max_delay: u64
+    }
+);
 
-#[derive(Serialize, Default)]
-pub struct VideoRoomConfigurePublisherStream {
-    pub mid: String,
+make_dto!(
+    VideoRoomSwitchStream,
+    required {
+        /// unique ID of the publisher the new source is from
+        feed: JanusId,
+        /// unique mid of the source we want to switch to
+        mid: String,
+        /// unique mid of the stream we want to pipe the new source to
+        sub_mid: String
+    }
+);
 
-    /// whether we should send this publisher a keyframe request
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub keyframe: Option<bool>,
+make_dto!(VideoRoomRtpForwardParams,
+    required {
+        room: JanusId,
+        /// unique numeric ID of the publisher to relay externally
+        publisher_id: JanusId,
+        /// host address to forward the RTP and data packets to
+        host: String,
+        /// ipv4|ipv6, if we need to resolve the host address to an IP; by default, whatever we get
+        streams: Vec<VideoRoomRtpForwardStream>
+    },
+    optional {
+        /// length of authentication tag (32 or 80)
+        host_family: String,
+        /// key to use as crypto (base64 encoded key as in SDES)
+        srtp_crypto: String
+    }
+);
 
-    /// depending on whether the media addressed by the above mid should be relayed or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub send: Option<bool>,
-
-    /// minimum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min_delay: Option<u64>,
-
-    /// maximum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_delay: Option<u64>,
-}
-
-#[derive(Serialize, Default)]
-pub struct JoinAndConfigureOptions {
-    #[serde(flatten)]
-    pub join_options: VideoRoomPublisherJoinOptions,
-    #[serde(flatten)]
-    pub configure_options: VideoRoomConfigurePublisherOptions,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomPublishOptions {
-    /// audio codec to prefer among the negotiated ones
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiocodec: Option<VideoRoomAudioCodec>,
-
-    /// video codec to prefer among the negotiated ones
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub videocodec: Option<VideoRoomVideoCodec>,
-
-    /// bitrate cap to return via REMB
-    /// overrides the global room value if present
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub bitrate: Option<u64>,
-
-    /// whether this publisher should be recorded or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<bool>,
-
-    /// if recording, the base path/file to use for the recording files
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub filename: Option<String>,
-
-    /// display name to use in the room
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display: Option<String>,
-
-    /// if provided, override the room audio_level_average for this user
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_level_average: Option<u64>,
-
-    /// if provided, override the room audio_active_packets for this user
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_active_packets: Option<u64>,
-
-    /// descriptions (names) for the published streams
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub descriptions: Vec<VideoRoomPublishDescription>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomPublishDescription {
-    /// unique mid of a stream being published
-    pub mid: String,
-
-    /// text description of the stream (e.g., My front webcam)
-    pub description: String,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomConfigureSubscriberOptions {
-    /// list of streams to configure
-    pub streams: Vec<VideoRoomConfigureSubscriberStream>,
-    /// trigger an ICE restart
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub restart: Option<bool>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomConfigureSubscriberStream {
-    /// mid of the m-line to refer to
-    pub mid: String,
-
-    /// depending on whether the mindex media should be relayed or not
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub send: Option<bool>,
-
-    /// substream to receive (0-2), in case simulcasting is enabled
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub substream: Option<u64>,
-
-    /// temporal layers to receive (0-2), in case simulcasting is enabled
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temporal: Option<u64>,
-
-    /// How much time (in us, default 250000) without receiving packets will make us drop to the substream below
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fallback: Option<u64>,
-
-    /// spatial layer to receive (0-2), in case SVC is enabled
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub spacial_layer: Option<u64>,
-
-    /// temporal layers to receive (0-2), in case SVC is enabled
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub temporal_layer: Option<u64>,
-
-    /// if provided, overrides the room `audio_level_average` for this user
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_level_average: Option<u64>,
-
-    /// if provided, overrides the room `audio_active_packets` for this user
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audio_active_packets: Option<u64>,
-
-    /// minimum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub min_delay: Option<u64>,
-
-    /// maximum delay to enforce via the playout-delay RTP extension, in blocks of 10ms
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_delay: Option<u64>,
-}
-
-#[derive(Serialize)]
-pub struct VideoRoomSwitchStream {
-    /// unique ID of the publisher the new source is from
-    pub feed: JanusId,
-
-    /// unique mid of the source we want to switch to
-    pub mid: String,
-
-    /// unique mid of the stream we want to pipe the new source to
-    pub sub_mid: String,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomRtpForwardOptions {
-    /// unique numeric ID of the publisher to relay externally
-    pub publisher_id: JanusId,
-
-    /// host address to forward the RTP and data packets to
-    pub host: String,
-
-    /// ipv4|ipv6, if we need to resolve the host address to an IP; by default, whatever we get
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub host_family: Option<String>,
-
-    pub streams: Vec<VideoRoomRtpForwardStream>,
-
-    /// length of authentication tag (32 or 80); optional
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub srtp_suite: Option<u16>,
-
-    /// key to use as crypto (base64 encoded key as in SDES); optional
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub srtp_crypto: Option<String>,
-}
-
-#[derive(Serialize, Default)]
-pub struct VideoRoomRtpForwardStream {
-    /// mid of publisher stream to forward
-    pub mid: String,
-
-    /// host address to forward the packets to; optional, will use global one if missing
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub host: Option<String>,
-
-    /// optional, will use global one if missing
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub host_family: Option<String>,
-
-    /// port to forward the packets to
-    pub port: u16,
-
-    /// SSRC to use when forwarding; optional, and only for RTP streams, not data
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ssrc: Option<String>,
-
-    /// payload type to use when forwarding; optional, and only for RTP streams, not data
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pt: Option<String>,
-
-    /// port to contact to receive RTCP feedback from the recipient; optional, and only for RTP streams, not data
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rtcp_port: Option<u16>,
-
-    /// set to true if the source is simulcast and you want the forwarder to act as a regular viewer
-    /// (single stream being forwarded) or false otherwise (substreams forwarded separately); optional, default=false
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub simulcast: Option<bool>,
-
-    /// if video and simulcasting, port to forward the packets from the second substream/layer to
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub port_2: Option<u16>,
-
-    /// if video and simulcasting, SSRC to use the second substream/layer; optional
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ssrc_2: Option<String>,
-
-    /// if video and simulcasting, payload type to use the second substream/layer; optional
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pt_2: Option<String>,
-
-    /// if video and simulcasting, port to forward the packets from the third substream/layer to
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub port_3: Option<u16>,
-
-    /// if video and simulcasting, SSRC to use the third substream/layer; optional
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ssrc_3: Option<String>,
-
-    /// if video and simulcasting, payload type to use the third substream/layer; optional
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pt_3: Option<String>,
-}
+make_dto!(
+    VideoRoomRtpForwardStream,
+    required {
+        /// mid of publisher stream to forward
+        mid: String,
+        /// port to forward the packets to
+        port: u16
+    },
+    optional {
+        /// host address to forward the packets to; optional, will use global one if missing
+        host: String,
+        host_family: String,
+        /// SSRC to use when forwarding; optional, and only for RTP streams, not data
+        ssrc: String,
+        /// payload type to use when forwarding; optional, and only for RTP streams, not data
+        pt: String,
+        /// port to contact to receive RTCP feedback from the recipient; optional, and only for RTP streams, not data
+        rtcp_port: String,
+        /// set to true if the source is simulcast and you want the forwarder to act as a regular viewer
+        /// (single stream being forwarded) or false otherwise (substreams forwarded separately); optional, default=false
+        simulcast: bool,
+        /// if video and simulcasting, port to forward the packets from the second substream/layer to
+        port_2: u16,
+        /// if video and simulcasting, SSRC to use the second substream/layer
+        ssrc_2: String,
+        /// if video and simulcasting, payload type to use the second substream/layer
+        pt_2: String,
+        /// if video and simulcasting, port to forward the packets from the third substream/layer to
+        port_3: u16,
+        /// if video and simulcasting, SSRC to use the third substream/layer
+        ssrc_3: String,
+        /// if video and simulcasting, payload type to use the third substream/layer
+        pt_3: String
+    }
+);

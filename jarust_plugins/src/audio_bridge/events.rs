@@ -1,6 +1,6 @@
 use super::common::AudioBridgeParticipant;
 use crate::JanusId;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::JaResponse;
@@ -48,7 +48,7 @@ pub enum AudioBridgeEvent {
         id: JanusId,
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
-        establishment_protocol: EstablishmentProtocol,
+        estproto: EstProto,
     },
     RoomJoined {
         id: JanusId,
@@ -89,15 +89,13 @@ impl TryFrom<JaResponse> for PluginEvent {
                             id,
                             room,
                             participants,
-                        } => match value.establishment_protocol {
-                            Some(establishment_protocol) => {
-                                AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                                    id,
-                                    room,
-                                    participants,
-                                    establishment_protocol,
-                                }
-                            }
+                        } => match value.estproto {
+                            Some(estproto) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
+                                id,
+                                room,
+                                participants,
+                                estproto,
+                            },
                             None => AudioBridgeEvent::RoomJoined {
                                 id,
                                 room,
@@ -136,7 +134,7 @@ mod tests {
     use super::PluginEvent;
     use crate::audio_bridge::events::AudioBridgeEvent;
     use crate::JanusId;
-    use jarust_interface::japrotocol::EstablishmentProtocol;
+    use jarust_interface::japrotocol::EstProto;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
     use jarust_interface::japrotocol::Jsep;
@@ -160,7 +158,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -190,7 +188,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: Some(EstablishmentProtocol::JSEP(Jsep {
+            estproto: Some(EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
@@ -206,7 +204,7 @@ mod tests {
                 id: JanusId::Uint(7513785212278430),
                 room: JanusId::Uint(6846571539994870),
                 participants: vec![],
-                establishment_protocol: EstablishmentProtocol::JSEP(Jsep {
+                estproto: EstProto::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),
@@ -228,7 +226,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -257,7 +255,7 @@ mod tests {
                     })),
                 },
             }),
-            establishment_protocol: None,
+            estproto: None,
             transaction: None,
             session_id: None,
             sender: None,

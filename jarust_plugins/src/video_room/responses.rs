@@ -157,7 +157,7 @@ pub struct RtpForwarderStream {
     pub strp: Option<bool>,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AttachedStream {
     /// unique mindex of published stream
     pub mindex: u64,

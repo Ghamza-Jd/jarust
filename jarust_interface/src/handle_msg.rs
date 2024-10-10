@@ -1,4 +1,4 @@
-use super::japrotocol::EstablishmentProtocol;
+use super::japrotocol::EstProto;
 use serde_json::Value;
 use std::time::Duration;
 
@@ -15,17 +15,17 @@ pub struct HandleMessageWithTimeout {
     pub timeout: Duration,
 }
 
-pub struct HandleMessageWithEstablishment {
+pub struct HandleMessageWithEst {
     pub session_id: u64,
     pub handle_id: u64,
     pub body: Value,
-    pub protocol: EstablishmentProtocol,
+    pub estproto: EstProto,
 }
 
-pub struct HandleMessageWithEstablishmentAndTimeout {
+pub struct HandleMessageWithEstAndTimeout {
     pub session_id: u64,
     pub handle_id: u64,
     pub body: Value,
     pub timeout: Duration,
-    pub protocol: EstablishmentProtocol,
+    pub estproto: EstProto,
 }

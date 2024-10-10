@@ -5,7 +5,7 @@ use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
 use jarust_plugins::echo_test::jahandle_ext::EchoTest;
-use jarust_plugins::echo_test::msg_options::EchoTestStartOptions;
+use jarust_plugins::echo_test::params::EchoTestStartParams;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -21,11 +21,12 @@ async fn main() -> anyhow::Result<()> {
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
-    let capacity = 32;
-    let config = JaConfig::builder()
-        .url("wss://janus.conf.meetecho.com/ws")
-        .capacity(capacity)
-        .build();
+    let config = JaConfig {
+        url: "ws://localhsot:8188/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
@@ -38,10 +39,10 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 
     handle
-        .start(EchoTestStartOptions {
+        .start(EchoTestStartParams {
             audio: true,
             video: true,
-            ..Default::default()
+            bitrate: None,
         })
         .await?;
 
@@ -50,11 +51,8 @@ async fn main() -> anyhow::Result<()> {
             PluginEvent::EchoTestEvent(EchoTestEvent::Result { result, .. }) => {
                 tracing::info!("result: {result}");
             }
-            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEstablishment {
-                establishment_protocol,
-                ..
-            }) => {
-                tracing::info!("establishment_protocol: {establishment_protocol:#?}");
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst { estproto, .. }) => {
+                tracing::info!("estproto: {estproto:#?}");
             }
             PluginEvent::EchoTestEvent(EchoTestEvent::Error { error_code, error }) => {
                 tracing::warn!("error: {{ error_code: {error_code}, error: {error} }}");

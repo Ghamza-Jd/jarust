@@ -3,7 +3,9 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust_plugins::audio_bridge::msg_options::AudioBridgeMuteOptions;
+use jarust_plugins::audio_bridge::params::AudioBridgeJoinRoomParams;
+use jarust_plugins::audio_bridge::params::AudioBridgeJoinRoomParamsOptional;
+use jarust_plugins::audio_bridge::params::AudioBridgeMuteParams;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -19,12 +21,12 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let timeout = std::time::Duration::from_secs(10);
-    let config = JaConfig::builder()
-        .url("ws://localhost:8188/ws")
-        .capacity(
-            32, /* Buffer size on the entire connection with janus */
-        )
-        .build();
+    let config = JaConfig {
+        url: "ws://localhsot:8188/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
@@ -48,14 +50,15 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Rooms {:#?}", rooms);
 
-    handle
-        .join_room(
-            create_room_rsp.room.clone(),
-            Default::default(),
-            None,
-            timeout,
-        )
-        .await?;
+    let join_room_params = AudioBridgeJoinRoomParams {
+        room: create_room_rsp.room.clone(),
+        optional: AudioBridgeJoinRoomParamsOptional {
+            display: Some("value".to_string()),
+            ..Default::default()
+        },
+    };
+
+    handle.join_room(join_room_params, None, timeout).await?;
 
     let list_participants_rsp = handle
         .list_participants(create_room_rsp.room, timeout)
@@ -70,7 +73,7 @@ async fn main() -> anyhow::Result<()> {
     use jarust_plugins::audio_bridge::events::PluginEvent as PE;
     if let Some(PE::AudioBridgeEvent(ABE::RoomJoined { id, room, .. })) = events.recv().await {
         handle
-            .mute(AudioBridgeMuteOptions {
+            .mute(AudioBridgeMuteParams {
                 id: id.clone(),
                 room: room.clone(),
                 secret: None,
@@ -78,9 +81,9 @@ async fn main() -> anyhow::Result<()> {
             .await?;
 
         handle
-            .unmute(AudioBridgeMuteOptions {
-                id,
-                room,
+            .unmute(AudioBridgeMuteParams {
+                id: id.clone(),
+                room: room.clone(),
                 secret: None,
             })
             .await?;

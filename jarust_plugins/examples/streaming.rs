@@ -3,7 +3,7 @@ use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::streaming::jahandle_ext::Streaming;
-use jarust_plugins::streaming::msg_options::*;
+use jarust_plugins::streaming::params::*;
 use jarust_plugins::JanusId;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
@@ -20,10 +20,12 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let timeout = std::time::Duration::from_secs(10);
-    let config = JaConfig::builder()
-        .url("ws://localhost:8188/ws")
-        .capacity(32)
-        .build();
+    let config = JaConfig {
+        url: "ws://localhsot:8188/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
@@ -41,21 +43,27 @@ async fn main() -> anyhow::Result<()> {
     });
 
     let mountpoint_id = handle
-        .create_mountpoint_with_config(
-            StreamingCreateOptions {
-                id: Some(JanusId::Uint(1337)),
-                name: Some("stream name".to_string()),
-                description: Some("stream description".to_string()),
-                mountpoint_type: "rtp".to_string(),
-                media: Some(Vec::from([StreamingRtpMedia {
-                    media_type: "video".to_string(),
-                    mid: "v".to_string(),
-                    port: 0,
-                    pt: Some(100),
-                    codec: Some("vp8".to_string()),
+        .create_mountpoint(
+            StreamingCreateParams {
+                mountpoint_type: StreamingMountpointType::RTP,
+                optional: StreamingCreateParamsOptional {
+                    id: Some(JanusId::Uint(1337)),
+                    name: Some(String::from("stream name")),
+                    description: Some(String::from("stream description")),
+                    media: Some(vec![StreamingRtpMedia {
+                        required: StreamingRtpMediaRequired {
+                            media_type: StreamingRtpMediaType::VIDEO,
+                            mid: String::from("v"),
+                            port: 0,
+                        },
+                        optional: StreamingRtpMediaOptional {
+                            pt: Some(100),
+                            codec: Some(String::from("vp8")),
+                            ..Default::default()
+                        },
+                    }]),
                     ..Default::default()
-                }])),
-                ..Default::default()
+                },
             },
             timeout,
         )
@@ -70,7 +78,13 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Info: {:#?}", info);
 
     handle
-        .destroy_mountpoint(mountpoint_id, Default::default(), timeout)
+        .destroy_mountpoint(
+            StreamingDestroyParams {
+                id: mountpoint_id,
+                optional: Default::default(),
+            },
+            timeout,
+        )
         .await?;
 
     Ok(())

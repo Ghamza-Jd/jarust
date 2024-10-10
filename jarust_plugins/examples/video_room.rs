@@ -1,13 +1,12 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::jaconnection::CreateConnectionParams;
-use jarust_interface::japrotocol::EstablishmentProtocol;
+use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::msg_options::*;
-use jarust_plugins::JanusId;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -23,10 +22,12 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
     let timeout = std::time::Duration::from_secs(10);
-    let config = JaConfig::builder()
-        .url("ws://localhost:8188/ws")
-        .capacity(32)
-        .build();
+    let config = JaConfig {
+        url: "ws://localhsot:8188/ws".to_string(),
+        apisecret: None,
+        server_root: "janus".to_string(),
+        capacity: 32,
+    };
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
@@ -45,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
 
     let room_id = handle
         .create_room_with_config(
-            VideoRoomCreateOptions {
+            VideoRoomCreateParams {
                 audiocodec: Some("opus".to_string()),
                 videocodec: Some("h264".to_string()),
                 notify_joining: Some(true),
@@ -58,10 +59,9 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .edit_room(
-            room_id.clone(),
-            VideoRoomEditOptions {
-                new_description: Some("A brand new description!".to_string()),
-                ..Default::default()
+            VideoRoomEditParams {
+                room: room_id.clone(),
+                optional: Default::default(),
             },
             timeout,
         )
@@ -78,51 +78,65 @@ async fn main() -> anyhow::Result<()> {
 
     let allowed_enable = handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Enable,
-            vec![],
-            Default::default(),
+            VideoRoomAllowedParams {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Enable,
+                allowed: vec![],
+                secret: None,
+            },
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_enable.allowed);
     let allowed_add = handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Add,
-            vec!["teststring".to_string(), "removeme".to_string()],
-            Default::default(),
+            VideoRoomAllowedParams {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Add,
+                allowed: vec!["teststring".to_string(), "removeme".to_string()],
+                secret: None,
+            },
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_add.allowed);
     let allowed_remove = handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Remove,
-            vec!["removeme".to_string()],
-            Default::default(),
+            VideoRoomAllowedParams {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Remove,
+                allowed: vec!["removeme".to_string()],
+                secret: None,
+            },
             timeout,
         )
         .await?;
     tracing::info!("Allowed list: {:#?}", allowed_remove.allowed);
     handle
         .allowed(
-            room_id.clone(),
-            VideoRoomAllowedAction::Disable,
-            vec![],
-            Default::default(),
+            VideoRoomAllowedParams {
+                room: room_id.clone(),
+                action: VideoRoomAllowedAction::Disable,
+                allowed: vec![],
+                secret: None,
+            },
             timeout,
         )
         .await?;
 
     handle
         .join_as_publisher(
-            room_id.clone(),
-            VideoRoomPublisherJoinOptions {
-                id: Some(JanusId::Uint(1337)),
-                display: Some("xX1337-StreamerXx".into()),
-                token: None,
+            // VideoRoomPublisherJoinOptions::builder()
+            //     .room(room_id.clone())
+            //     .id(JanusId::Uint(1337))
+            //     .display("xX1337-StreamerXx".to_string())
+            //     .build(),
+            VideoRoomPublisherJoinParams {
+                room: room_id.clone(),
+                optional: VideoRoomPublisherJoinParamsOptional {
+                    display: Some(String::from("Publisher name")),
+                    token: None,
+                },
             },
             None,
             timeout,
@@ -131,22 +145,21 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .publish(
-            EstablishmentProtocol::JSEP(Jsep {
+            VideoRoomPublishParams {
+                audiocodec: Some(VideoRoomAudioCodec::OPUS),
+                videocoded: Some(VideoRoomVideoCodec::H264),
+                bitrate: Some(3500),
+                descriptions: Some(vec![VideoRoomPublishDescription {
+                    mid: String::from("stream-0"),
+                    description: String::from("The ultimate stream!"),
+                }]),
+                ..Default::default()
+            },
+            EstProto::JSEP(Jsep {
                 jsep_type: JsepType::Offer,
                 trickle: Some(false),
                 sdp: EXAMPLE_SDP_OFFER.to_string(),
             }),
-            VideoRoomPublishOptions {
-                audiocodec: Some(VideoRoomAudioCodec::OPUS),
-                videocodec: Some(VideoRoomVideoCodec::H264),
-                bitrate: Some(3500),
-                record: Some(false),
-                descriptions: vec![VideoRoomPublishDescription {
-                    mid: "stream-0".to_string(),
-                    description: "The ultimate stream!!".to_string(),
-                }],
-                ..Default::default()
-            },
             timeout,
         )
         .await?;
@@ -170,7 +183,13 @@ async fn main() -> anyhow::Result<()> {
     );
 
     handle
-        .destroy_room(room_id, Default::default(), timeout)
+        .destroy_room(
+            VideoRoomDestroyParams {
+                room: room_id,
+                optional: Default::default(),
+            },
+            timeout,
+        )
         .await?;
 
     Ok(())

@@ -1,4 +1,4 @@
-use crate::streaming::msg_options::*;
+use crate::streaming::params::*;
 use crate::streaming::responses::*;
 use crate::JanusId;
 use jarust::prelude::*;
@@ -20,27 +20,11 @@ impl StreamingHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_mountpoint(
         &self,
-        mountpoint: Option<JanusId>,
-        timeout: Duration,
-    ) -> Result<MountpointCreatedRsp, jarust_interface::Error> {
-        self.create_mountpoint_with_config(
-            StreamingCreateOptions {
-                id: mountpoint,
-                ..Default::default()
-            },
-            timeout,
-        )
-        .await
-    }
-
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn create_mountpoint_with_config(
-        &self,
-        options: StreamingCreateOptions,
+        params: StreamingCreateParams,
         timeout: Duration,
     ) -> Result<MountpointCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending create");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "create".into();
 
         self.handle
@@ -51,14 +35,12 @@ impl StreamingHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_mountpoint(
         &self,
-        mountpoint: JanusId,
-        options: StreamingDestroyOptions,
+        params: StreamingDestroyParams,
         timeout: Duration,
     ) -> Result<MountpointDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "streaming", "Sending destroy");
-        let mut message: Value = options.try_into()?;
+        let mut message: Value = params.try_into()?;
         message["request"] = "destroy".into();
-        message["id"] = mountpoint.try_into()?;
 
         self.handle
             .send_waiton_rsp::<MountpointDestroyedRsp>(message, timeout)
@@ -73,12 +55,7 @@ impl StreamingHandle {
         tracing::info!(plugin = "streaming", "Sending list");
         let response = self
             .handle
-            .send_waiton_rsp::<ListMountpointsRsp>(
-                json!({
-                    "request": "list"
-                }),
-                timeout,
-            )
+            .send_waiton_rsp::<ListMountpointsRsp>(json!({"request": "list"}), timeout)
             .await?;
 
         Ok(response.list)
@@ -114,10 +91,7 @@ impl StreamingHandle {
     // recording
 }
 
-//
-// asynchronous methods
-//
-// TODO
+// TODO: async methods
 
 impl PluginTask for StreamingHandle {
     fn assign_task(&mut self, task: JaTask) {
