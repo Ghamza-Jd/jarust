@@ -13,6 +13,8 @@ macro_rules! make_dto {
         compile_error!("Overkill, try passing the field directly instead of creating a DTO for it");
     };
 
+    // Arguably overkill, we can pass 2 params to the function instead of constructing a DTO
+    // But can be useful for simple named params
     (
         $(#[$main_attr:meta])* $main:ident,
         required { $(#[$rfield_attr:meta])* $rfield:ident: $rtype:ty },
