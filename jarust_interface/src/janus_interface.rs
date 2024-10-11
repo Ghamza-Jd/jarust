@@ -6,7 +6,7 @@ use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::PluginInnerData;
 use crate::japrotocol::ResponseType;
-use crate::respones::ServerInfoRsp;
+use crate::japrotocol::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
 use crate::Error;
 use serde::de::DeserializeOwned;

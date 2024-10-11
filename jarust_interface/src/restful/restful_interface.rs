@@ -8,7 +8,7 @@ use crate::japrotocol::EstProto;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
-use crate::respones::ServerInfoRsp;
+use crate::japrotocol::ServerInfoRsp;
 use crate::tgenerator::GenerateTransaction;
 use crate::tgenerator::TransactionGenerator;
 use crate::Error;

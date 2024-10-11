@@ -13,7 +13,7 @@ mod tests {
     use jarust_interface::japrotocol::JaData;
     use jarust_interface::japrotocol::JaSuccessProtocol;
     use jarust_interface::japrotocol::ResponseType;
-    use jarust_interface::respones::ServerInfoRsp;
+    use jarust_interface::japrotocol::ServerInfoRsp;
     use std::collections::HashMap;
     use std::time::Duration;
 
