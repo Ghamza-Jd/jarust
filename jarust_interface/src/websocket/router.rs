@@ -29,7 +29,7 @@ pub(crate) struct Router {
 
 impl Router {
     #[tracing::instrument(level = tracing::Level::TRACE)]
-    pub(crate) async fn new(root_path: &str) -> (Self, mpsc::UnboundedReceiver<JaResponse>) {
+    pub(crate) fn new(root_path: &str) -> Self {
         let shared = Shared {
             root_path: root_path.to_string(),
         };
@@ -40,10 +40,9 @@ impl Router {
             shared,
             exclusive: RwLock::new(exclusive),
         });
-        let mut jarouter = Self { inner };
-        let channel = jarouter.make_root_route().await;
-        tracing::trace!("created new JaRouter");
-        (jarouter, channel)
+        let router = Self { inner };
+        tracing::trace!("created new Router");
+        router
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip(self))]
@@ -59,11 +58,6 @@ impl Router {
         }
         tracing::trace!("New route created");
         rx
-    }
-
-    async fn make_root_route(&mut self) -> mpsc::UnboundedReceiver<JaResponse> {
-        let path = self.inner.shared.root_path.clone();
-        self.make_route(&path).await
     }
 
     pub(crate) async fn add_subroute(&mut self, end: &str) -> mpsc::UnboundedReceiver<JaResponse> {
@@ -86,11 +80,6 @@ impl Router {
         Ok(())
     }
 
-    pub(crate) async fn pub_root(&self, message: JaResponse) -> Result<(), Error> {
-        let path = self.inner.shared.root_path.clone();
-        self.publish(&path, message).await
-    }
-
     pub(crate) async fn pub_subroute(
         &self,
         subroute: &str,
@@ -102,10 +91,6 @@ impl Router {
 }
 
 impl Router {
-    pub fn root_path(&self) -> String {
-        self.inner.shared.root_path.clone()
-    }
-
     pub fn path_from_request(request: &Value) -> Option<String> {
         if let (Some(session_id), Some(handle_id)) = (
             request["session_id"].as_u64(),
@@ -136,33 +121,41 @@ mod tests {
 
     #[tokio::test]
     async fn test_basic_usage() {
-        let (mut router, mut root_channel) = Router::new("janus").await;
-        let mut channel_one = router.add_subroute("123").await;
+        let mut router = Router::new("janus");
+        let mut channel_one = router.add_subroute("one").await;
+        let mut channel_two = router.add_subroute("two").await;
 
         router
-            .pub_root(JaResponse {
-                janus: ResponseType::Ack,
-                transaction: None,
-                session_id: None,
-                sender: None,
-                estproto: None,
-            })
-            .await
-            .unwrap();
-        router
-            .pub_root(JaResponse {
-                janus: ResponseType::Ack,
-                transaction: None,
-                session_id: None,
-                sender: None,
-                estproto: None,
-            })
+            .pub_subroute(
+                "one",
+                JaResponse {
+                    janus: ResponseType::Ack,
+                    transaction: None,
+                    session_id: None,
+                    sender: None,
+                    estproto: None,
+                },
+            )
             .await
             .unwrap();
 
         router
             .pub_subroute(
-                "123",
+                "two",
+                JaResponse {
+                    janus: ResponseType::Ack,
+                    transaction: None,
+                    session_id: None,
+                    sender: None,
+                    estproto: None,
+                },
+            )
+            .await
+            .unwrap();
+
+        router
+            .pub_subroute(
+                "two",
                 JaResponse {
                     janus: ResponseType::Ack,
                     transaction: None,
@@ -175,12 +168,11 @@ mod tests {
             .unwrap();
 
         let mut buff_one = vec![];
-        let size_one = root_channel.recv_many(&mut buff_one, 10).await;
-
         let mut buff_two = vec![];
-        let size_two = channel_one.recv_many(&mut buff_two, 10).await;
+        let size_one = channel_one.recv_many(&mut buff_one, 10).await;
+        let size_two = channel_two.recv_many(&mut buff_two, 10).await;
 
-        assert_eq!(size_one, 2);
-        assert_eq!(size_two, 1);
+        assert_eq!(size_one, 1);
+        assert_eq!(size_two, 2);
     }
 }
