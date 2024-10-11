@@ -10,7 +10,7 @@ use jarust_interface::janus_interface::ConnectionParams;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::japrotocol::JaSuccessProtocol;
 use jarust_interface::japrotocol::ResponseType;
-use jarust_interface::respones::ServerInfoRsp;
+use jarust_interface::japrotocol::ServerInfoRsp;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;

@@ -2,7 +2,7 @@ use crate::jasession::JaSession;
 use crate::jasession::NewSessionParams;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
-use jarust_interface::respones::ServerInfoRsp;
+use jarust_interface::japrotocol::ServerInfoRsp;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
