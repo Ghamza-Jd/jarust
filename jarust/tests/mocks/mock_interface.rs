@@ -4,8 +4,6 @@ use jarust::GenerateTransaction;
 use jarust_interface::error::Error;
 use jarust_interface::handle_msg::HandleMessage;
 use jarust_interface::handle_msg::HandleMessageWithEst;
-use jarust_interface::handle_msg::HandleMessageWithEstAndTimeout;
-use jarust_interface::handle_msg::HandleMessageWithTimeout;
 use jarust_interface::janus_interface::ConnectionParams;
 use jarust_interface::janus_interface::JanusInterface;
 use jarust_interface::japrotocol::JaSuccessProtocol;
@@ -169,14 +167,16 @@ impl JanusInterface for MockInterface {
 
     async fn send_msg_waiton_ack(
         &self,
-        _message: HandleMessageWithTimeout,
+        _message: HandleMessage,
+        _timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
         todo!("Send message wait on ack is not implemented");
     }
 
     async fn internal_send_msg_waiton_rsp(
         &self,
-        _message: HandleMessageWithTimeout,
+        _message: HandleMessage,
+        _timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
         todo!("Internal send message wait on response is not implemented");
     }
@@ -190,7 +190,8 @@ impl JanusInterface for MockInterface {
 
     async fn send_msg_waiton_ack_with_est(
         &self,
-        _message: HandleMessageWithEstAndTimeout,
+        _message: HandleMessageWithEst,
+        _timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
         todo!("Send message wait on ack with establishment is not implemented");
     }
