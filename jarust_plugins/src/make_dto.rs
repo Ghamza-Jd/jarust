@@ -1,3 +1,51 @@
+/// DTO creation macro for jarust_plugins
+///
+/// [`make_dto!`] takes a name for the struct, a list of required fields and a list of optional fields
+/// and create the DTO struct, derive useful traits and implements [`TryFrom`] for [`serde_json::Value`] using [`impl_tryfrom_serde_value!`]
+/// so we can easily convert a [`serde_json::Value`] to the struct by using `let message: serde_json::Value = dto.try_into().unwrap();`
+///
+/// The macro behaves differently depending on the number of required and optional fields:
+///
+/// - A struct with a single required feild and a single optional field will keep the required and the optional at the top level struct
+/// - A struct with a single required field but multiple optional fields will keep the required at the top level
+///     but will create a separate struct for the optional fields
+/// - A struct with multiple required fields and a single optional field will keep the required fileds and the optional
+///     field at the top level
+/// - A struct with multiple required fields and multiple optional fields will create seperate struct for the required fields
+///     and a seperate struct for the optional fields
+///
+/// ## Example
+///
+/// ```rust
+/// make_dto!(User, required { id: u64, name: String}, optional { nickname: String, job_position: String });
+/// ```
+/// This will expand to:
+///
+/// ```rust
+/// #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
+/// pub struct UserRequired {
+///     id: u64,
+///     name: String
+/// }
+///
+/// #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, serde::Serialize)]
+/// pub struct UserOptional {
+///     #[serde(skip_serializing_if = "Option::is_none")]
+///     nickname: Option<String>,
+///     #[serde(skip_serializing_if = "Option::is_none")]
+///     job_position: Option<String>
+/// }
+///
+/// #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
+/// pub struct User {
+///     #[serde(flatten)]
+///     required: UserRequired,
+///     #[serde(flatten)]
+///     optional: UserOptional
+/// }
+///
+/// impl_tryfrom_serde_value!(User UserOptional UserRequired);
+/// ```
 macro_rules! make_dto {
     (
         $(#[$main_attr:meta])* $main:ident,
