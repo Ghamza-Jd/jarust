@@ -1,7 +1,5 @@
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEst;
-use crate::handle_msg::HandleMessageWithEstAndTimeout;
-use crate::handle_msg::HandleMessageWithTimeout;
 use crate::janus_interface::ConnectionParams;
 use crate::janus_interface::JanusInterface;
 use crate::japrotocol::EstProto;
@@ -263,7 +261,8 @@ impl JanusInterface for RestfulInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
@@ -280,7 +279,7 @@ impl JanusInterface for RestfulInterface {
             .client
             .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
-            .timeout(message.timeout)
+            .timeout(timeout)
             .send()
             .await?
             .json::<JaResponse>()
@@ -290,7 +289,8 @@ impl JanusInterface for RestfulInterface {
 
     async fn internal_send_msg_waiton_rsp(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
@@ -307,7 +307,7 @@ impl JanusInterface for RestfulInterface {
             .client
             .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
-            .timeout(message.timeout)
+            .timeout(timeout)
             .send()
             .await?
             .json::<JaResponse>()
@@ -350,7 +350,8 @@ impl JanusInterface for RestfulInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEstAndTimeout,
+        message: HandleMessageWithEst,
+        timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
@@ -375,6 +376,7 @@ impl JanusInterface for RestfulInterface {
             .client
             .post(format!("{url}/{session_id}/{handle_id}"))
             .json(&request)
+            .timeout(timeout)
             .send()
             .await?
             .json::<JaResponse>()

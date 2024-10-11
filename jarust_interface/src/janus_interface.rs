@@ -1,7 +1,5 @@
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEst;
-use crate::handle_msg::HandleMessageWithEstAndTimeout;
-use crate::handle_msg::HandleMessageWithTimeout;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::PluginInnerData;
@@ -70,7 +68,8 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// Sends a message and waits for acknowledgment.
     async fn send_msg_waiton_ack(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<JaResponse, Error>;
 
     /// Internal method to send a message and wait for the response. Ideally, this shouldn't be internal,
@@ -84,7 +83,8 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// [Why are trait methods with generic type parameters are object unsafe](https://stackoverflow.com/questions/67767207/why-are-trait-methods-with-generic-type-parameters-object-unsafe)
     async fn internal_send_msg_waiton_rsp(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<JaResponse, Error>;
 
     /// Sends a one-shot message with establishment.
@@ -96,7 +96,8 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// Sends a message and waits for acknowledgment with establishment.
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEstAndTimeout,
+        message: HandleMessageWithEst,
+        timeout: Duration,
     ) -> Result<JaResponse, Error>;
 
     /// Returns the name of the interface (for the debug trait)
@@ -129,12 +130,13 @@ impl JanusInterfaceImpl {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn send_msg_waiton_rsp<R>(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<R, Error>
     where
         R: DeserializeOwned,
     {
-        let response = self.internal_send_msg_waiton_rsp(message).await?;
+        let response = self.internal_send_msg_waiton_rsp(message, timeout).await?;
         let result = match response.janus {
             ResponseType::Success(JaSuccessProtocol::Plugin { plugin_data }) => {
                 match plugin_data.data {

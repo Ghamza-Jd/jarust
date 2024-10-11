@@ -1,7 +1,5 @@
 use jarust_interface::handle_msg::HandleMessage;
 use jarust_interface::handle_msg::HandleMessageWithEst;
-use jarust_interface::handle_msg::HandleMessageWithEstAndTimeout;
-use jarust_interface::handle_msg::HandleMessageWithTimeout;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
 use jarust_interface::japrotocol::Candidate;
 use jarust_interface::japrotocol::EstProto;
@@ -67,12 +65,14 @@ impl JaHandle {
         let res = self
             .inner
             .interface
-            .send_msg_waiton_rsp(HandleMessageWithTimeout {
-                session_id: self.inner.session_id,
-                handle_id: self.inner.id,
-                body,
+            .send_msg_waiton_rsp(
+                HandleMessage {
+                    session_id: self.inner.session_id,
+                    handle_id: self.inner.id,
+                    body,
+                },
                 timeout,
-            })
+            )
             .await?;
         Ok(res)
     }
@@ -88,12 +88,14 @@ impl JaHandle {
         let ack = self
             .inner
             .interface
-            .send_msg_waiton_ack(HandleMessageWithTimeout {
-                session_id: self.inner.session_id,
-                handle_id: self.inner.id,
-                body,
+            .send_msg_waiton_ack(
+                HandleMessage {
+                    session_id: self.inner.session_id,
+                    handle_id: self.inner.id,
+                    body,
+                },
                 timeout,
-            })
+            )
             .await?;
         Ok(ack)
     }
@@ -110,13 +112,15 @@ impl JaHandle {
         let ack = self
             .inner
             .interface
-            .send_msg_waiton_ack_with_est(HandleMessageWithEstAndTimeout {
-                session_id: self.inner.session_id,
-                handle_id: self.inner.id,
-                body,
-                estproto,
+            .send_msg_waiton_ack_with_est(
+                HandleMessageWithEst {
+                    session_id: self.inner.session_id,
+                    handle_id: self.inner.id,
+                    body,
+                    estproto,
+                },
                 timeout,
-            })
+            )
             .await?;
         Ok(ack)
     }

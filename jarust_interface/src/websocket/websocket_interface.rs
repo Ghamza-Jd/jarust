@@ -5,8 +5,6 @@ use super::tmanager::TransactionManager;
 use super::websocket_client::WebSocketClient;
 use crate::handle_msg::HandleMessage;
 use crate::handle_msg::HandleMessageWithEst;
-use crate::handle_msg::HandleMessageWithEstAndTimeout;
-use crate::handle_msg::HandleMessageWithTimeout;
 use crate::janus_interface::ConnectionParams;
 use crate::janus_interface::JanusInterface;
 use crate::japrotocol::EstProto;
@@ -342,7 +340,8 @@ impl JanusInterface for WebSocketInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let request = json!({
             "janus": "message",
@@ -351,12 +350,13 @@ impl JanusInterface for WebSocketInterface {
             "body": message.body
         });
         let transaction = self.send(request).await?;
-        self.poll_ack(&transaction, message.timeout).await
+        self.poll_ack(&transaction, timeout).await
     }
 
     async fn internal_send_msg_waiton_rsp(
         &self,
-        message: HandleMessageWithTimeout,
+        message: HandleMessage,
+        timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let request = json!({
             "janus": "message",
@@ -365,7 +365,7 @@ impl JanusInterface for WebSocketInterface {
             "body": message.body
         });
         let transaction = self.send(request).await?;
-        self.poll_response(&transaction, message.timeout).await
+        self.poll_response(&transaction, timeout).await
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
@@ -394,7 +394,8 @@ impl JanusInterface for WebSocketInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEstAndTimeout,
+        message: HandleMessageWithEst,
+        timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let mut request = json!({
             "janus": "message",
@@ -411,7 +412,7 @@ impl JanusInterface for WebSocketInterface {
             }
         };
         let transaction = self.send(request).await?;
-        self.poll_ack(&transaction, message.timeout).await
+        self.poll_ack(&transaction, timeout).await
     }
 
     fn name(&self) -> Box<str> {
