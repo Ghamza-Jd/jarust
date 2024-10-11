@@ -148,7 +148,7 @@ impl JanusInterface for WebSocketInterface {
         transaction_generator: impl GenerateTransaction,
     ) -> Result<Self, Error> {
         tracing::debug!("Creating WebSocket Interface");
-        let (router, _) = Router::new(&conn_params.server_root).await;
+        let router = Router::new(&conn_params.server_root);
         let mut websocket = WebSocketClient::new();
         let receiver = websocket.connect(&conn_params.url).await?;
         let transaction_manager = TransactionManager::new(conn_params.capacity);

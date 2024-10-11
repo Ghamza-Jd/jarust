@@ -67,11 +67,7 @@ impl Demuxer {
         // Check if we have a pending transaction and demux to the proper route
         if let Some(transaction) = message.transaction.clone() {
             if let Some(path) = transaction_manager.get(&transaction).await {
-                if path == router.root_path() {
-                    router.pub_root(message).await?;
-                } else {
-                    router.pub_subroute(&path, message).await?;
-                }
+                router.pub_subroute(&path, message).await?;
                 return Ok(());
             }
         }
@@ -81,9 +77,6 @@ impl Demuxer {
             router.pub_subroute(&path, message).await?;
             return Ok(());
         }
-
-        // Fallback to publishing on the root route
-        router.pub_root(message).await?;
         Ok(())
     }
 }
