@@ -1,4 +1,4 @@
-use crate::video_room::msg_options::*;
+use crate::video_room::params::*;
 use crate::video_room::responses::*;
 use crate::JanusId;
 use jarust::prelude::*;

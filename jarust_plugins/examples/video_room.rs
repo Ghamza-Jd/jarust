@@ -6,7 +6,7 @@ use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
-use jarust_plugins::video_room::msg_options::*;
+use jarust_plugins::video_room::params::*;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
