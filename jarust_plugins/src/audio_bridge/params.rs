@@ -108,10 +108,10 @@ make_dto!(
         bitrate: u64,
         /// 0-10, Opus-related complexity to use, the higher the value, the better the quality (but more CPU); default is 4
         quality: u64,
-        /// 0-20, a percentage of the expected loss (capped at 20%), only needed in case FEC is used; optional,
+        /// 0-20, a percentage of the expected loss (capped at 20%), only needed in case FEC is used,
         /// default is 0 (FEC disabled even when negotiated) or the room default
         expected_loss: u64,
-        /// Percent value, <100 reduces volume, >100 increases volume; optional, default is 100 (no volume change)
+        /// Percent value, <100 reduces volume, >100 increases volume, default is 100 (no volume change)
         volume: u64,
         /// In case spatial audio is enabled for the room, panning of this participant (0=left, 50=center, 100=right)
         spatial_position: String,
