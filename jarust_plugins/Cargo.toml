@@ -18,28 +18,18 @@ async-trait.workspace = true
 jarust = { version = "0.7.0", path = "../jarust" }
 jarust_interface = { version = "0.7.0", path = "../jarust_interface" }
 jarust_rt = { version = "0.7.0", path = "../jarust_rt" }
+paste = "1.0.15"
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
-paste = "1.0.15"
-# TODO: Check if we should settle bon or create a custom dto generator macro
-# Answer: Will be removing bon in favour of the in-house make_dto macro
-bon = { version = "2.3.0", optional = true }
 
 [features]
-default = [
-    "echo_test",
-    "audio_bridge",
-    "video_room",
-    "streaming",
-    "option_builder",
-]
+default = ["echo_test", "audio_bridge", "video_room", "streaming"]
 echo_test = []
 audio_bridge = []
 video_room = []
 streaming = []
-option_builder = ["bon"]
 __experimental = []
 
 [dev-dependencies]
