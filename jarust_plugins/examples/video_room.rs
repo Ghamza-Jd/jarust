@@ -7,6 +7,7 @@ use jarust_interface::japrotocol::JsepType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::params::*;
+use jarust_plugins::JanusId;
 use std::path::Path;
 use tracing_subscriber::EnvFilter;
 
@@ -126,14 +127,10 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .join_as_publisher(
-            // VideoRoomPublisherJoinOptions::builder()
-            //     .room(room_id.clone())
-            //     .id(JanusId::Uint(1337))
-            //     .display("xX1337-StreamerXx".to_string())
-            //     .build(),
             VideoRoomPublisherJoinParams {
                 room: room_id.clone(),
                 optional: VideoRoomPublisherJoinParamsOptional {
+                    id: Some(JanusId::Uint(1337)),
                     display: Some(String::from("Publisher name")),
                     token: None,
                 },

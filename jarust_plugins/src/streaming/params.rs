@@ -10,6 +10,7 @@ make_dto!(
         mountpoint_type: StreamingMountpointType
     },
     optional {
+        admin_key: String,
         id: JanusId,
         name: String,
         description: String,

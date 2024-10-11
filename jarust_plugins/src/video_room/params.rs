@@ -154,6 +154,9 @@ make_dto!(
         room: JanusId
     },
     optional {
+        /// unique ID to register for the publisher;
+        /// optional, will be chosen by the plugin if missing
+        id: JanusId,
         /// display name for the publisher
         display: String,
         /// invitation token, in case the room has an ACL
@@ -272,14 +275,24 @@ make_dto!(
 );
 
 make_dto!(VideoRoomConfigurePublisherParams, optional {
+    /// bitrate cap to return via REMB;
+    /// overrides the global room value if present (unless `bitrate_cap` is set)
     bitrate: u64,
+    /// whether we should send this publisher a keyframe request
     keyframe: bool,
+    /// whether this publisher should be recorded or not
     record: bool,
+    /// if recording, the base path/file to use for the recording files
     filename: String,
+    /// new display name to use in the room
     display: String,
+    /// new `audio_active_packets` to overwrite in the room one
     audio_active_packets: u64,
+    /// new `audio_level_average` to overwrite the room one
     audio_level_average: u64,
+    /// list of streams to configure
     streams: Vec<VideoRoomConfigurePublisherStream>,
+    /// descriptions (names) for the published streams
     descriptions: Vec<VideoRoomPublishDescription>
 });
 
@@ -345,7 +358,7 @@ make_dto!(
 
 make_dto!(VideoRoomConfigureSubscriberParams,
     required {
-    /// list of streams to configure
+        /// list of streams to configure
         streams: Vec<VideoRoomConfigureSubscriberStream>
     },
     optional {
@@ -409,6 +422,8 @@ make_dto!(VideoRoomRtpForwardParams,
     optional {
         /// length of authentication tag (32 or 80)
         host_family: String,
+        /// length of authentication tag (32 or 80)
+        srtp_suite: u16,
         /// key to use as crypto (base64 encoded key as in SDES)
         srtp_crypto: String
     }
@@ -423,17 +438,17 @@ make_dto!(
         port: u16
     },
     optional {
-        /// host address to forward the packets to; optional, will use global one if missing
+        /// host address to forward the packets to, will use global one if missing
         host: String,
         host_family: String,
-        /// SSRC to use when forwarding; optional, and only for RTP streams, not data
+        /// SSRC to use when forwarding, and only for RTP streams, not data
         ssrc: String,
-        /// payload type to use when forwarding; optional, and only for RTP streams, not data
+        /// payload type to use when forwarding, and only for RTP streams, not data
         pt: String,
-        /// port to contact to receive RTCP feedback from the recipient; optional, and only for RTP streams, not data
+        /// port to contact to receive RTCP feedback from the recipient, and only for RTP streams, not data
         rtcp_port: String,
         /// set to true if the source is simulcast and you want the forwarder to act as a regular viewer
-        /// (single stream being forwarded) or false otherwise (substreams forwarded separately); optional, default=false
+        /// (single stream being forwarded) or false otherwise (substreams forwarded separately), default=false
         simulcast: bool,
         /// if video and simulcasting, port to forward the packets from the second substream/layer to
         port_2: u16,
