@@ -24,7 +24,7 @@ async fn main() -> anyhow::Result<()> {
 
     let timeout = std::time::Duration::from_secs(10);
     let config = JaConfig {
-        url: "ws://localhsot:8188/ws".to_string(),
+        url: "ws://localhost:8188/ws".to_string(),
         apisecret: None,
         server_root: "janus".to_string(),
         capacity: 32,

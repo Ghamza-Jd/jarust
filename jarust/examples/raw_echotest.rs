@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
         .init();
     let config = JaConfig {
-        url: "ws://localhsot:8188/ws".to_string(),
+        url: "ws://localhost:8188/ws".to_string(),
         apisecret: None,
         server_root: "janus".to_string(),
         capacity: 32,
