@@ -10,14 +10,6 @@ pub struct JaConnection {
     interface: JanusInterfaceImpl,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct CreateConnectionParams {
-    /// Keep alive interval in seconds
-    pub ka_interval: u32,
-    /// Request timeout
-    pub timeout: Duration,
-}
-
 impl JaConnection {
     pub(crate) async fn open(
         interface: impl JanusInterface,
@@ -32,13 +24,14 @@ impl JaConnection {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_session(
         &mut self,
-        params: CreateConnectionParams,
+        ka_interval: u32,
+        timeout: Duration,
     ) -> Result<JaSession, jarust_interface::Error> {
         tracing::info!("Creating new session");
-        let session_id = self.interface.create(params.timeout).await?;
+        let session_id = self.interface.create(timeout).await?;
         let session = JaSession::new(NewSessionParams {
             session_id,
-            ka_interval: params.ka_interval,
+            ka_interval,
             interface: self.interface.clone(),
         })
         .await;

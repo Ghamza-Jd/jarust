@@ -1,6 +1,5 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
-use jarust::jaconnection::CreateConnectionParams;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
@@ -31,10 +30,7 @@ async fn main() -> anyhow::Result<()> {
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
-        .create_session(CreateConnectionParams {
-            ka_interval: 10,
-            timeout,
-        })
+        .create_session(10, Duration::from_secs(10))
         .await?;
     let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 

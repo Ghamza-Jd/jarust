@@ -9,18 +9,11 @@ pub trait PluginTask {
     fn cancel_task(&mut self);
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct AttachHandleParams {
-    /// Janus plugin identifier
-    pub plugin_id: String,
-    /// Request timeout
-    pub timeout: Duration,
-}
-
 #[async_trait]
 pub trait Attach {
     async fn attach(
         &self,
-        params: AttachHandleParams,
+        plugin_id: String,
+        timeout: Duration,
     ) -> Result<(JaHandle, mpsc::UnboundedReceiver<JaResponse>), jarust_interface::Error>;
 }

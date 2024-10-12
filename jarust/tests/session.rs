@@ -5,8 +5,6 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust::jaconnection::CreateConnectionParams;
-    use jarust::japlugin::AttachHandleParams;
     use jarust::prelude::Attach;
     use jarust::prelude::JaResponse;
     use jarust_interface::janus_interface::ConnectionParams;
@@ -45,10 +43,7 @@ mod tests {
         interface.mock_create_rsp(response).await;
 
         let session = connection
-            .create_session(CreateConnectionParams {
-                ka_interval: 10,
-                timeout: Duration::from_secs(10),
-            })
+            .create_session(10, Duration::from_secs(10))
             .await
             .unwrap();
 
@@ -64,10 +59,7 @@ mod tests {
         interface.mock_attach_rsp(response).await;
 
         let _ = session
-            .attach(AttachHandleParams {
-                plugin_id: "mock.plugin.test".to_string(),
-                timeout: Duration::from_secs(5),
-            })
+            .attach("mock.plugin.test".to_string(), Duration::from_secs(5))
             .await
             .unwrap();
     }
@@ -100,10 +92,7 @@ mod tests {
         interface.mock_create_rsp(response).await;
 
         let session = connection
-            .create_session(CreateConnectionParams {
-                ka_interval: 10,
-                timeout: Duration::from_secs(10),
-            })
+            .create_session(10, Duration::from_secs(10))
             .await
             .unwrap();
 
@@ -122,10 +111,7 @@ mod tests {
         interface.mock_attach_rsp(response).await;
 
         let result = session
-            .attach(AttachHandleParams {
-                plugin_id: "mock.plugin.test".to_string(),
-                timeout: Duration::from_secs(5),
-            })
+            .attach("mock.plugin.test".to_string(), Duration::from_secs(5))
             .await;
         assert!(matches!(
             result,

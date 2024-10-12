@@ -1,8 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
-use jarust::jaconnection::CreateConnectionParams;
 use jarust::japlugin::Attach;
-use jarust::japlugin::AttachHandleParams;
 use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
@@ -32,16 +30,10 @@ async fn main() -> anyhow::Result<()> {
     let timeout = Duration::from_secs(10);
 
     let session = connection
-        .create_session(CreateConnectionParams {
-            ka_interval: 10,
-            timeout,
-        })
+        .create_session(10, Duration::from_secs(10))
         .await?;
     let (handle, mut event_receiver) = session
-        .attach(AttachHandleParams {
-            plugin_id: "janus.plugin.echotest".to_string(),
-            timeout,
-        })
+        .attach("janus.plugin.echotest".to_string(), timeout)
         .await?;
 
     tokio::spawn(async move {
