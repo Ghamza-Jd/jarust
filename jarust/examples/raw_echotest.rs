@@ -1,7 +1,5 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
-use jarust::jaconnection::CreateConnectionParams;
-use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::Attach;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use serde_json::json;
@@ -23,16 +21,10 @@ async fn main() -> anyhow::Result<()> {
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
-        .create_session(CreateConnectionParams {
-            ka_interval: 10,
-            timeout,
-        })
+        .create_session(10, Duration::from_secs(10))
         .await?;
     let (handle, mut event_receiver) = session
-        .attach(AttachHandleParams {
-            plugin_id: "janus.plugin.echotest".to_string(),
-            timeout,
-        })
+        .attach("janus.plugin.echotest".to_string(), timeout)
         .await?;
 
     handle
@@ -41,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
                 "video": true,
                 "audio": true,
             }),
-            std::time::Duration::from_secs(2),
+            Duration::from_secs(2),
         )
         .await?;
 

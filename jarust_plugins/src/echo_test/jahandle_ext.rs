@@ -1,6 +1,5 @@
 use super::events::PluginEvent;
 use super::handle::EchoTestHandle;
-use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use std::ops::Deref;
 use std::time::Duration;
@@ -16,10 +15,7 @@ pub trait EchoTest: Attach {
         timeout: Duration,
     ) -> Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>), jarust_interface::Error> {
         let (handle, mut receiver) = self
-            .attach(AttachHandleParams {
-                plugin_id: "janus.plugin.echotest".to_string(),
-                timeout,
-            })
+            .attach("janus.plugin.echotest".to_string(), timeout)
             .await?;
         let (tx, rx) = mpsc::unbounded_channel();
         let task = jarust_rt::spawn("echotest listener", async move {

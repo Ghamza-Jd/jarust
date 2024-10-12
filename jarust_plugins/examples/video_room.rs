@@ -1,6 +1,5 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
-use jarust::jaconnection::CreateConnectionParams;
 use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
@@ -9,6 +8,7 @@ use jarust_plugins::video_room::jahandle_ext::VideoRoom;
 use jarust_plugins::video_room::params::*;
 use jarust_plugins::JanusId;
 use std::path::Path;
+use std::time::Duration;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
@@ -22,7 +22,7 @@ async fn main() -> anyhow::Result<()> {
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
-    let timeout = std::time::Duration::from_secs(10);
+    let timeout = Duration::from_secs(10);
     let config = JaConfig {
         url: "ws://localhost:8188/ws".to_string(),
         apisecret: None,
@@ -32,10 +32,7 @@ async fn main() -> anyhow::Result<()> {
     let mut connection =
         jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
-        .create_session(CreateConnectionParams {
-            ka_interval: 10,
-            timeout,
-        })
+        .create_session(10, Duration::from_secs(10))
         .await?;
     let (handle, mut events) = session.attach_video_room(timeout).await?;
 

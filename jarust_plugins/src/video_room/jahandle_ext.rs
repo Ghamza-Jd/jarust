@@ -1,6 +1,5 @@
 use super::events::PluginEvent;
 use super::handle::VideoRoomHandle;
-use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use std::ops::Deref;
 use std::time::Duration;
@@ -16,10 +15,7 @@ pub trait VideoRoom: Attach {
         timeout: Duration,
     ) -> Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>), jarust_interface::Error> {
         let (handle, mut receiver) = self
-            .attach(AttachHandleParams {
-                plugin_id: "janus.plugin.videoroom".to_string(),
-                timeout,
-            })
+            .attach("janus.plugin.videoroom".to_string(), timeout)
             .await?;
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
         let task = jarust_rt::spawn("videoroom listener", async move {

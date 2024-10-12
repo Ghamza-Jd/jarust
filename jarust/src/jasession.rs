@@ -1,6 +1,5 @@
 use crate::jahandle::JaHandle;
 use crate::jahandle::NewHandleParams;
-use crate::japlugin::AttachHandleParams;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
@@ -109,15 +108,16 @@ impl Attach for JaSession {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     async fn attach(
         &self,
-        params: AttachHandleParams,
+        plugin_id: String,
+        timeout: Duration,
     ) -> Result<(JaHandle, mpsc::UnboundedReceiver<JaResponse>), jarust_interface::Error> {
-        tracing::info!(plugin = &params.plugin_id, "Attaching new handle");
+        tracing::info!(plugin = &plugin_id, "Attaching new handle");
         let session_id = self.inner.shared.id;
         let (handle_id, event_receiver) = self
             .inner
             .shared
             .interface
-            .attach(session_id, params.plugin_id, params.timeout)
+            .attach(session_id, plugin_id, timeout)
             .await?;
 
         let handle = JaHandle::new(NewHandleParams {

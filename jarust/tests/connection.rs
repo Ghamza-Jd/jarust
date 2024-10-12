@@ -5,7 +5,6 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust::jaconnection::CreateConnectionParams;
     use jarust::prelude::JaResponse;
     use jarust_interface::janus_interface::ConnectionParams;
     use jarust_interface::janus_interface::JanusInterface;
@@ -59,12 +58,7 @@ mod tests {
 
         interface.mock_create_rsp(response).await;
 
-        let session = connection
-            .create_session(CreateConnectionParams {
-                ka_interval: 10,
-                timeout: Duration::from_secs(10),
-            })
-            .await;
+        let session = connection.create_session(10, Duration::from_secs(10)).await;
 
         assert!(session.is_ok());
     }
@@ -155,12 +149,7 @@ mod tests {
 
         interface.mock_create_rsp(response).await;
 
-        let session = connection
-            .create_session(CreateConnectionParams {
-                ka_interval: 10,
-                timeout: Duration::from_secs(10),
-            })
-            .await;
+        let session = connection.create_session(10, Duration::from_secs(10)).await;
 
         assert!(matches!(
             session.unwrap_err(),

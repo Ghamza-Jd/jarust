@@ -1,6 +1,5 @@
 use super::events::PluginEvent;
 use super::handle::AudioBridgeHandle;
-use jarust::japlugin::AttachHandleParams;
 use jarust::prelude::*;
 use std::ops::Deref;
 use std::time::Duration;
@@ -16,10 +15,7 @@ pub trait AudioBridge: Attach {
         timeout: Duration,
     ) -> Result<(Self::Handle, mpsc::UnboundedReceiver<Self::Event>), jarust_interface::Error> {
         let (handle, mut receiver) = self
-            .attach(AttachHandleParams {
-                plugin_id: "janus.plugin.audiobridge".to_string(),
-                timeout,
-            })
+            .attach("janus.plugin.audiobridge".to_string(), timeout)
             .await?;
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
         let task = jarust_rt::spawn("audiobridge listener", async move {
