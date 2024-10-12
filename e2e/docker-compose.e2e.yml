@@ -14,7 +14,7 @@ services:
       - "8188:8188"
       - "8889:8889"
     volumes:
-      - "./server_config/janus.jcfg:/usr/local/etc/janus/janus.jcfg"
-      - "./server_config/janus.plugin.audiobridge.jcfg:/usr/local/etc/janus/janus.plugin.audiobridge.jcfg"
-      - "./server_config/janus.plugin.videoroom.jcfg:/usr/local/etc/janus/janus.plugin.videoroom.jcfg"
+      - "./e2e/server_config/janus.jcfg:/usr/local/etc/janus/janus.jcfg"
+      - "./e2e/server_config/janus.plugin.audiobridge.jcfg:/usr/local/etc/janus/janus.plugin.audiobridge.jcfg"
+      - "./e2e/server_config/janus.plugin.videoroom.jcfg:/usr/local/etc/janus/janus.plugin.videoroom.jcfg"
     restart: always
