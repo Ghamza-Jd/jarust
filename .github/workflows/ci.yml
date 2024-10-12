@@ -29,4 +29,5 @@ jobs:
           toolchain: stable
       - uses: actions-rs/cargo@v1
         with:
-          command: test --exclude e2e
+          command: test
+          args: exclude e2e

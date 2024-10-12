@@ -20,4 +20,5 @@ jobs:
 
       - uses: actions-rs/cargo@v1
         with:
-          command: test -p e2e
+          command: test
+          args: -p e2e
