@@ -1,10 +1,11 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
+use jarust::prelude::Attach;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::time::Duration;
 
 #[tokio::test]
-async fn it_gets_server_info() {
+async fn it_websocket_core_tests() {
     let config = JaConfig {
         url: "ws://localhost:8188/ws".to_string(),
         apisecret: None,
@@ -14,7 +15,19 @@ async fn it_gets_server_info() {
     let mut connection = jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
         .await
         .unwrap();
-    let timeout = Duration::from_secs(10);
-    let info = connection.server_info(timeout).await.unwrap();
+    let info = connection
+        .server_info(Duration::from_secs(10))
+        .await
+        .unwrap();
     assert_eq!(info.server_name, "Jarust".to_string());
+
+    let session = connection
+        .create_session(10, Duration::from_secs(10))
+        .await
+        .unwrap();
+
+    let (handle, mut event_receiver) = session
+        .attach("janus.plugin.echotest".to_string(), Duration::from_secs(10))
+        .await
+        .unwrap();
 }
