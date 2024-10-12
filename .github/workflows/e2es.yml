@@ -1,9 +1,6 @@
 name: End-to-End tests
 
 on:
-  push:
-    branches:
-      - test/e2es
   pull_request:
     types: [opened, synchronize, reopened]
 

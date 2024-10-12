@@ -1,9 +1,6 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::prelude::Attach;
-use jarust_interface::japrotocol::GenericEvent;
-use jarust_interface::japrotocol::JaHandleEvent;
-use jarust_interface::japrotocol::ResponseType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::time::Duration;
 
