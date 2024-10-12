@@ -1,6 +1,9 @@
 use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust::prelude::Attach;
+use jarust_interface::japrotocol::GenericEvent;
+use jarust_interface::japrotocol::JaHandleEvent;
+use jarust_interface::japrotocol::ResponseType;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::time::Duration;
 
@@ -15,19 +18,20 @@ async fn it_websocket_core_tests() {
     let mut connection = jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
         .await
         .unwrap();
+
     let info = connection
-        .server_info(Duration::from_secs(10))
+        .server_info(Duration::from_secs(5))
         .await
         .unwrap();
     assert_eq!(info.server_name, "Jarust".to_string());
 
     let session = connection
-        .create_session(10, Duration::from_secs(10))
+        .create_session(10, Duration::from_secs(5))
         .await
         .unwrap();
 
-    let (handle, mut event_receiver) = session
-        .attach("janus.plugin.echotest".to_string(), Duration::from_secs(10))
+    let (_, _) = session
+        .attach("janus.plugin.echotest".to_string(), Duration::from_secs(5))
         .await
         .unwrap();
 }
