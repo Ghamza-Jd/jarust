@@ -31,3 +31,16 @@ jobs:
         with:
           command: test
           args: --workspace --exclude e2e
+
+  e2e:
+    name: E2E tests
+    needs: [test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hoverkraft-tech/compose-action@v2.0.1
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: -p e2e
