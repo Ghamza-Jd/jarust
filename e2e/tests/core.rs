@@ -16,4 +16,5 @@ async fn it_gets_server_info() {
         .unwrap();
     let timeout = Duration::from_secs(10);
     let info = connection.server_info(timeout).await.unwrap();
+    assert_eq!(info.server_name, "Jarust".to_string());
 }
