@@ -141,7 +141,7 @@ async fn main() -> anyhow::Result<()> {
         .publish(
             VideoRoomPublishParams {
                 audiocodec: Some(VideoRoomAudioCodec::OPUS),
-                videocoded: Some(VideoRoomVideoCodec::H264),
+                videocodec: Some(VideoRoomVideoCodec::H264),
                 bitrate: Some(3500),
                 descriptions: Some(vec![VideoRoomPublishDescription {
                     mid: String::from("stream-0"),
