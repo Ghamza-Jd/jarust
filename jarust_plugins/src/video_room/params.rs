@@ -6,6 +6,8 @@ impl_tryfrom_serde_value!(VideoRoomAllowedAction);
 make_dto!(
     VideoRoomCreateParams,
     optional {
+        /// Can be configured in plugin settings. If set, rooms can be created via API only if this key is provided in the request
+        admin_key: String,
         /// Room ID, chosen by plugin if missing
         room: JanusId,
         /// whether the room should be saved in the config file, default=false
@@ -327,7 +329,7 @@ make_dto!(
         /// audio codec to prefer among the negotiated ones
         audiocodec: VideoRoomAudioCodec,
         /// video codec to prefer among the negotiated ones
-        videocoded: VideoRoomVideoCodec,
+        videocodec: VideoRoomVideoCodec,
         /// bitrate cap to return via REMB
         /// overrides the global room value if present
         bitrate: u64,
@@ -420,6 +422,8 @@ make_dto!(VideoRoomRtpForwardParams,
         streams: Vec<VideoRoomRtpForwardStream>
     },
     optional {
+        /// If `lock_rtp_forward` is set in the plugin settings, the `admin_key` (also configured in plugin settings) has to be supplied with RTP forwarding requests
+        admin_key: String,
         /// length of authentication tag (32 or 80)
         host_family: String,
         /// length of authentication tag (32 or 80)
