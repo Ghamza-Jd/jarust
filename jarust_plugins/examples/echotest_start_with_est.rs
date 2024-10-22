@@ -40,9 +40,9 @@ async fn main() -> anyhow::Result<()> {
     let rsp = handle
         .start_with_est(
             EchoTestStartParams {
-                audio: true,
-                video: true,
-                bitrate: None,
+                audio: Some(true),
+                video: Some(true),
+                ..Default::default()
             },
             EstProto::JSEP(Jsep {
                 sdp: "".to_string(),

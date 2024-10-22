@@ -36,9 +36,13 @@ async fn main() -> anyhow::Result<()> {
 
     handle
         .start(EchoTestStartParams {
-            audio: true,
-            video: true,
-            bitrate: None,
+            audio: Some(true),
+            video: Some(true),
+            record: Some(true),
+            filename: Some("helloworld".to_string()),
+            min_delay: Some(10),
+            max_delay: Some(100),
+            ..Default::default()
         })
         .await?;
 
