@@ -65,7 +65,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        params: AudioBridgeCreateParams,
+        params: AudioBridgeEditParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomEditedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending edit room");
