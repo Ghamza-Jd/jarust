@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   janus-gateway:
     container_name: janus-dev-server

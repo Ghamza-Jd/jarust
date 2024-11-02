@@ -15,4 +15,5 @@ publish = false
 jarust = { version = "0.7.0", path = "../jarust" }
 jarust_interface = { version = "0.7.0", path = "../jarust_interface" }
 jarust_plugins = { version = "0.7.0", path = "../jarust_plugins" }
+rand = "0.8.5"
 tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
