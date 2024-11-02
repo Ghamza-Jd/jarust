@@ -12,8 +12,8 @@ Current plugins:
 ## EchoTest Example
 
 ```rust
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::TransportType;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::TransportType;
 use jarust_plugins::echotest::events::EchoTestPluginEvent;
 use jarust_plugins::echotest::messages::EchoTestStartMsg;
 use jarust_plugins::echotest::EchoTest;
@@ -22,10 +22,10 @@ use tracing_subscriber::EnvFilter;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
+        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust_core=trace".parse()?))
         .init();
 
-    let mut connection = jarust::connect(
+    let mut connection = jarust_core::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
         TransportType::Ws,
     )
@@ -56,18 +56,18 @@ async fn main() -> anyhow::Result<()> {
 ## AudioBridge Example
 
 ```rust
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::TransportType;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::TransportType;
 use jarust_plugins::audio_bridge::AudioBridge;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
+        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust_core=trace".parse()?))
         .init();
 
-    let mut connection = jarust::connect(
+    let mut connection = jarust_core::connect(
         JaConfig::new("ws://localhost:8188/ws", None, "janus"),
         TransportType::Ws,
     )

@@ -11,7 +11,7 @@
 //! All of the plugins are hidden behind feature flags to allow you to cherry-pick your dependencies. By default, all plugins are enabled.
 //!
 //! If you can't find an API you're looking for, it might be hidden behind the `__experimental` feature since it's
-//! not well tested yet. Alternatively, you could construct the body and send it, as every plugin handler dereferences to [`JaHandle`](jarust::jahandle::JaHandle).
+//! not well tested yet. Alternatively, you could construct the body and send it, as every plugin handler dereferences to [`JaHandle`](jarust_core::jahandle::JaHandle).
 //!
 
 #[macro_use]

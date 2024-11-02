@@ -5,7 +5,7 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust::prelude::JaResponse;
+    use jarust_core::prelude::JaResponse;
     use jarust_interface::janus_interface::ConnectionParams;
     use jarust_interface::janus_interface::JanusInterface;
     use jarust_interface::japrotocol::ErrorResponse;
@@ -28,7 +28,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let connection = jarust::custom_connect(interface).await;
+        let connection = jarust_core::custom_connect(interface).await;
         assert!(connection.is_ok());
     }
 
@@ -44,7 +44,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
 
         let response = JaResponse {
             janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -75,7 +75,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
 
         let server_info = ServerInfoRsp {
             name: "Mock server name".to_string(),
@@ -132,7 +132,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
 
         let response = JaResponse {
             janus: ResponseType::Error {

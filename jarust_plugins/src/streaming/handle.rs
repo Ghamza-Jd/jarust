@@ -1,7 +1,7 @@
 use crate::streaming::params::*;
 use crate::streaming::responses::*;
 use crate::JanusId;
-use jarust::prelude::*;
+use jarust_core::prelude::*;
 use jarust_rt::JaTask;
 use serde_json::json;
 use serde_json::Value;

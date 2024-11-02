@@ -1,5 +1,5 @@
 [package]
-name = "jarust"
+name = "jarust_core"
 version.workspace = true
 authors.workspace = true
 description.workspace = true

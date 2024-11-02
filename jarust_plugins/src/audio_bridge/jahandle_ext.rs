@@ -1,6 +1,6 @@
 use super::events::PluginEvent;
 use super::handle::AudioBridgeHandle;
-use jarust::prelude::*;
+use jarust_core::prelude::*;
 use std::ops::Deref;
 use std::time::Duration;
 use tokio::sync::mpsc;

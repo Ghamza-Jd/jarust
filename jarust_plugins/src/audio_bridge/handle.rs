@@ -8,7 +8,7 @@ use super::responses::AudioBridgeRoomCreatedRsp;
 use super::responses::AudioBridgeRoomDestroyedRsp;
 use super::responses::AudioBridgeRoomEditedRsp;
 use crate::JanusId;
-use jarust::prelude::*;
+use jarust_core::prelude::*;
 use jarust_interface::japrotocol::EstProto;
 use jarust_rt::JaTask;
 use serde_json::json;
