@@ -18,8 +18,6 @@ doctest = false
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 [dev-dependencies]
-jarust_core = { version = "0.7.0", path = "../jarust_core" }
-jarust_interface = { version = "0.7.0", path = "../jarust_interface" }
-jarust_plugins = { version = "0.7.0", path = "../jarust_plugins" }
+jarust = { version = "0.7.0", path = "../jarust" }
 rand = "0.8.5"
 tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }

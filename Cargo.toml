@@ -1,11 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
+    "e2e",
     "jarust_core",
+    "jarust_interface",
     "jarust_plugins",
     "jarust_rt",
-    "jarust_interface",
-    "e2e",
+    "jarust",
 ]
 
 [workspace.package]
