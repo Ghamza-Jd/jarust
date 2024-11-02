@@ -152,8 +152,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "joined",
-                        "room": 6846571539994870u64,
-                        "id": 7513785212278430u64,
+                        "room": 684657u32,
+                        "id": 751378u32,
                         "participants": []
                     })),
                 },
@@ -167,8 +167,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined {
-                id: JanusId::Uint(7513785212278430),
-                room: JanusId::Uint(6846571539994870),
+                id: JanusId::Uint(751378u32),
+                room: JanusId::Uint(684657),
                 participants: vec![],
             })
         );
@@ -182,8 +182,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "joined",
-                        "room": 6846571539994870u64,
-                        "id": 7513785212278430u64,
+                        "room": 684657u32,
+                        "id": 751378u32,
                         "participants": []
                     })),
                 },
@@ -201,8 +201,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                id: JanusId::Uint(7513785212278430),
-                room: JanusId::Uint(6846571539994870),
+                id: JanusId::Uint(751378),
+                room: JanusId::Uint(684657),
                 participants: vec![],
                 estproto: EstProto::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
@@ -221,8 +221,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "left",
-                        "room": 6846571539994870u64,
-                        "id": 7513785212278430u64
+                        "room": 684657u32,
+                        "id": 751378u32
                     })),
                 },
             }),
@@ -235,8 +235,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
-                id: JanusId::Uint(7513785212278430),
-                room: JanusId::Uint(6846571539994870),
+                id: JanusId::Uint(751378),
+                room: JanusId::Uint(684657),
             })
         );
     }
@@ -249,8 +249,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "roomchanged",
-                        "room": 6168266702836626u64,
-                        "id": 3862697705388820u64,
+                        "room": 61682u32,
+                        "id": 38626u32,
                         "participants": []
                     })),
                 },
@@ -264,8 +264,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomChanged {
-                id: JanusId::Uint(3862697705388820),
-                room: JanusId::Uint(6168266702836626),
+                id: JanusId::Uint(38626),
+                room: JanusId::Uint(61682),
                 participants: vec![],
             })
         );

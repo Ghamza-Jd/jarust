@@ -418,8 +418,8 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                         "videoroom": "joining",
-                        "room": 8812066423493633u64,
-                        "id": 6380744183070564u64,
+                        "room": 88120664u32,
+                        "id": 638074u32,
                         "display": "Joiner McJoinface"
                     })),
                 },
@@ -433,8 +433,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoined {
-                id: JanusId::Uint(6380744183070564),
-                room: JanusId::Uint(8812066423493633u64),
+                id: JanusId::Uint(638074),
+                room: JanusId::Uint(88120664),
                 display: Some("Joiner McJoinface".to_string()),
             })
         );
@@ -448,8 +448,8 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                         "videoroom": "joining",
-                        "room": 8812066423493633u64,
-                        "id": 6380744183070564u64,
+                        "room": 8812063u32,
+                        "id": 8146468u32,
                         "display": "Joiner McJoinface"
                     })),
                 },
@@ -467,7 +467,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEst {
-                id: JanusId::Uint(6380744183070564u64),
+                id: JanusId::Uint(8146468u32),
                 display: Some("Joiner McJoinface".to_string()),
                 estproto: EstProto::JSEP(Jsep {
                     jsep_type: JsepType::Answer,
@@ -486,7 +486,7 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                         "videoroom": "destroyed",
-                        "room": 8812066423493633u64,
+                        "room": 8146468u32,
                     })),
                 },
             }),
@@ -499,7 +499,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomDestroyed {
-                room: JanusId::Uint(8812066423493633u64),
+                room: JanusId::Uint(8146468u32),
             })
         )
     }
@@ -512,7 +512,7 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                         "videoroom": "publishers",
-                        "room": 8812066423493633u64,
+                        "room": 8146468u32,
                         "publishers": []
                     })),
                 },
@@ -526,7 +526,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
-                room: JanusId::Uint(8812066423493633u64),
+                room: JanusId::Uint(8146468u32),
                 publishers: vec![]
             })
         );
@@ -540,7 +540,7 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                        "videoroom": "joined",
-                       "room": 3966653182028680u64,
+                       "room": 8146468u32,
                        "description": "A brand new description!",
                        "id": 1337,
                        "private_id": 4113762326u64,
@@ -558,7 +558,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::PublisherJoined {
-                room: JanusId::Uint(3966653182028680),
+                room: JanusId::Uint(8146468u32),
                 description: Some("A brand new description!".to_string()),
                 id: JanusId::Uint(1337),
                 private_id: 4113762326,
@@ -603,7 +603,7 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                        "videoroom": "event",
-                       "room": 8146468481724441u64,
+                       "room": 8146468u32,
                        "leaving": "ok"
                     })),
                 },
@@ -617,7 +617,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
-                room: JanusId::Uint(8146468481724441u64),
+                room: JanusId::Uint(8146468u32),
                 participant: JanusId::String("ok".to_string())
             })
         )
@@ -631,7 +631,7 @@ mod tests {
                     plugin: "janus.plugin.videoroom".to_string(),
                     data: PluginInnerData::Data(json!({
                        "videoroom": "event",
-                       "room": 1657434645789453u64,
+                       "room": 8146468u32,
                        "configured": "ok",
                        "audio_codec": "opus",
                        "video_codec": "h264",
@@ -668,7 +668,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEst {
-                room: JanusId::Uint(1657434645789453u64),
+                room: JanusId::Uint(8146468u32),
                 audio_codec: Some("opus".to_string()),
                 video_codec: Some("h264".to_string()),
                 streams: vec![

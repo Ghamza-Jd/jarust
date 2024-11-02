@@ -12,5 +12,5 @@ pub enum JanusId {
     /// String Identifier
     String(String),
     /// Unsigned Integer Identifier
-    Uint(u64),
+    Uint(u32),
 }

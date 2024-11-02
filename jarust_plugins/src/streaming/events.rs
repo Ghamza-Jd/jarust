@@ -96,7 +96,7 @@ mod tests {
                     plugin: "janus.plugin.streaming".to_string(),
                     data: PluginInnerData::Data(json!({
                         "streaming": "created",
-                        "id": 6380744183070564u64,
+                        "id": 63807u32,
                         "type": "live",
                     })),
                 },
@@ -110,7 +110,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::StreamingEvent(StreamingEvent::MountpointCreated {
-                id: JanusId::Uint(6380744183070564u64),
+                id: JanusId::Uint(63807u32),
                 mountpoint_type: "live".to_string(),
             })
         );
@@ -124,7 +124,7 @@ mod tests {
                     plugin: "janus.plugin.streaming".to_string(),
                     data: PluginInnerData::Data(json!({
                         "streaming": "destroyed",
-                        "id": 6380744183070564u64,
+                        "id": 63807u32,
                     })),
                 },
             }),
@@ -137,7 +137,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::StreamingEvent(StreamingEvent::MountpointDestroyed {
-                id: JanusId::Uint(6380744183070564u64),
+                id: JanusId::Uint(63807u32),
             })
         );
     }
