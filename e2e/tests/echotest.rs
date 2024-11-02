@@ -1,10 +1,10 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
-use jarust_plugins::echo_test::events::EchoTestEvent;
-use jarust_plugins::echo_test::events::PluginEvent;
-use jarust_plugins::echo_test::jahandle_ext::EchoTest;
-use jarust_plugins::echo_test::params::EchoTestStartParams;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::echo_test::events::EchoTestEvent;
+use jarust::plugins::echo_test::events::PluginEvent;
+use jarust::plugins::echo_test::jahandle_ext::EchoTest;
+use jarust::plugins::echo_test::params::EchoTestStartParams;
 use std::time::Duration;
 
 #[tokio::test]
@@ -16,7 +16,7 @@ async fn echotest_ws_e2e() {
         capacity: 32,
     };
     let mut connection =
-        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
+        jarust::core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
             .await
             .expect("Failed to connect to server");
     let timeout = Duration::from_secs(10);
@@ -67,7 +67,7 @@ async fn echotest_rest_e2e() {
         capacity: 32,
     };
     let mut connection =
-        jarust_core::connect(config, JanusAPI::Restful, RandomTransactionGenerator)
+        jarust::core::connect(config, JanusAPI::Restful, RandomTransactionGenerator)
             .await
             .expect("Failed to connect to server");
     let timeout = Duration::from_secs(10);

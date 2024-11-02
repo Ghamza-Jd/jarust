@@ -1,14 +1,14 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
-use jarust_plugins::audio_bridge::events::PluginEvent;
-use jarust_plugins::audio_bridge::handle::AudioBridgeHandle;
-use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust_plugins::audio_bridge::params::AudioBridgeDestoryParams;
-use jarust_plugins::audio_bridge::params::AudioBridgeEditParams;
-use jarust_plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
-use jarust_plugins::audio_bridge::params::AudioBridgeExistsParams;
-use jarust_plugins::JanusId;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::audio_bridge::events::PluginEvent;
+use jarust::plugins::audio_bridge::handle::AudioBridgeHandle;
+use jarust::plugins::audio_bridge::jahandle_ext::AudioBridge;
+use jarust::plugins::audio_bridge::params::AudioBridgeDestoryParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
+use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
+use jarust::plugins::JanusId;
 use std::time::Duration;
 use tokio::sync::mpsc::UnboundedReceiver;
 
@@ -160,7 +160,7 @@ async fn make_audiobridge_attachment() -> (AudioBridgeHandle, UnboundedReceiver<
         capacity: 32,
     };
     let mut connection =
-        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
+        jarust::core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
             .await
             .expect("Failed to connect to server");
     let timeout = Duration::from_secs(10);
