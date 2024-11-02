@@ -1,6 +1,6 @@
 use async_trait::async_trait;
-use jarust::prelude::JaResponse;
-use jarust::GenerateTransaction;
+use jarust_core::prelude::JaResponse;
+use jarust_core::GenerateTransaction;
 use jarust_interface::error::Error;
 use jarust_interface::handle_msg::HandleMessage;
 use jarust_interface::handle_msg::HandleMessageWithEst;

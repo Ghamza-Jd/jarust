@@ -1,6 +1,6 @@
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::JanusAPI;
-use jarust::prelude::Attach;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::JanusAPI;
+use jarust_core::prelude::Attach;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use std::time::Duration;
 
@@ -12,7 +12,7 @@ async fn it_websocket_core_tests() {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection = jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
+    let mut connection = jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
         .await
         .unwrap();
 

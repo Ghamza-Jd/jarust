@@ -49,7 +49,7 @@ use tracing::Level;
 ///     .url("ws://localhost:8188/ws")
 ///     .capacity(32)
 ///     .build();
-/// let mut connection = jarust::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await.unwrap();
+/// let mut connection = jarust_core::connect(config, ApiInterface::WebSocket, RandomTransactionGenerator).await.unwrap();
 /// ```
 #[cfg(not(target_family = "wasm"))]
 pub async fn connect(

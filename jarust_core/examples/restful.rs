@@ -1,6 +1,6 @@
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::JanusAPI;
-use jarust::japlugin::Attach;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::JanusAPI;
+use jarust_core::japlugin::Attach;
 use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::JsepType;
@@ -15,7 +15,7 @@ use tracing_subscriber::EnvFilter;
 async fn main() -> anyhow::Result<()> {
     let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
     let env_filter = EnvFilter::from_default_env()
-        .add_directive("jarust=trace".parse()?)
+        .add_directive("jarust_core=trace".parse()?)
         .add_directive(format!("{filename}=trace").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
         capacity: 32,
     };
     let mut connection =
-        jarust::connect(config, JanusAPI::Restful, RandomTransactionGenerator).await?;
+        jarust_core::connect(config, JanusAPI::Restful, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
 
     let session = connection

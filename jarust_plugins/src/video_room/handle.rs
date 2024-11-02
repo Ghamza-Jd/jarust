@@ -1,7 +1,7 @@
 use crate::video_room::params::*;
 use crate::video_room::responses::*;
 use crate::JanusId;
-use jarust::prelude::*;
+use jarust_core::prelude::*;
 use jarust_interface::japrotocol::EstProto;
 use jarust_rt::JaTask;
 use serde_json::json;

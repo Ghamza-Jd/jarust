@@ -1,4 +1,4 @@
-use jarust::GenerateTransaction;
+use jarust_core::GenerateTransaction;
 use std::sync::Arc;
 use std::sync::Mutex;
 

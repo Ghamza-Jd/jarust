@@ -5,8 +5,8 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust::prelude::Attach;
-    use jarust::prelude::JaResponse;
+    use jarust_core::prelude::Attach;
+    use jarust_core::prelude::JaResponse;
     use jarust_interface::janus_interface::ConnectionParams;
     use jarust_interface::janus_interface::JanusInterface;
     use jarust_interface::japrotocol::GenericEvent;
@@ -28,7 +28,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
 
         let session_id = 73;
         let handle_id = 77;

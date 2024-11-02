@@ -1,6 +1,6 @@
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::JanusAPI;
-use jarust::prelude::Attach;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::JanusAPI;
+use jarust_core::prelude::Attach;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use serde_json::json;
 use std::time::Duration;
@@ -9,7 +9,7 @@ use tracing_subscriber::EnvFilter;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust=trace".parse()?))
+        .with_env_filter(EnvFilter::from_default_env().add_directive("jarust_core=trace".parse()?))
         .init();
     let config = JaConfig {
         url: "ws://localhost:8188/ws".to_string(),
@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
         capacity: 32,
     };
     let mut connection =
-        jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
+        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(10, Duration::from_secs(10))

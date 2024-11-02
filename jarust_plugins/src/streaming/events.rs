@@ -1,5 +1,5 @@
 use crate::JanusId;
-use jarust::prelude::JaResponse;
+use jarust_core::prelude::JaResponse;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::PluginInnerData;

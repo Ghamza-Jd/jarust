@@ -1,5 +1,5 @@
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::JanusAPI;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::JanusAPI;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::audio_bridge::events::PluginEvent;
 use jarust_plugins::audio_bridge::handle::AudioBridgeHandle;
@@ -159,9 +159,10 @@ async fn make_audiobridge_attachment() -> (AudioBridgeHandle, UnboundedReceiver<
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection = jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
-        .await
-        .expect("Failed to connect to server");
+    let mut connection =
+        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
+            .await
+            .expect("Failed to connect to server");
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(10, Duration::from_secs(10))

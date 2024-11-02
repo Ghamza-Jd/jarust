@@ -1,5 +1,5 @@
-use jarust::jaconfig::JaConfig;
-use jarust::jaconfig::JanusAPI;
+use jarust_core::jaconfig::JaConfig;
+use jarust_core::jaconfig::JanusAPI;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::echo_test::events::EchoTestEvent;
 use jarust_plugins::echo_test::events::PluginEvent;
@@ -15,9 +15,10 @@ async fn echotest_ws_e2e() {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection = jarust::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
-        .await
-        .expect("Failed to connect to server");
+    let mut connection =
+        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
+            .await
+            .expect("Failed to connect to server");
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(10, Duration::from_secs(10))
@@ -65,9 +66,10 @@ async fn echotest_rest_e2e() {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection = jarust::connect(config, JanusAPI::Restful, RandomTransactionGenerator)
-        .await
-        .expect("Failed to connect to server");
+    let mut connection =
+        jarust_core::connect(config, JanusAPI::Restful, RandomTransactionGenerator)
+            .await
+            .expect("Failed to connect to server");
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(10, Duration::from_secs(10))

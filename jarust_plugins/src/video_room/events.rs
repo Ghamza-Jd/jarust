@@ -3,7 +3,7 @@ use crate::video_room::responses::Attendee;
 use crate::video_room::responses::ConfiguredStream;
 use crate::video_room::responses::Publisher;
 use crate::JanusId;
-use jarust::prelude::JaResponse;
+use jarust_core::prelude::JaResponse;
 use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
