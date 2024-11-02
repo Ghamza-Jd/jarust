@@ -2,8 +2,9 @@ use jarust::jaconfig::JaConfig;
 use jarust::jaconfig::JanusAPI;
 use jarust_interface::tgenerator::RandomTransactionGenerator;
 use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust_plugins::audio_bridge::params::AudioBridgeJoinRoomParams;
-use jarust_plugins::audio_bridge::params::AudioBridgeJoinRoomParamsOptional;
+use jarust_plugins::audio_bridge::params::AudioBridgeJoinParams;
+use jarust_plugins::audio_bridge::params::AudioBridgeJoinParamsOptional;
+use jarust_plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
 use jarust_plugins::audio_bridge::params::AudioBridgeMuteParams;
 use std::path::Path;
 use std::time::Duration;
@@ -47,9 +48,9 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Rooms {:#?}", rooms);
 
-    let join_room_params = AudioBridgeJoinRoomParams {
+    let join_room_params = AudioBridgeJoinParams {
         room: create_room_rsp.room.clone(),
-        optional: AudioBridgeJoinRoomParamsOptional {
+        optional: AudioBridgeJoinParamsOptional {
             display: Some("value".to_string()),
             ..Default::default()
         },
@@ -58,7 +59,12 @@ async fn main() -> anyhow::Result<()> {
     handle.join_room(join_room_params, None, timeout).await?;
 
     let list_participants_rsp = handle
-        .list_participants(create_room_rsp.room, timeout)
+        .list_participants(
+            AudioBridgeListParticipantsParams {
+                room: create_room_rsp.room,
+            },
+            timeout,
+        )
         .await?;
     tracing::info!(
         "Participants in room {:#?}: {:#?}",
