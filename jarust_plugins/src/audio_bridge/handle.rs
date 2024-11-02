@@ -21,6 +21,7 @@ pub struct AudioBridgeHandle {
     task: Option<JaTask>,
 }
 
+// sync
 impl AudioBridgeHandle {
     /// Create a new audio room dynamically with the given room number,
     /// as an alternative to using the configuration file
@@ -33,7 +34,7 @@ impl AudioBridgeHandle {
         timeout: Duration,
     ) -> Result<AudioBridgeRoomCreatedRsp, jarust_interface::Error> {
         self.create_room_with_config(
-            AudioBridgeCreateRoomParams {
+            AudioBridgeCreateParams {
                 room,
                 ..Default::default()
             },
@@ -49,7 +50,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
-        params: AudioBridgeCreateRoomParams,
+        params: AudioBridgeCreateParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending create room");
@@ -64,7 +65,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
-        params: AudioBridgeEditRoomParams,
+        params: AudioBridgeCreateParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomEditedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending edit room");
@@ -80,7 +81,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
-        params: AudioBridgeDestoryRoomParams,
+        params: AudioBridgeDestoryParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending destroy room");
@@ -91,25 +92,34 @@ impl AudioBridgeHandle {
             .await
     }
 
-    /// Join an audio room with the given room number and options.
+    /// To enable or disable recording of mixed audio stream while the conference is in progress
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn join_room(
+    pub async fn enable_recording(
         &self,
-        params: AudioBridgeJoinRoomParams,
-        estproto: Option<EstProto>,
+        params: AudioBridgeDestoryParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        tracing::info!(plugin = "audiobridge", "Sending join room");
+        tracing::info!(plugin = "audiobridge", "Sending enable recording");
         let mut message: Value = params.try_into()?;
-        message["request"] = "join".into();
-        match estproto {
-            Some(protocol) => {
-                self.handle
-                    .send_waiton_ack_with_est(message, protocol, timeout)
-                    .await?
-            }
-            None => self.handle.send_waiton_ack(message, timeout).await?,
-        };
+        message["request"] = "enable_recording".into();
+        self.handle.send_waiton_ack(message, timeout).await?;
+        Ok(())
+    }
+
+    /// A room can also be recorded by saving the individual contributions of participants to separate MJR files instead,
+    /// in a format compatible with the [Recordings](https://janus.conf.meetecho.com/docs/recordings.html).
+    /// While a recording for each participant can be enabled or disabled separately, there also is a request
+    /// to enable or disable them in bulk, thus implementing a feature similar to enable_recording but for MJR
+    /// files, rather than for a .wav mix
+    pub async fn enable_mjrs(
+        &self,
+        params: AudioBridgeDestoryParams,
+        timeout: Duration,
+    ) -> Result<(), jarust_interface::Error> {
+        tracing::info!(plugin = "audiobridge", "Sending enable mjrs");
+        let mut message: Value = params.try_into()?;
+        message["request"] = "enable_mjrs".into();
+        self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
     }
 
@@ -149,14 +159,12 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn exists(
         &self,
-        room: JanusId,
+        params: AudioBridgeExistsParams,
         timeout: Duration,
     ) -> Result<bool, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending exists");
-        let message = json!({
-            "request": "exists",
-            "room": room
-        });
+        let mut message: Value = params.try_into()?;
+        message["request"] = "exists".into();
         let response = self
             .handle
             .send_waiton_rsp::<AudioBridgeExistsRoomRsp>(message, timeout)
@@ -169,17 +177,61 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,
-        room: JanusId,
+        params: AudioBridgeListParticipantsParams,
         timeout: Duration,
     ) -> Result<AudioBridgeListParticipantsRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending list participants");
-        let message = json!({
-            "request": "listparticipants",
-            "room": room
-        });
+        let mut message: Value = params.try_into()?;
+        message["request"] = "listparticipants".into();
         self.handle
             .send_waiton_rsp::<AudioBridgeListParticipantsRsp>(message, timeout)
             .await
+    }
+
+    /// Kicks a participants out of a room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
+    pub async fn kick(&self, params: AudioBridgeKickParams) -> Result<(), jarust_interface::Error> {
+        tracing::info!(plugin = "audiobridge", "Sending kick");
+        let mut message: Value = params.try_into()?;
+        message["request"] = "kick".into();
+        self.handle.fire_and_forget(message).await
+    }
+
+    /// Kicks all participants out of a room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
+    pub async fn kick_all(
+        &self,
+        params: AudioBridgeKickAllParams,
+    ) -> Result<(), jarust_interface::Error> {
+        tracing::info!(plugin = "audiobridge", "Sending kick all");
+        let mut message: Value = params.try_into()?;
+        message["request"] = "kick_all".into();
+        self.handle.fire_and_forget(message).await
+    }
+}
+
+// async
+impl AudioBridgeHandle {
+    /// Join an audio room with the given room number and options.
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
+    pub async fn join_room(
+        &self,
+        params: AudioBridgeJoinParams,
+        estproto: Option<EstProto>,
+        timeout: Duration,
+    ) -> Result<(), jarust_interface::Error> {
+        tracing::info!(plugin = "audiobridge", "Sending join room");
+        let mut message: Value = params.try_into()?;
+        message["request"] = "join".into();
+        match estproto {
+            Some(protocol) => {
+                self.handle
+                    .send_waiton_ack_with_est(message, protocol, timeout)
+                    .await?
+            }
+            None => self.handle.send_waiton_ack(message, timeout).await?,
+        };
+        Ok(())
     }
 
     /// Configure the media related settings of the participant
@@ -241,38 +293,6 @@ impl AudioBridgeHandle {
         self.handle.fire_and_forget(message).await
     }
 
-    /// Kicks a participants out of a room
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn kick(&self, params: AudioBridgeKickParams) -> Result<(), jarust_interface::Error> {
-        tracing::info!(plugin = "audiobridge", "Sending kick");
-        let mut message: Value = params.try_into()?;
-        message["request"] = "kick".into();
-        self.handle.fire_and_forget(message).await
-    }
-
-    /// Kicks all participants out of a room
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn kick_all(
-        &self,
-        params: AudioBridgeKickAllParams,
-    ) -> Result<(), jarust_interface::Error> {
-        tracing::info!(plugin = "audiobridge", "Sending kick all");
-        let mut message: Value = params.try_into()?;
-        message["request"] = "kick_all".into();
-        self.handle.fire_and_forget(message).await
-    }
-
-    /// Leave an audio room
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn leave(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
-        tracing::info!(plugin = "audiobridge", "Sending leave");
-        let message = json!({
-            "request" : "leave"
-        });
-        self.handle.send_waiton_ack(message, timeout).await?;
-        Ok(())
-    }
-
     /// Change the room you are in, instead of leaving and joining a new room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn change_room(
@@ -283,6 +303,17 @@ impl AudioBridgeHandle {
         tracing::info!(plugin = "audiobridge", "Sending change room");
         let mut message: Value = params.try_into()?;
         message["request"] = "changeroom".into();
+        self.handle.send_waiton_ack(message, timeout).await?;
+        Ok(())
+    }
+
+    /// Leave an audio room
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
+    pub async fn leave(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
+        tracing::info!(plugin = "audiobridge", "Sending leave");
+        let message = json!({
+            "request" : "leave"
+        });
         self.handle.send_waiton_ack(message, timeout).await?;
         Ok(())
     }
