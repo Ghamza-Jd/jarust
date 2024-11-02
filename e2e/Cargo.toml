@@ -18,6 +18,10 @@ doctest = false
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 [dev-dependencies]
-jarust = { version = "0.7.0", path = "../jarust" }
 rand = "0.8.5"
 tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
+
+[dev-dependencies.jarust]
+version = "0.7.0"
+path = "../jarust"
+features = ["audio_bridge_plugin", "echo_test_plugin"]
