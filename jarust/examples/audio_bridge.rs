@@ -1,11 +1,12 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
-use jarust_plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust_plugins::audio_bridge::params::AudioBridgeJoinParams;
-use jarust_plugins::audio_bridge::params::AudioBridgeJoinParamsOptional;
-use jarust_plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
-use jarust_plugins::audio_bridge::params::AudioBridgeMuteParams;
+use jarust::core::connect;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::audio_bridge::jahandle_ext::AudioBridge;
+use jarust::plugins::audio_bridge::params::AudioBridgeJoinParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeJoinParamsOptional;
+use jarust::plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeMuteParams;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -28,8 +29,7 @@ async fn main() -> anyhow::Result<()> {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection =
-        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
+    let mut connection = connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
         .create_session(10, Duration::from_secs(10))
         .await?;
@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
     let error_room = handle
         .create_room(Some(create_room_rsp.room.clone()), timeout)
         .await;
-    if let Err(jarust_interface::Error::PluginResponseError { .. }) = error_room {
+    if let Err(jarust::interface::Error::PluginResponseError { .. }) = error_room {
         tracing::info!("Already created");
     };
 
@@ -72,8 +72,8 @@ async fn main() -> anyhow::Result<()> {
         list_participants_rsp.participants
     );
 
-    use jarust_plugins::audio_bridge::events::AudioBridgeEvent as ABE;
-    use jarust_plugins::audio_bridge::events::PluginEvent as PE;
+    use jarust::plugins::audio_bridge::events::AudioBridgeEvent as ABE;
+    use jarust::plugins::audio_bridge::events::PluginEvent as PE;
     if let Some(PE::AudioBridgeEvent(ABE::RoomJoined { id, room, .. })) = events.recv().await {
         handle
             .mute(AudioBridgeMuteParams {

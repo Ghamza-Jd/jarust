@@ -1,10 +1,11 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_core::japlugin::Attach;
-use jarust_interface::japrotocol::EstProto;
-use jarust_interface::japrotocol::Jsep;
-use jarust_interface::japrotocol::JsepType;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
+use jarust::core::connect;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::core::japlugin::Attach;
+use jarust::interface::japrotocol::EstProto;
+use jarust::interface::japrotocol::Jsep;
+use jarust::interface::japrotocol::JsepType;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
 use serde_json::json;
 use std::path::Path;
 use std::time::Duration;
@@ -25,8 +26,7 @@ async fn main() -> anyhow::Result<()> {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection =
-        jarust_core::connect(config, JanusAPI::Restful, RandomTransactionGenerator).await?;
+    let mut connection = connect(config, JanusAPI::Restful, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
 
     let session = connection

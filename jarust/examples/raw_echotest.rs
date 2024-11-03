@@ -1,7 +1,8 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_core::prelude::Attach;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
+use jarust::core::connect;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::core::prelude::Attach;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
 use serde_json::json;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -17,8 +18,7 @@ async fn main() -> anyhow::Result<()> {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection =
-        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
+    let mut connection = connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(10, Duration::from_secs(10))
