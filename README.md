@@ -3,9 +3,9 @@
 [Latest Version]: https://img.shields.io/crates/v/jarust.svg
 [crates.io]: https://crates.io/crates/jarust
 
-Jarust is a Rust adapter for [Janus WebRTC server](https://github.com/meetecho/janus-gateway)
-
-Internally uses WebSockets to connect to Janus. But you can provide your own transport.
+Jarust is a memory safe and high-performance Rust adapter for [Janus WebRTC server](https://github.com/meetecho/janus-gateway).
+Inspired by [Janode](https://github.com/meetecho/janode), jarust offers similar functionalities but it's designed
+to be customizable, for exmaple, you could use the built-in WebSocket transport or provide your own RabbitMQ transport implementation. For more details about the architecture check [ARCHITECTURE](./ARCHITECTURE.md).
 
 The library wraps the Janus core API and some of the most popular plugins APIs.
 
@@ -13,8 +13,13 @@ The supported Janus plugins currently are:
 
 - EchoTest
 - AudioBridge
-- VideoBridge
 - Streaming
+- VideoRoom
+
+The supported interfaces are:
+
+- WebSocket
+- Restful
 
 ## Examples
 
