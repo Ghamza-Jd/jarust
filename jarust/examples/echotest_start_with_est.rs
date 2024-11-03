@@ -1,13 +1,14 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_interface::japrotocol::EstProto;
-use jarust_interface::japrotocol::Jsep;
-use jarust_interface::japrotocol::JsepType;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
-use jarust_plugins::echo_test::events::EchoTestEvent;
-use jarust_plugins::echo_test::events::PluginEvent;
-use jarust_plugins::echo_test::jahandle_ext::EchoTest;
-use jarust_plugins::echo_test::params::EchoTestStartParams;
+use jarust::core::connect;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::interface::japrotocol::EstProto;
+use jarust::interface::japrotocol::Jsep;
+use jarust::interface::japrotocol::JsepType;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::echo_test::events::EchoTestEvent;
+use jarust::plugins::echo_test::events::PluginEvent;
+use jarust::plugins::echo_test::jahandle_ext::EchoTest;
+use jarust::plugins::echo_test::params::EchoTestStartParams;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -29,8 +30,7 @@ async fn main() -> anyhow::Result<()> {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection =
-        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
+    let mut connection = connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let timeout = Duration::from_secs(10);
     let session = connection
         .create_session(10, Duration::from_secs(10))

@@ -1,9 +1,10 @@
-use jarust_core::jaconfig::JaConfig;
-use jarust_core::jaconfig::JanusAPI;
-use jarust_interface::tgenerator::RandomTransactionGenerator;
-use jarust_plugins::streaming::jahandle_ext::Streaming;
-use jarust_plugins::streaming::params::*;
-use jarust_plugins::JanusId;
+use jarust::core::connect;
+use jarust::core::jaconfig::JaConfig;
+use jarust::core::jaconfig::JanusAPI;
+use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::streaming::jahandle_ext::Streaming;
+use jarust::plugins::streaming::params::*;
+use jarust::plugins::JanusId;
 use std::path::Path;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -26,8 +27,7 @@ async fn main() -> anyhow::Result<()> {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection =
-        jarust_core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
+    let mut connection = connect(config, JanusAPI::WebSocket, RandomTransactionGenerator).await?;
     let session = connection
         .create_session(10, Duration::from_secs(10))
         .await?;
