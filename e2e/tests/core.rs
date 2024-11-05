@@ -1,3 +1,4 @@
+use jarust::core::connect;
 use jarust::core::jaconfig::JaConfig;
 use jarust::core::jaconfig::JanusAPI;
 use jarust::core::prelude::Attach;
@@ -14,10 +15,9 @@ async fn it_websocket_core_tests() {
         server_root: "janus".to_string(),
         capacity: 32,
     };
-    let mut connection =
-        jarust::core::connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
-            .await
-            .unwrap();
+    let mut connection = connect(config, JanusAPI::WebSocket, RandomTransactionGenerator)
+        .await
+        .unwrap();
 
     'server_info: {
         let info = connection
