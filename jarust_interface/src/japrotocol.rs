@@ -48,6 +48,8 @@ pub enum JaSuccessProtocol {
         #[serde(rename = "plugindata")]
         plugin_data: PluginData,
     },
+    #[serde(untagged)]
+    Empty {},
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
