@@ -89,8 +89,25 @@ impl JaSession {
 
 impl JaSession {
     /// Destroy the current session
+    ///
+    /// Similar to [`destroy`](Self::destroy) but it borrows the session instead of consuming it
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     pub async fn destroy(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
+        tracing::info!("Destroying session");
+        let session_id = self.inner.shared.id;
+        self.inner
+            .shared
+            .interface
+            .destroy(session_id, timeout)
+            .await?;
+        Ok(())
+    }
+
+    /// Destroy the current session
+    ///
+    /// Similar to [`destroy`](Self::destroy) but consumes the session
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
+    pub async fn into_destroy(self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!("Destroying session");
         let session_id = self.inner.shared.id;
         self.inner
