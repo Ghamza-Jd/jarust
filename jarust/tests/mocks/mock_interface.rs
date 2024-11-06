@@ -198,8 +198,8 @@ impl JanusInterface for MockInterface {
 
     async fn send_handle_request(
         &self,
-        request: HandleMessage,
-        timeout: Duration,
+        _request: HandleMessage,
+        _timeout: Duration,
     ) -> Result<JaResponse, Error> {
         todo!("Send handle request is not implemented");
     }
