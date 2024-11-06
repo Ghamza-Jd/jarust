@@ -1,8 +1,7 @@
 use crate::handle_msg::HandleMessage;
-use crate::handle_msg::HandleMessageWithEst;
+use crate::handle_msg::HandleMessageWithJsep;
 use crate::janus_interface::ConnectionParams;
 use crate::janus_interface::JanusInterface;
-use crate::japrotocol::EstProto;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
@@ -318,24 +317,17 @@ impl JanusInterface for RestfulInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg_with_est(
         &self,
-        message: HandleMessageWithEst,
+        message: HandleMessageWithJsep,
     ) -> Result<(), Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
-        let mut request = json!({
+        let request = json!({
             "janus": "message",
             "body": message.body,
+            "jsep": message.jsep
         });
-        match message.estproto {
-            EstProto::JSEP(jsep) => {
-                request["jsep"] = serde_json::to_value(jsep)?;
-            }
-            EstProto::RTP(rtp) => {
-                request["rtp"] = serde_json::to_value(rtp)?;
-            }
-        };
         let (request, _) = self.decorate_request(request);
         self.inner
             .shared
@@ -350,25 +342,18 @@ impl JanusInterface for RestfulInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEst,
+        message: HandleMessageWithJsep,
         timeout: Duration,
     ) -> Result<JaResponse, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
 
-        let mut request = json!({
+        let request = json!({
             "janus": "message",
             "body": message.body,
+            "jsep": message.jsep
         });
-        match message.estproto {
-            EstProto::JSEP(jsep) => {
-                request["jsep"] = serde_json::to_value(jsep)?;
-            }
-            EstProto::RTP(rtp) => {
-                request["rtp"] = serde_json::to_value(rtp)?;
-            }
-        };
         let (request, _) = self.decorate_request(request);
         let response = self
             .inner

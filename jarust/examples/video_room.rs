@@ -1,7 +1,6 @@
 use jarust::core::connect;
 use jarust::core::jaconfig::JaConfig;
 use jarust::core::jaconfig::JanusAPI;
-use jarust::interface::japrotocol::EstProto;
 use jarust::interface::japrotocol::Jsep;
 use jarust::interface::japrotocol::JsepType;
 use jarust::interface::tgenerator::RandomTransactionGenerator;
@@ -149,11 +148,11 @@ async fn main() -> anyhow::Result<()> {
                 }]),
                 ..Default::default()
             },
-            EstProto::JSEP(Jsep {
+            Jsep {
                 jsep_type: JsepType::Offer,
                 trickle: Some(false),
                 sdp: EXAMPLE_SDP_OFFER.to_string(),
-            }),
+            },
             timeout,
         )
         .await?;

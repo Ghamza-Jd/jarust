@@ -54,7 +54,7 @@ mod tests {
             transaction: Some("abc123".to_string()),
             session_id: None,
             sender: None,
-            estproto: None,
+            jsep: None,
         };
 
         interface.mock_create_rsp(response).await;
@@ -145,7 +145,7 @@ mod tests {
             transaction: Some("abc123".to_string()),
             session_id: None,
             sender: None,
-            estproto: None,
+            jsep: None,
         };
 
         interface.mock_create_rsp(response).await;

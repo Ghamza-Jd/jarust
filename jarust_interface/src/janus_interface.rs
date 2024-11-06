@@ -1,5 +1,5 @@
 use crate::handle_msg::HandleMessage;
-use crate::handle_msg::HandleMessageWithEst;
+use crate::handle_msg::HandleMessageWithJsep;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::PluginInnerData;
@@ -90,13 +90,13 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     /// Sends a one-shot message with establishment.
     async fn fire_and_forget_msg_with_est(
         &self,
-        message: HandleMessageWithEst,
+        message: HandleMessageWithJsep,
     ) -> Result<(), Error>;
 
     /// Sends a message and waits for acknowledgment with establishment.
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEst,
+        message: HandleMessageWithJsep,
         timeout: Duration,
     ) -> Result<JaResponse, Error>;
 
