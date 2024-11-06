@@ -1,9 +1,9 @@
 use jarust_interface::handle_msg::HandleMessage;
-use jarust_interface::handle_msg::HandleMessageWithEst;
+use jarust_interface::handle_msg::HandleMessageWithJsep;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
 use jarust_interface::japrotocol::Candidate;
-use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::JaResponse;
+use jarust_interface::japrotocol::Jsep;
 use serde::de::DeserializeOwned;
 use serde_json::json;
 use serde_json::Value;
@@ -102,10 +102,10 @@ impl JaHandle {
 
     /// Send a message with a specific establishment protocol and wait for acknowledgement
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn send_waiton_ack_with_est(
+    pub async fn send_waiton_ack_with_jsep(
         &self,
         body: Value,
-        estproto: EstProto,
+        jsep: Jsep,
         timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
         tracing::debug!("Sending message with establishment and waiting for acknowledgement");
@@ -113,11 +113,11 @@ impl JaHandle {
             .inner
             .interface
             .send_msg_waiton_ack_with_est(
-                HandleMessageWithEst {
+                HandleMessageWithJsep {
                     session_id: self.inner.session_id,
                     handle_id: self.inner.id,
                     body,
-                    estproto,
+                    jsep,
                 },
                 timeout,
             )
@@ -127,19 +127,19 @@ impl JaHandle {
 
     /// Send a one-shot message with a specific establishment protocol
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn fire_and_forget_with_est(
+    pub async fn fire_and_forget_with_jsep(
         &self,
         body: Value,
-        estproto: EstProto,
+        jsep: Jsep,
     ) -> Result<(), jarust_interface::Error> {
         tracing::debug!("Sending a one-shot message with establishment");
         self.inner
             .interface
-            .fire_and_forget_msg_with_est(HandleMessageWithEst {
+            .fire_and_forget_msg_with_est(HandleMessageWithJsep {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
                 body,
-                estproto,
+                jsep,
             })
             .await?;
         Ok(())

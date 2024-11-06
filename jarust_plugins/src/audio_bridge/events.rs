@@ -1,9 +1,9 @@
 use super::common::AudioBridgeParticipant;
 use crate::JanusId;
-use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::JaResponse;
+use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
@@ -48,7 +48,7 @@ pub enum AudioBridgeEvent {
         id: JanusId,
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
-        estproto: EstProto,
+        jsep: Jsep,
     },
     RoomJoined {
         id: JanusId,
@@ -89,12 +89,12 @@ impl TryFrom<JaResponse> for PluginEvent {
                             id,
                             room,
                             participants,
-                        } => match value.estproto {
-                            Some(estproto) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
+                        } => match value.jsep {
+                            Some(jsep) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
                                 id,
                                 room,
                                 participants,
-                                estproto,
+                                jsep,
                             },
                             None => AudioBridgeEvent::RoomJoined {
                                 id,
@@ -134,7 +134,6 @@ mod tests {
     use super::PluginEvent;
     use crate::audio_bridge::events::AudioBridgeEvent;
     use crate::JanusId;
-    use jarust_interface::japrotocol::EstProto;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
     use jarust_interface::japrotocol::Jsep;
@@ -158,7 +157,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -188,11 +187,11 @@ mod tests {
                     })),
                 },
             }),
-            estproto: Some(EstProto::JSEP(Jsep {
+            jsep: Some(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
-            })),
+            }),
             transaction: None,
             session_id: None,
             sender: None,
@@ -204,11 +203,11 @@ mod tests {
                 id: JanusId::Uint(751378),
                 room: JanusId::Uint(684657),
                 participants: vec![],
-                estproto: EstProto::JSEP(Jsep {
+                jsep: Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),
-                }),
+                },
             })
         );
     }
@@ -226,7 +225,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -255,7 +254,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,

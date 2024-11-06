@@ -41,7 +41,7 @@ mod tests {
             transaction: Some("abc123".to_string()),
             session_id: None,
             sender: None,
-            estproto: None,
+            jsep: None,
         };
         interface.mock_create_rsp(response).await;
 
@@ -57,7 +57,7 @@ mod tests {
             transaction: Some("mock-attach-plugin-transaction".to_string()),
             session_id: Some(session_id),
             sender: None,
-            estproto: None,
+            jsep: None,
         };
         interface.mock_attach_rsp(response).await;
 
@@ -73,7 +73,7 @@ mod tests {
                     transaction: Some("mock-event-transaction".to_string()),
                     session_id: Some(session_id),
                     sender: Some(handle_id),
-                    estproto: None,
+                    jsep: None,
                 },
             )
             .await;

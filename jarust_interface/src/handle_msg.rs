@@ -1,4 +1,4 @@
-use super::japrotocol::EstProto;
+use crate::japrotocol::Jsep;
 use serde_json::Value;
 
 pub struct HandleMessage {
@@ -7,9 +7,9 @@ pub struct HandleMessage {
     pub body: Value,
 }
 
-pub struct HandleMessageWithEst {
+pub struct HandleMessageWithJsep {
     pub session_id: u64,
     pub handle_id: u64,
     pub body: Value,
-    pub estproto: EstProto,
+    pub jsep: Jsep,
 }

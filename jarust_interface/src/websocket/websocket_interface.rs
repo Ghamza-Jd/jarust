@@ -4,10 +4,9 @@ use super::router::Router;
 use super::tmanager::TransactionManager;
 use super::websocket_client::WebSocketClient;
 use crate::handle_msg::HandleMessage;
-use crate::handle_msg::HandleMessageWithEst;
+use crate::handle_msg::HandleMessageWithJsep;
 use crate::janus_interface::ConnectionParams;
 use crate::janus_interface::JanusInterface;
-use crate::japrotocol::EstProto;
 use crate::japrotocol::JaResponse;
 use crate::japrotocol::JaSuccessProtocol;
 use crate::japrotocol::ResponseType;
@@ -371,22 +370,15 @@ impl JanusInterface for WebSocketInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn fire_and_forget_msg_with_est(
         &self,
-        message: HandleMessageWithEst,
+        message: HandleMessageWithJsep,
     ) -> Result<(), Error> {
-        let mut request = json!({
+        let request = json!({
             "janus": "message",
             "session_id": message.session_id,
             "handle_id": message.handle_id,
             "body": message.body,
+            "jsep": message.jsep
         });
-        match message.estproto {
-            EstProto::JSEP(jsep) => {
-                request["jsep"] = serde_json::to_value(jsep)?;
-            }
-            EstProto::RTP(rtp) => {
-                request["rtp"] = serde_json::to_value(rtp)?;
-            }
-        };
         self.send(request).await?;
         Ok(())
     }
@@ -394,23 +386,16 @@ impl JanusInterface for WebSocketInterface {
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     async fn send_msg_waiton_ack_with_est(
         &self,
-        message: HandleMessageWithEst,
+        message: HandleMessageWithJsep,
         timeout: Duration,
     ) -> Result<JaResponse, Error> {
-        let mut request = json!({
+        let request = json!({
             "janus": "message",
             "session_id": message.session_id,
             "handle_id": message.handle_id,
             "body": message.body,
+            "jsep": message.jsep,
         });
-        match message.estproto {
-            EstProto::JSEP(jsep) => {
-                request["jsep"] = serde_json::to_value(jsep)?;
-            }
-            EstProto::RTP(rtp) => {
-                request["rtp"] = serde_json::to_value(rtp)?;
-            }
-        };
         let transaction = self.send(request).await?;
         self.poll_ack(&transaction, timeout).await
     }

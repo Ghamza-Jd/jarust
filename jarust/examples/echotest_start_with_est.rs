@@ -1,7 +1,6 @@
 use jarust::core::connect;
 use jarust::core::jaconfig::JaConfig;
 use jarust::core::jaconfig::JanusAPI;
-use jarust::interface::japrotocol::EstProto;
 use jarust::interface::japrotocol::Jsep;
 use jarust::interface::japrotocol::JsepType;
 use jarust::interface::tgenerator::RandomTransactionGenerator;
@@ -44,11 +43,11 @@ async fn main() -> anyhow::Result<()> {
                 video: Some(true),
                 ..Default::default()
             },
-            EstProto::JSEP(Jsep {
+            Jsep {
                 sdp: "".to_string(),
                 trickle: Some(false),
                 jsep_type: JsepType::Offer,
-            }),
+            },
             std::time::Duration::from_secs(5),
         )
         .await;
@@ -60,8 +59,8 @@ async fn main() -> anyhow::Result<()> {
             PluginEvent::EchoTestEvent(EchoTestEvent::Result { result, .. }) => {
                 tracing::info!("result: {result}");
             }
-            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst { estproto, .. }) => {
-                tracing::info!("estproto: {estproto:#?}");
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst { jsep, .. }) => {
+                tracing::info!("jsep: {jsep:#?}");
             }
             PluginEvent::EchoTestEvent(EchoTestEvent::Error { error_code, error }) => {
                 tracing::warn!("error: {{ error_code: {error_code}, error: {error} }}");

@@ -1,6 +1,6 @@
 use super::params::EchoTestStartParams;
 use jarust_core::prelude::*;
-use jarust_interface::japrotocol::EstProto;
+use jarust_interface::japrotocol::Jsep;
 use jarust_rt::JaTask;
 use std::ops::Deref;
 use std::time::Duration;
@@ -23,11 +23,11 @@ impl EchoTestHandle {
     pub async fn start_with_est(
         &self,
         params: EchoTestStartParams,
-        estproto: EstProto,
+        jsep: Jsep,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "echotest", "Sending start with establishment");
-        self.send_waiton_ack_with_est(params.try_into()?, estproto, timeout)
+        self.send_waiton_ack_with_jsep(params.try_into()?, jsep, timeout)
             .await?;
         Ok(())
     }

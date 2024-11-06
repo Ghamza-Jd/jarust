@@ -11,8 +11,8 @@ pub struct JaResponse {
     pub transaction: Option<String>,
     pub session_id: Option<u64>,
     pub sender: Option<u64>,
-    #[serde(flatten)]
-    pub estproto: Option<EstProto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub jsep: Option<Jsep>,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -124,27 +124,6 @@ pub struct Jsep {
     pub sdp: String,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-pub struct RTP {
-    pub ip: String,
-    pub port: u64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub payload_type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub audiolevel_ext: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fec: Option<bool>,
-}
-
-/// Establishment Protocol
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-pub enum EstProto {
-    #[serde(rename = "jsep")]
-    JSEP(Jsep),
-    #[serde(rename = "rtp")]
-    RTP(RTP),
-}
-
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 pub struct Candidate {
     #[serde(rename = "sdpMid")]
@@ -209,7 +188,6 @@ pub struct MetaData {
 
 #[cfg(test)]
 mod tests {
-    use super::EstProto;
     use super::GenericEvent;
     use super::JaData;
     use super::JaHandleEvent;
@@ -241,7 +219,7 @@ mod tests {
             transaction: Some("7be89359-8c3f-44fc-93a6-72e35bb56058".to_string()),
             sender: None,
             session_id: None,
-            estproto: None,
+            jsep: None,
         };
         assert_eq!(actual_rsp, expected);
     }
@@ -266,7 +244,7 @@ mod tests {
             transaction: Some("151f9362-3d12-45e5-ba02-b91a38be5a06".to_string()),
             sender: None,
             session_id: Some(1706796313061627u64),
-            estproto: None,
+            jsep: None,
         };
         assert_eq!(actual_rsp, expected);
     }
@@ -304,11 +282,11 @@ mod tests {
             transaction: Some("c7bb120f-ed4e-4e00-b8de-bfc3e66f098e".to_string()),
             sender: Some(3010144072065778u64),
             session_id: Some(8643988533991908u64),
-            estproto: Some(EstProto::JSEP(Jsep {
+            jsep: Some(Jsep {
                 sdp: "random_sdp".to_string(),
                 trickle: None,
                 jsep_type: JsepType::Answer,
-            })),
+            }),
         };
         assert_eq!(actual_event, expected);
     }
@@ -326,7 +304,7 @@ mod tests {
             transaction: None,
             sender: Some(5373520011480655u64),
             session_id: Some(3889473834879521u64),
-            estproto: None,
+            jsep: None,
         };
         assert_eq!(actual_event, expected);
     }
@@ -344,7 +322,7 @@ mod tests {
             transaction: None,
             sender: Some(2676358135723942u64),
             session_id: Some(1942958911060866u64),
-            estproto: None,
+            jsep: None,
         };
         assert_eq!(actual_event, expected);
     }
@@ -379,7 +357,7 @@ mod tests {
             transaction: Some("nNbmsbj33zLY".to_string()),
             sender: Some(77797716144085u64),
             session_id: Some(2158724686674557u64),
-            estproto: None,
+            jsep: None,
         };
         assert_eq!(actual_event, expected);
     }

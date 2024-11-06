@@ -1,7 +1,7 @@
-use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
 use jarust_interface::japrotocol::JaResponse;
+use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
@@ -28,7 +28,7 @@ pub enum EchoTestEvent {
     ResultWithEst {
         echotest: String,
         result: String,
-        estproto: EstProto,
+        jsep: Jsep,
     },
     Error {
         error_code: u16,
@@ -47,11 +47,11 @@ impl TryFrom<JaResponse> for PluginEvent {
                         EchoTestEvent::Error { error_code, error }
                     }
                     PluginInnerData::Data(data) => match from_value::<EchoTestEventDto>(data)? {
-                        EchoTestEventDto::Result { echotest, result } => match value.estproto {
-                            Some(estproto) => EchoTestEvent::ResultWithEst {
+                        EchoTestEventDto::Result { echotest, result } => match value.jsep {
+                            Some(jsep) => EchoTestEvent::ResultWithEst {
                                 echotest,
                                 result,
-                                estproto,
+                                jsep,
                             },
                             None => EchoTestEvent::Result { echotest, result },
                         },
@@ -71,7 +71,6 @@ impl TryFrom<JaResponse> for PluginEvent {
 mod tests {
     use super::PluginEvent;
     use crate::echo_test::events::EchoTestEvent;
-    use jarust_interface::japrotocol::EstProto;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
     use jarust_interface::japrotocol::Jsep;
@@ -93,7 +92,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -120,11 +119,11 @@ mod tests {
                     })),
                 },
             }),
-            estproto: Some(EstProto::JSEP(Jsep {
+            jsep: Some(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
-            })),
+            }),
             transaction: None,
             session_id: None,
             sender: None,
@@ -135,11 +134,11 @@ mod tests {
             PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst {
                 echotest: "event".to_string(),
                 result: "ok".to_string(),
-                estproto: EstProto::JSEP(Jsep {
+                jsep: Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string()
-                })
+                }
             })
         );
     }
@@ -156,11 +155,11 @@ mod tests {
                     },
                 },
             }),
-            estproto: Some(EstProto::JSEP(Jsep {
+            jsep: Some(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
-            })),
+            }),
             transaction: None,
             session_id: None,
             sender: None,

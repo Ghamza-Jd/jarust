@@ -3,7 +3,7 @@ use jarust::core::prelude::JaResponse;
 use jarust::core::GenerateTransaction;
 use jarust::interface::error::Error;
 use jarust::interface::handle_msg::HandleMessage;
-use jarust::interface::handle_msg::HandleMessageWithEst;
+use jarust::interface::handle_msg::HandleMessageWithJsep;
 use jarust::interface::janus_interface::ConnectionParams;
 use jarust::interface::janus_interface::JanusInterface;
 use jarust::interface::japrotocol::JaSuccessProtocol;
@@ -183,14 +183,14 @@ impl JanusInterface for MockInterface {
 
     async fn fire_and_forget_msg_with_est(
         &self,
-        _message: HandleMessageWithEst,
+        _message: HandleMessageWithJsep,
     ) -> Result<(), jarust::interface::Error> {
         todo!("Fire and forget with establishment is not implemented");
     }
 
     async fn send_msg_waiton_ack_with_est(
         &self,
-        _message: HandleMessageWithEst,
+        _message: HandleMessageWithJsep,
         _timeout: Duration,
     ) -> Result<JaResponse, jarust::interface::Error> {
         todo!("Send message wait on ack with establishment is not implemented");

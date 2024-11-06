@@ -4,9 +4,9 @@ use crate::video_room::responses::ConfiguredStream;
 use crate::video_room::responses::Publisher;
 use crate::JanusId;
 use jarust_core::prelude::JaResponse;
-use jarust_interface::japrotocol::EstProto;
 use jarust_interface::japrotocol::GenericEvent;
 use jarust_interface::japrotocol::JaHandleEvent;
+use jarust_interface::japrotocol::Jsep;
 use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
@@ -149,7 +149,7 @@ pub enum VideoRoomEvent {
         /// display name of the new participant
         display: Option<String>,
 
-        estproto: EstProto,
+        jsep: Jsep,
     },
 
     /// Sent to all participants if a participant started publishing
@@ -206,7 +206,7 @@ pub enum VideoRoomEvent {
         audio_codec: Option<String>,
         video_codec: Option<String>,
         streams: Vec<ConfiguredStream>,
-        estproto: EstProto,
+        jsep: Jsep,
     },
 
     /// When configuring the room to request the ssrc-audio-level RTP extension,
@@ -278,12 +278,8 @@ impl TryFrom<JaResponse> for PluginEvent {
                     }
                     PluginInnerData::Data(data) => match from_value::<EventDto>(data)? {
                         EventDto::DestroyRoom { room } => VideoRoomEvent::RoomDestroyed { room },
-                        EventDto::JoinedRoom { id, room, display } => match value.estproto {
-                            Some(estproto) => VideoRoomEvent::RoomJoinedWithEst {
-                                id,
-                                display,
-                                estproto,
-                            },
+                        EventDto::JoinedRoom { id, room, display } => match value.jsep {
+                            Some(jsep) => VideoRoomEvent::RoomJoinedWithEst { id, display, jsep },
 
                             None => VideoRoomEvent::RoomJoined { id, room, display },
                         },
@@ -347,13 +343,13 @@ impl TryFrom<JaResponse> for PluginEvent {
                             video_codec,
                             streams,
                         }) => {
-                            if let Some(estproto) = value.estproto {
+                            if let Some(jsep) = value.jsep {
                                 VideoRoomEvent::ConfiguredWithEst {
                                     room,
                                     audio_codec,
                                     video_codec,
                                     streams,
-                                    estproto,
+                                    jsep,
                                 }
                             } else {
                                 VideoRoomEvent::Configured {
@@ -400,7 +396,6 @@ mod tests {
     use crate::video_room::events::VideoRoomEvent;
     use crate::video_room::responses::ConfiguredStream;
     use crate::JanusId;
-    use jarust_interface::japrotocol::EstProto;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
     use jarust_interface::japrotocol::Jsep;
@@ -424,7 +419,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -454,11 +449,11 @@ mod tests {
                     })),
                 },
             }),
-            estproto: Some(EstProto::JSEP(Jsep {
+            jsep: Some(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
-            })),
+            }),
             transaction: None,
             session_id: None,
             sender: None,
@@ -469,11 +464,11 @@ mod tests {
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEst {
                 id: JanusId::Uint(8146468u32),
                 display: Some("Joiner McJoinface".to_string()),
-                estproto: EstProto::JSEP(Jsep {
+                jsep: Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),
-                })
+                }
             })
         )
     }
@@ -490,7 +485,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -517,7 +512,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -549,7 +544,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -580,7 +575,7 @@ mod tests {
                     },
                 },
             }),
-            estproto: None,
+            jsep: None,
             transaction: None,
             session_id: None,
             sender: None,
@@ -608,7 +603,7 @@ mod tests {
                     })),
                 },
             }),
-            estproto: None,
+            jsep: None,
             sender: None,
             session_id: None,
             transaction: None,
@@ -658,11 +653,11 @@ mod tests {
             transaction: None,
             session_id: None,
             sender: None,
-            estproto: Some(EstProto::JSEP(Jsep {
+            jsep: Some(Jsep {
                 jsep_type: JsepType::Answer,
                 trickle: Some(false),
                 sdp: "test_sdp".to_string(),
-            })),
+            }),
         };
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
@@ -690,11 +685,11 @@ mod tests {
                         ..Default::default()
                     }
                 ],
-                estproto: EstProto::JSEP(Jsep {
+                jsep: Jsep {
                     jsep_type: JsepType::Answer,
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),
-                })
+                }
             })
         )
     }

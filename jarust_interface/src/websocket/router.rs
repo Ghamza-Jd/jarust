@@ -133,7 +133,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
-                    estproto: None,
+                    jsep: None,
                 },
             )
             .await
@@ -147,7 +147,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
-                    estproto: None,
+                    jsep: None,
                 },
             )
             .await
@@ -161,7 +161,7 @@ mod tests {
                     transaction: None,
                     session_id: None,
                     sender: None,
-                    estproto: None,
+                    jsep: None,
                 },
             )
             .await
