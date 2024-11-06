@@ -31,6 +31,7 @@ use-rustls = ["jarust_interface/use-rustls"]
 
 [dev-dependencies]
 anyhow = "1.0.89"
+async-trait.workspace = true
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
