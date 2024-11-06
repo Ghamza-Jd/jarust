@@ -374,7 +374,23 @@ impl JanusInterface for RestfulInterface {
         request: HandleMessage,
         timeout: Duration,
     ) -> Result<JaResponse, Error> {
-        unimplemented!()
+        let url = &self.inner.shared.url;
+        let session_id = request.session_id;
+        let handle_id = request.handle_id;
+
+        let (request, _) = self.decorate_request(request.body);
+        let response = self
+            .inner
+            .shared
+            .client
+            .post(format!("{url}/{session_id}/{handle_id}"))
+            .json(&request)
+            .timeout(timeout)
+            .send()
+            .await?
+            .json::<JaResponse>()
+            .await?;
+        Ok(response)
     }
 
     fn name(&self) -> Box<str> {
