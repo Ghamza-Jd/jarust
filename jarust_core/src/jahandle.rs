@@ -182,7 +182,7 @@ impl JaHandle {
     /// Similar to [`into_detach`](Self::into_detach) but it borrows the handle instead of consuming it
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn detach(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
-        tracing::info!("Detaching");
+        tracing::info!("Detaching handle");
         let request = json!({
             "janus": "detach"
         });
@@ -195,7 +195,7 @@ impl JaHandle {
     /// Similar to [`detach`](Self::detach) but consumes the handle
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn into_detach(self, timeout: Duration) -> Result<(), jarust_interface::Error> {
-        tracing::info!("Detaching");
+        tracing::info!("Detaching and dropping handle");
         let request = json!({
             "janus": "detach"
         });

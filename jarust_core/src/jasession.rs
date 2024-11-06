@@ -108,7 +108,7 @@ impl JaSession {
     /// Similar to [`destroy`](Self::destroy) but consumes the session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
     pub async fn into_destroy(self, timeout: Duration) -> Result<(), jarust_interface::Error> {
-        tracing::info!("Destroying session");
+        tracing::info!("Destroying and dropping session");
         let session_id = self.inner.shared.id;
         self.inner
             .shared
