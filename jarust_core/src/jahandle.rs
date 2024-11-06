@@ -100,7 +100,7 @@ impl JaHandle {
         Ok(ack)
     }
 
-    /// Send a message with a specific establishment protocol and wait for acknowledgement
+    /// Send a message with a jsep and wait for acknowledgement
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn send_waiton_ack_with_jsep(
         &self,
@@ -108,11 +108,11 @@ impl JaHandle {
         jsep: Jsep,
         timeout: Duration,
     ) -> Result<JaResponse, jarust_interface::Error> {
-        tracing::debug!("Sending message with establishment and waiting for acknowledgement");
+        tracing::debug!("Sending message with jsep and waiting for acknowledgement");
         let ack = self
             .inner
             .interface
-            .send_msg_waiton_ack_with_est(
+            .send_msg_waiton_ack_with_jsep(
                 HandleMessageWithJsep {
                     session_id: self.inner.session_id,
                     handle_id: self.inner.id,
@@ -125,17 +125,17 @@ impl JaHandle {
         Ok(ack)
     }
 
-    /// Send a one-shot message with a specific establishment protocol
+    /// Send a one-shot message with a jsep
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
     pub async fn fire_and_forget_with_jsep(
         &self,
         body: Value,
         jsep: Jsep,
     ) -> Result<(), jarust_interface::Error> {
-        tracing::debug!("Sending a one-shot message with establishment");
+        tracing::debug!("Sending a one-shot message with jsep");
         self.inner
             .interface
-            .fire_and_forget_msg_with_est(HandleMessageWithJsep {
+            .fire_and_forget_msg_with_jsep(HandleMessageWithJsep {
                 session_id: self.inner.session_id,
                 handle_id: self.inner.id,
                 body,

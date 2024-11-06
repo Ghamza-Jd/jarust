@@ -81,7 +81,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
-        params: AudioBridgeDestoryParams,
+        params: AudioBridgeDestroyParams,
         timeout: Duration,
     ) -> Result<AudioBridgeRoomDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending destroy room");
@@ -96,7 +96,7 @@ impl AudioBridgeHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
-        params: AudioBridgeDestoryParams,
+        params: AudioBridgeDestroyParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending enable recording");
@@ -113,7 +113,7 @@ impl AudioBridgeHandle {
     /// files, rather than for a .wav mix
     pub async fn enable_mjrs(
         &self,
-        params: AudioBridgeDestoryParams,
+        params: AudioBridgeDestroyParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending enable mjrs");

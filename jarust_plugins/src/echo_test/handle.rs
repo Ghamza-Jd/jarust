@@ -18,15 +18,15 @@ impl EchoTestHandle {
         self.handle.fire_and_forget(params.try_into()?).await
     }
 
-    /// Start/update an echotest session with establishment
+    /// Start/update an echotest session with jsep
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn start_with_est(
+    pub async fn start_with_jsep(
         &self,
         params: EchoTestStartParams,
         jsep: Jsep,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        tracing::info!(plugin = "echotest", "Sending start with establishment");
+        tracing::info!(plugin = "echotest", "Sending start with jsep");
         self.send_waiton_ack_with_jsep(params.try_into()?, jsep, timeout)
             .await?;
         Ok(())

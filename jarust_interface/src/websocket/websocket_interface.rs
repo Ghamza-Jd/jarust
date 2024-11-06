@@ -368,7 +368,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn fire_and_forget_msg_with_est(
+    async fn fire_and_forget_msg_with_jsep(
         &self,
         message: HandleMessageWithJsep,
     ) -> Result<(), Error> {
@@ -384,7 +384,7 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn send_msg_waiton_ack_with_est(
+    async fn send_msg_waiton_ack_with_jsep(
         &self,
         message: HandleMessageWithJsep,
         timeout: Duration,

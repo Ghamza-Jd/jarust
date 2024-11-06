@@ -14,7 +14,6 @@ use jarust::core::connect;
 use jarust::core::jaconfig::JaConfig;
 use jarust::core::jaconfig::JanusAPI;
 use jarust::core::japlugin::Attach;
-use jarust::interface::japrotocol::EstProto;
 use jarust::interface::japrotocol::Jsep;
 use jarust::interface::japrotocol::JsepType;
 use jarust::interface::tgenerator::RandomTransactionGenerator;
@@ -72,16 +71,16 @@ async fn main() -> anyhow::Result<()> {
                 .unwrap();
 
             handle
-                .fire_and_forget_with_est(
+                .fire_and_forget_with_jsep(
                     json!({
                         "video": true,
                         "audio": true,
                     }),
-                    EstProto::JSEP(Jsep {
+                    Jsep {
                         sdp: "".to_string(),
                         trickle: Some(false),
                         jsep_type: JsepType::Offer,
-                    }),
+                    },
                 )
                 .await
                 .unwrap();

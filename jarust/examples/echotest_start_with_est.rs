@@ -37,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
     let (handle, mut event_receiver) = session.attach_echo_test(timeout).await?;
 
     let rsp = handle
-        .start_with_est(
+        .start_with_jsep(
             EchoTestStartParams {
                 audio: Some(true),
                 video: Some(true),

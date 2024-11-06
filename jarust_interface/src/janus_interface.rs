@@ -87,14 +87,14 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         timeout: Duration,
     ) -> Result<JaResponse, Error>;
 
-    /// Sends a one-shot message with establishment.
-    async fn fire_and_forget_msg_with_est(
+    /// Sends a one-shot message with jsep.
+    async fn fire_and_forget_msg_with_jsep(
         &self,
         message: HandleMessageWithJsep,
     ) -> Result<(), Error>;
 
-    /// Sends a message and waits for acknowledgment with establishment.
-    async fn send_msg_waiton_ack_with_est(
+    /// Sends a message and waits for acknowledgment with jsep.
+    async fn send_msg_waiton_ack_with_jsep(
         &self,
         message: HandleMessageWithJsep,
         timeout: Duration,
