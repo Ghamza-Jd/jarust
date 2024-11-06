@@ -144,6 +144,25 @@ impl JaHandle {
             .await?;
         Ok(())
     }
+
+    async fn send_handle_request(
+        &self,
+        body: Value,
+        timeout: Duration,
+    ) -> Result<JaResponse, jarust_interface::Error> {
+        tracing::debug!("Sending a handle request");
+        self.inner
+            .interface
+            .send_handle_request(
+                HandleMessage {
+                    session_id: self.inner.session_id,
+                    handle_id: self.inner.id,
+                    body,
+                },
+                timeout,
+            )
+            .await
+    }
 }
 
 impl JaHandle {
@@ -154,7 +173,7 @@ impl JaHandle {
         let request = json!({
             "janus": "hangup"
         });
-        self.send_waiton_ack(request, timeout).await?;
+        self.send_handle_request(request, timeout).await?;
         Ok(())
     }
 
@@ -165,7 +184,7 @@ impl JaHandle {
         let request = json!({
             "janus": "detach"
         });
-        self.send_waiton_ack(request, timeout).await?;
+        self.send_handle_request(request, timeout).await?;
         Ok(())
     }
 
@@ -181,7 +200,7 @@ impl JaHandle {
             "janus": "trickle",
             "candidate": candidate
         });
-        self.send_waiton_ack(request, timeout).await?;
+        self.send_handle_request(request, timeout).await?;
         Ok(())
     }
 
@@ -197,7 +216,7 @@ impl JaHandle {
             "janus": "trickle",
             "candidates": candidates
         });
-        self.send_waiton_ack(request, timeout).await?;
+        self.send_handle_request(request, timeout).await?;
         Ok(())
     }
 
@@ -213,7 +232,7 @@ impl JaHandle {
                 "completed" : true
             }
         });
-        self.send_waiton_ack(request, timeout).await?;
+        self.send_handle_request(request, timeout).await?;
         Ok(())
     }
 }

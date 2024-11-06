@@ -369,6 +369,14 @@ impl JanusInterface for RestfulInterface {
         Ok(response)
     }
 
+    async fn send_handle_request(
+        &self,
+        request: HandleMessage,
+        timeout: Duration,
+    ) -> Result<JaResponse, Error> {
+        unimplemented!()
+    }
+
     fn name(&self) -> Box<str> {
         "Restful Interface".to_string().into_boxed_str()
     }

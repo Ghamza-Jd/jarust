@@ -16,6 +16,7 @@ use crate::tgenerator::TransactionGenerator;
 use crate::Error;
 use jarust_rt::JaTask;
 use serde_json::json;
+use serde_json::Map;
 use serde_json::Value;
 use std::sync::Arc;
 use std::time::Duration;
@@ -400,6 +401,23 @@ impl JanusInterface for WebSocketInterface {
         self.poll_ack(&transaction, timeout).await
     }
 
+    async fn send_handle_request(
+        &self,
+        request: HandleMessage,
+        timeout: Duration,
+    ) -> Result<JaResponse, Error> {
+        let mut req = request.body;
+        merge_json(
+            &mut req,
+            &mut json!({
+                "session_id": request.session_id,
+                "handle_id": request.handle_id,
+            }),
+        );
+        let transaction = self.send(req).await?;
+        self.poll_response(&transaction, timeout).await
+    }
+
     fn name(&self) -> Box<str> {
         "WebSocket Interface".to_string().into_boxed_str()
     }
@@ -410,5 +428,18 @@ impl Drop for InnerWebSocketInterface {
         self.shared.tasks.iter().for_each(|task| {
             task.cancel();
         });
+    }
+}
+
+fn merge_json(a: &mut Value, b: &Value) {
+    match (a, b) {
+        (&mut Value::Object(ref mut a), &Value::Object(ref b)) => {
+            for (k, v) in b {
+                merge_json(a.entry(k.clone()).or_insert(Value::Null), v);
+            }
+        }
+        (a, b) => {
+            *a = b.clone();
+        }
     }
 }

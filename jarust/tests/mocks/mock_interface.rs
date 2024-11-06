@@ -195,4 +195,12 @@ impl JanusInterface for MockInterface {
     ) -> Result<JaResponse, jarust::interface::Error> {
         todo!("Send message wait on ack with jsep is not implemented");
     }
+
+    async fn send_handle_request(
+        &self,
+        request: HandleMessage,
+        timeout: Duration,
+    ) -> Result<JaResponse, Error> {
+        todo!("Send handle request is not implemented");
+    }
 }
