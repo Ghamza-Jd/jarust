@@ -1,14 +1,14 @@
 use async_trait::async_trait;
-use jarust_core::prelude::JaResponse;
-use jarust_core::GenerateTransaction;
-use jarust_interface::error::Error;
-use jarust_interface::handle_msg::HandleMessage;
-use jarust_interface::handle_msg::HandleMessageWithEst;
-use jarust_interface::janus_interface::ConnectionParams;
-use jarust_interface::janus_interface::JanusInterface;
-use jarust_interface::japrotocol::JaSuccessProtocol;
-use jarust_interface::japrotocol::ResponseType;
-use jarust_interface::japrotocol::ServerInfoRsp;
+use jarust::core::prelude::JaResponse;
+use jarust::core::GenerateTransaction;
+use jarust::interface::error::Error;
+use jarust::interface::handle_msg::HandleMessage;
+use jarust::interface::handle_msg::HandleMessageWithEst;
+use jarust::interface::janus_interface::ConnectionParams;
+use jarust::interface::janus_interface::JanusInterface;
+use jarust::interface::japrotocol::JaSuccessProtocol;
+use jarust::interface::japrotocol::ResponseType;
+use jarust::interface::japrotocol::ServerInfoRsp;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -61,7 +61,7 @@ impl JanusInterface for MockInterface {
     async fn make_interface(
         _: ConnectionParams,
         _: impl GenerateTransaction,
-    ) -> Result<Self, jarust_interface::Error>
+    ) -> Result<Self, jarust::interface::Error>
     where
         Self: Sized,
     {
@@ -72,7 +72,7 @@ impl JanusInterface for MockInterface {
         })
     }
 
-    async fn create(&self, _timeout: Duration) -> Result<u64, jarust_interface::Error> {
+    async fn create(&self, _timeout: Duration) -> Result<u64, jarust::interface::Error> {
         let Some(rsp) = self.inner.exclusive.lock().await.create_rsp.clone() else {
             panic!("Create response is not set");
         };
@@ -97,7 +97,7 @@ impl JanusInterface for MockInterface {
     async fn server_info(
         &self,
         _timeout: Duration,
-    ) -> Result<ServerInfoRsp, jarust_interface::Error> {
+    ) -> Result<ServerInfoRsp, jarust::interface::Error> {
         let Some(rsp) = self.inner.exclusive.lock().await.server_info_rsp.clone() else {
             panic!("Server info response is not set");
         };
@@ -109,7 +109,7 @@ impl JanusInterface for MockInterface {
         _session_id: u64,
         _plugin_id: String,
         _timeout: Duration,
-    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>), jarust_interface::Error> {
+    ) -> Result<(u64, mpsc::UnboundedReceiver<JaResponse>), jarust::interface::Error> {
         let Some(rsp) = self.inner.exclusive.lock().await.attach_rsp.clone() else {
             panic!("Attach response is not set");
         };
@@ -146,7 +146,7 @@ impl JanusInterface for MockInterface {
         &self,
         _session_id: u64,
         _timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<(), jarust::interface::Error> {
         todo!("Keep alive is not implemented");
     }
 
@@ -154,14 +154,14 @@ impl JanusInterface for MockInterface {
         &self,
         _session_id: u64,
         _timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<(), jarust::interface::Error> {
         todo!("Destroy is not implemented");
     }
 
     async fn fire_and_forget_msg(
         &self,
         _message: HandleMessage,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<(), jarust::interface::Error> {
         todo!("Fire and forget is not implemented");
     }
 
@@ -169,7 +169,7 @@ impl JanusInterface for MockInterface {
         &self,
         _message: HandleMessage,
         _timeout: Duration,
-    ) -> Result<JaResponse, jarust_interface::Error> {
+    ) -> Result<JaResponse, jarust::interface::Error> {
         todo!("Send message wait on ack is not implemented");
     }
 
@@ -177,14 +177,14 @@ impl JanusInterface for MockInterface {
         &self,
         _message: HandleMessage,
         _timeout: Duration,
-    ) -> Result<JaResponse, jarust_interface::Error> {
+    ) -> Result<JaResponse, jarust::interface::Error> {
         todo!("Internal send message wait on response is not implemented");
     }
 
     async fn fire_and_forget_msg_with_est(
         &self,
         _message: HandleMessageWithEst,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<(), jarust::interface::Error> {
         todo!("Fire and forget with establishment is not implemented");
     }
 
@@ -192,7 +192,7 @@ impl JanusInterface for MockInterface {
         &self,
         _message: HandleMessageWithEst,
         _timeout: Duration,
-    ) -> Result<JaResponse, jarust_interface::Error> {
+    ) -> Result<JaResponse, jarust::interface::Error> {
         todo!("Send message wait on ack with establishment is not implemented");
     }
 }

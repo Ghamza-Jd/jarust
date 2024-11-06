@@ -5,15 +5,16 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust_core::prelude::Attach;
-    use jarust_core::prelude::JaResponse;
-    use jarust_interface::janus_interface::ConnectionParams;
-    use jarust_interface::janus_interface::JanusInterface;
-    use jarust_interface::japrotocol::GenericEvent;
-    use jarust_interface::japrotocol::JaData;
-    use jarust_interface::japrotocol::JaHandleEvent;
-    use jarust_interface::japrotocol::JaSuccessProtocol;
-    use jarust_interface::japrotocol::ResponseType;
+    use jarust::core::custom_connect;
+    use jarust::core::prelude::Attach;
+    use jarust::core::prelude::JaResponse;
+    use jarust::interface::janus_interface::ConnectionParams;
+    use jarust::interface::janus_interface::JanusInterface;
+    use jarust::interface::japrotocol::GenericEvent;
+    use jarust::interface::japrotocol::JaData;
+    use jarust::interface::japrotocol::JaHandleEvent;
+    use jarust::interface::japrotocol::JaSuccessProtocol;
+    use jarust::interface::japrotocol::ResponseType;
     use std::time::Duration;
 
     #[tokio::test]
@@ -28,7 +29,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = custom_connect(interface.clone()).await.unwrap();
 
         let session_id = 73;
         let handle_id = 77;

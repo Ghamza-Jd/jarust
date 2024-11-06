@@ -5,14 +5,15 @@ mod mocks;
 mod tests {
     use crate::mocks::mock_generate_transaction::MockGenerateTransaction;
     use crate::mocks::mock_interface::MockInterface;
-    use jarust_core::prelude::JaResponse;
-    use jarust_interface::janus_interface::ConnectionParams;
-    use jarust_interface::janus_interface::JanusInterface;
-    use jarust_interface::japrotocol::ErrorResponse;
-    use jarust_interface::japrotocol::JaData;
-    use jarust_interface::japrotocol::JaSuccessProtocol;
-    use jarust_interface::japrotocol::ResponseType;
-    use jarust_interface::japrotocol::ServerInfoRsp;
+    use jarust::core::custom_connect;
+    use jarust::core::prelude::JaResponse;
+    use jarust::interface::janus_interface::ConnectionParams;
+    use jarust::interface::janus_interface::JanusInterface;
+    use jarust::interface::japrotocol::ErrorResponse;
+    use jarust::interface::japrotocol::JaData;
+    use jarust::interface::japrotocol::JaSuccessProtocol;
+    use jarust::interface::japrotocol::ResponseType;
+    use jarust::interface::japrotocol::ServerInfoRsp;
     use std::collections::HashMap;
     use std::time::Duration;
 
@@ -28,7 +29,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let connection = jarust_core::custom_connect(interface).await;
+        let connection = custom_connect(interface).await;
         assert!(connection.is_ok());
     }
 
@@ -44,7 +45,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = custom_connect(interface.clone()).await.unwrap();
 
         let response = JaResponse {
             janus: ResponseType::Success(JaSuccessProtocol::Data {
@@ -75,7 +76,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = custom_connect(interface.clone()).await.unwrap();
 
         let server_info = ServerInfoRsp {
             name: "Mock server name".to_string(),
@@ -132,7 +133,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = jarust_core::custom_connect(interface.clone()).await.unwrap();
+        let mut connection = custom_connect(interface.clone()).await.unwrap();
 
         let response = JaResponse {
             janus: ResponseType::Error {
@@ -153,7 +154,7 @@ mod tests {
 
         assert!(matches!(
             session.unwrap_err(),
-            jarust_interface::Error::JanusError { .. }
+            jarust::interface::Error::JanusError { .. }
         ))
     }
 }
