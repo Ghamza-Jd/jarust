@@ -100,6 +100,15 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         timeout: Duration,
     ) -> Result<JaResponse, Error>;
 
+    /// Sends a top-level handle request.
+    ///
+    /// This is used for requests like `hangup`, `detach`, `trickle`, etc.
+    async fn send_handle_request(
+        &self,
+        request: HandleMessage,
+        timeout: Duration,
+    ) -> Result<JaResponse, Error>;
+
     /// Returns the name of the interface (for the debug trait)
     fn name(&self) -> Box<str> {
         "Janus Interface".to_string().into_boxed_str()
