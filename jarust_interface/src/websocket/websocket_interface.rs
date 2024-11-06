@@ -16,7 +16,6 @@ use crate::tgenerator::TransactionGenerator;
 use crate::Error;
 use jarust_rt::JaTask;
 use serde_json::json;
-use serde_json::Map;
 use serde_json::Value;
 use std::sync::Arc;
 use std::time::Duration;
@@ -409,7 +408,7 @@ impl JanusInterface for WebSocketInterface {
         let mut req = request.body;
         merge_json(
             &mut req,
-            &mut json!({
+            &json!({
                 "session_id": request.session_id,
                 "handle_id": request.handle_id,
             }),
@@ -433,7 +432,7 @@ impl Drop for InnerWebSocketInterface {
 
 fn merge_json(a: &mut Value, b: &Value) {
     match (a, b) {
-        (&mut Value::Object(ref mut a), &Value::Object(ref b)) => {
+        (&mut Value::Object(ref mut a), Value::Object(b)) => {
             for (k, v) in b {
                 merge_json(a.entry(k.clone()).or_insert(Value::Null), v);
             }

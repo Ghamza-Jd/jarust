@@ -2,6 +2,9 @@ use jarust::core::connect;
 use jarust::core::jaconfig::JaConfig;
 use jarust::core::jaconfig::JanusAPI;
 use jarust::core::prelude::Attach;
+use jarust::interface::japrotocol::GenericEvent;
+use jarust::interface::japrotocol::JaHandleEvent;
+use jarust::interface::japrotocol::ResponseType;
 use jarust::interface::tgenerator::RandomTransactionGenerator;
 use std::time::Duration;
 
@@ -56,8 +59,15 @@ async fn it_websocket_core_tests() {
         .await
         .unwrap();
 
-    let (_, _) = session
+    let (handle, mut event_recv) = session
         .attach("janus.plugin.echotest".to_string(), Duration::from_secs(5))
         .await
         .unwrap();
+
+    handle.detach(Duration::from_secs(5)).await.unwrap();
+    assert_eq!(
+        event_recv.recv().await.unwrap().janus,
+        ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),
+        "Hangup event should be received"
+    );
 }
