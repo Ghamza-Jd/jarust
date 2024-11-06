@@ -108,7 +108,7 @@ mod tests {
     }
 
     #[test]
-    fn it_parse_result_with_establishment_event() {
+    fn it_parse_result_with_jsep_event() {
         let rsp = JaResponse {
             janus: ResponseType::Event(JaHandleEvent::PluginEvent {
                 plugin_data: PluginData {

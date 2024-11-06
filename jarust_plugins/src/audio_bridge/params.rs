@@ -76,7 +76,7 @@ make_dto!(
 );
 
 make_dto!(
-    AudioBridgeDestoryParams,
+    AudioBridgeDestroyParams,
     required { room: JanusId },
     optional {
         /// room secret, mandatory if configured

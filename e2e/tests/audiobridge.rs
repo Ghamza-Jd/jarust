@@ -4,7 +4,7 @@ use jarust::interface::tgenerator::RandomTransactionGenerator;
 use jarust::plugins::audio_bridge::events::PluginEvent;
 use jarust::plugins::audio_bridge::handle::AudioBridgeHandle;
 use jarust::plugins::audio_bridge::jahandle_ext::AudioBridge;
-use jarust::plugins::audio_bridge::params::AudioBridgeDestoryParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeDestroyParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
@@ -128,17 +128,17 @@ async fn room_crud_e2e() {
         assert_eq!(exists, true, "Room should exist after setting to private");
     }
 
-    'destory: {
+    'destroy: {
         handle
             .destroy_room(
-                AudioBridgeDestoryParams {
+                AudioBridgeDestroyParams {
                     room: room_id.clone(),
                     optional: Default::default(),
                 },
                 default_timeout,
             )
             .await
-            .expect("Failed to destroy room; destory");
+            .expect("Failed to destroy room; destroy");
         let exists = handle
             .exists(
                 AudioBridgeExistsParams {
@@ -147,7 +147,7 @@ async fn room_crud_e2e() {
                 default_timeout,
             )
             .await
-            .expect("Failed to check if room exists; destory");
+            .expect("Failed to check if room exists; destroy");
         assert_eq!(exists, false, "Room should not exist after destruction");
     }
 }

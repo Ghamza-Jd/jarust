@@ -181,18 +181,18 @@ impl JanusInterface for MockInterface {
         todo!("Internal send message wait on response is not implemented");
     }
 
-    async fn fire_and_forget_msg_with_est(
+    async fn fire_and_forget_msg_with_jsep(
         &self,
         _message: HandleMessageWithJsep,
     ) -> Result<(), jarust::interface::Error> {
-        todo!("Fire and forget with establishment is not implemented");
+        todo!("Fire and forget with jsep is not implemented");
     }
 
-    async fn send_msg_waiton_ack_with_est(
+    async fn send_msg_waiton_ack_with_jsep(
         &self,
         _message: HandleMessageWithJsep,
         _timeout: Duration,
     ) -> Result<JaResponse, jarust::interface::Error> {
-        todo!("Send message wait on ack with establishment is not implemented");
+        todo!("Send message wait on ack with jsep is not implemented");
     }
 }
