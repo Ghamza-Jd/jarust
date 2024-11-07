@@ -17,7 +17,7 @@ doctest = false
 async-trait.workspace = true
 jarust_core = { version = "0.8.0", path = "../jarust_core" }
 jarust_interface = { version = "0.8.0", path = "../jarust_interface" }
-jarust_rt = { version = "0.8.0", path = "../jarust_rt" }
+jarust_rt = { version = "0.8.0", path = "../jarust_rt", default-features = false }
 paste = "1.0.15"
 serde_json.workspace = true
 serde.workspace = true
@@ -25,7 +25,8 @@ tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 [features]
-default = ["echo_test", "audio_bridge", "video_room", "streaming"]
+default = ["tokio-rt", "echo_test", "audio_bridge", "video_room", "streaming"]
+tokio-rt = ["jarust_rt/tokio-rt"]
 echo_test = []
 audio_bridge = []
 video_room = []

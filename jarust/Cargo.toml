@@ -19,7 +19,7 @@ jarust_interface = { version = "0.8.0", path = "../jarust_interface", default-fe
 jarust_plugins = { version = "0.8.0", path = "../jarust_plugins", default-features = false }
 
 [features]
-default = ["use-native-tls"]
+default = ["use-native-tls", "tokio-rt"]
 
 # Plugins
 audio_bridge_plugin = ["jarust_plugins/audio_bridge"]
@@ -31,6 +31,13 @@ __plugin_expiremental = ["jarust_plugins/__experimental"]
 # Interface
 use-native-tls = ["jarust_interface/use-native-tls"]
 use-rustls = ["jarust_interface/use-rustls"]
+
+# Runtime
+tokio-rt = [
+    "jarust_core/tokio-rt",
+    "jarust_interface/tokio-rt",
+    "jarust_plugins/tokio-rt",
+]
 
 [dev-dependencies]
 anyhow = "1.0.93"
