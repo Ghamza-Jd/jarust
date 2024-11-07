@@ -18,7 +18,7 @@ async-trait.workspace = true
 bytes.workspace = true
 futures-util.workspace = true
 indexmap = "2.6.0"
-jarust_rt = { version = "0.8.0", path = "../jarust_rt" }
+jarust_rt = { version = "0.8.0", path = "../jarust_rt", default-features = false }
 rand = "0.8.5"
 reqwest = { version = "0.12.9", features = ["json"] }
 serde_json.workspace = true
@@ -27,9 +27,6 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["sync", "time", "rt"] }
 tracing.workspace = true
 uuid = { version = "1.11.0", features = ["fast-rng", "v4"] }
-
-[dev-dependencies]
-tokio = { workspace = true, features = ["macros"] }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 rustls = { version = "0.23.13", optional = true }
@@ -40,6 +37,10 @@ tokio-tungstenite = "0.24.0"
 getrandom = { version = "0.2.12", features = ["js"] }
 
 [features]
-default = ["use-native-tls"]
+default = ["use-native-tls", "tokio-rt"]
 use-native-tls = ["tokio-tungstenite/native-tls"]
 use-rustls = ["rustls", "rustls-native-certs", "tokio-tungstenite/__rustls-tls"]
+tokio-rt = ["jarust_rt/tokio-rt"]
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros"] }
