@@ -14,9 +14,9 @@ repository.workspace = true
 doctest = false
 
 [dependencies]
-jarust_core = { version = "0.7.0", path = "../jarust_core" }
-jarust_interface = { version = "0.7.0", path = "../jarust_interface", default-features = false }
-jarust_plugins = { version = "0.7.0", path = "../jarust_plugins", default-features = false }
+jarust_core = { version = "0.8.0", path = "../jarust_core" }
+jarust_interface = { version = "0.8.0", path = "../jarust_interface", default-features = false }
+jarust_plugins = { version = "0.8.0", path = "../jarust_plugins", default-features = false }
 
 [features]
 default = ["use-native-tls"]
@@ -40,4 +40,4 @@ serde.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 tracing.workspace = true
-jarust_plugins = { version = "0.7.0", path = "../jarust_plugins" }
+jarust_plugins = { version = "0.8.0", path = "../jarust_plugins" }
