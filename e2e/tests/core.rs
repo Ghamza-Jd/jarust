@@ -11,7 +11,6 @@ use std::time::Duration;
 #[allow(unused_labels)]
 #[tokio::test]
 async fn it_websocket_core_tests() {
-    e2e::init_tracing_subscriber();
     let config = JaConfig {
         url: "ws://localhost:8188/ws".to_string(),
         apisecret: None,

@@ -33,6 +33,6 @@ streaming = []
 __experimental = []
 
 [dev-dependencies]
-anyhow = "1.0.89"
+anyhow = "1.0.93"
 tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
