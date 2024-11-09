@@ -283,7 +283,7 @@ make_dto!(
     VideoRoomPublishParams,
     optional {
         /// descriptions (names) for the published streams
-        descriptions: Vec<VideoRoomPublishDescription>,
+        descriptions: Vec<VideoRoomPublishDescriptionParams>,
         /// audio codec to prefer among the negotiated ones
         audiocodec: VideoRoomAudioCodec,
         /// video codec to prefer among the negotiated ones
@@ -310,7 +310,7 @@ make_dto!(
 );
 
 make_dto!(
-    VideoRoomPublishDescription,
+    VideoRoomPublishDescriptionParams,
     required {
         /// unique mid of a stream being published
         mid: String,
@@ -329,7 +329,7 @@ make_dto!(
         autoupdate: bool,
         /// unique ID of the publisher that originated this request;
         /// optional, unless mandated by the room configuration
-        private_id: JanusId,
+        private_id: u32, /* From janus-gateway source code, this id is never a string so doesn't have to be JanusId */
         /// list of media streams to subscribe to
         streams: Vec<VideoRoomSubscriberJoinStream>
     }
@@ -401,7 +401,7 @@ make_dto!(
         /// list of streams to configure
         streams: Vec<VideoRoomConfigurePublisherStream>,
         /// descriptions (names) for the published streams
-        descriptions: Vec<VideoRoomPublishDescription>
+        descriptions: Vec<VideoRoomPublishDescriptionParams>
     }
 );
 
@@ -492,10 +492,13 @@ make_dto!(
         publisher_id: JanusId,
         /// host address to forward the RTP and data packets to
         host: String,
+
         /// ipv4|ipv6, if we need to resolve the host address to an IP; by default, whatever we get
-        streams: Vec<VideoRoomRtpForwardStream>
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        streams: Vec<VideoRoomRtpForwardStreamParams>
     },
     optional {
+        secret: String,
         /// If `lock_rtp_forward` is set in the plugin settings, the `admin_key` (also configured in plugin settings) has to be supplied with RTP forwarding requests
         admin_key: String,
         /// length of authentication tag (32 or 80)
@@ -508,7 +511,7 @@ make_dto!(
 );
 
 make_dto!(
-    VideoRoomRtpForwardStream,
+    VideoRoomRtpForwardStreamParams,
     required {
         /// mid of publisher stream to forward
         mid: String,
@@ -516,18 +519,21 @@ make_dto!(
         port: u16
     },
     optional {
+        secret: String,
         /// host address to forward the packets to, will use global one if missing
         host: String,
         host_family: String,
+        /// port to contact to receive RTCP feedback from the recipient, and only for RTP streams, not data
+        rtcp_port: String,
         /// SSRC to use when forwarding, and only for RTP streams, not data
         ssrc: String,
         /// payload type to use when forwarding, and only for RTP streams, not data
         pt: String,
-        /// port to contact to receive RTCP feedback from the recipient, and only for RTP streams, not data
-        rtcp_port: String,
         /// set to true if the source is simulcast and you want the forwarder to act as a regular viewer
         /// (single stream being forwarded) or false otherwise (substreams forwarded separately), default=false
         simulcast: bool,
+        srtp_suite: u16,
+        srtp_crypto: String,
         /// if video and simulcasting, port to forward the packets from the second substream/layer to
         port_2: u16,
         /// if video and simulcasting, SSRC to use the second substream/layer

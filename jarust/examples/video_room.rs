@@ -145,7 +145,7 @@ async fn main() -> anyhow::Result<()> {
                 audiocodec: Some(VideoRoomAudioCodec::OPUS),
                 videocodec: Some(VideoRoomVideoCodec::H264),
                 bitrate: Some(3500),
-                descriptions: Some(vec![VideoRoomPublishDescription {
+                descriptions: Some(vec![VideoRoomPublishDescriptionParams {
                     mid: String::from("stream-0"),
                     description: String::from("The ultimate stream!"),
                 }]),
