@@ -59,22 +59,6 @@ impl VideoRoomHandle {
             .await
     }
 
-    // Destroy an existing video room, whether created dynamically or statically
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn destroy_room(
-        &self,
-        params: VideoRoomDestroyParams,
-        timeout: Duration,
-    ) -> Result<RoomDestroyedRsp, jarust_interface::Error> {
-        tracing::info!(plugin = "videoroom", "Sending destroy");
-        let mut message: Value = params.try_into()?;
-        message["request"] = "destroy".into();
-
-        self.handle
-            .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
-            .await
-    }
-
     /// Allows you to dynamically edit some room properties (e.g., the PIN)
     ///
     /// ### Note:
@@ -92,6 +76,22 @@ impl VideoRoomHandle {
 
         self.handle
             .send_waiton_rsp::<RoomEditedRsp>(message, timeout)
+            .await
+    }
+
+    // Destroy an existing video room, whether created dynamically or statically
+    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
+    pub async fn destroy_room(
+        &self,
+        params: VideoRoomDestroyParams,
+        timeout: Duration,
+    ) -> Result<RoomDestroyedRsp, jarust_interface::Error> {
+        tracing::info!(plugin = "videoroom", "Sending destroy");
+        let mut message: Value = params.try_into()?;
+        message["request"] = "destroy".into();
+
+        self.handle
+            .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
             .await
     }
 
@@ -198,7 +198,6 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[cfg(feature = "__experimental")]
     pub async fn moderate(
         &self,
         params: VideoRoomModerateParams,
@@ -210,7 +209,6 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
-    #[cfg(feature = "__experimental")]
     pub async fn list_forwarders(
         &self,
         params: VideoRoomListForwardersParams,
@@ -224,7 +222,6 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[cfg(feature = "__experimental")]
     pub async fn rtp_forward(
         &self,
         params: VideoRoomRtpForwardParams,
@@ -238,7 +235,7 @@ impl VideoRoomHandle {
             .await
     }
 
-    #[cfg(feature = "__experimental")]
+    // TODO: make this a struct
     pub async fn stop_rtp_forward(
         &self,
         room: JanusId,
@@ -440,7 +437,6 @@ impl VideoRoomHandle {
         Ok(())
     }
 
-    #[cfg(feature = "__experimental")]
     pub async fn update(
         &self,
         subscribe: Vec<VideoRoomSubscriberJoinStream>,
@@ -458,7 +454,6 @@ impl VideoRoomHandle {
         Ok(())
     }
 
-    #[cfg(feature = "__experimental")]
     pub async fn pause(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         self.handle
             .send_waiton_ack(json!({"request": "pause"}), timeout)
@@ -466,7 +461,6 @@ impl VideoRoomHandle {
         Ok(())
     }
 
-    #[cfg(feature = "__experimental")]
     pub async fn switch(
         &self,
         streams: Vec<VideoRoomSwitchStream>,
