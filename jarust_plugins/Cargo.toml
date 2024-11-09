@@ -50,11 +50,8 @@ use-rustls = ["jarust_interface/use-rustls"]
 
 [dev-dependencies]
 anyhow = "1.0.93"
-jarust_core = { path = "../jarust_core" }
-jarust_interface = { path = "../jarust_interface" }
-jarust_rt = { path = "../jarust_rt" }
-tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 jarust_core = { version = "0.8.0", path = "../jarust_core" }
 jarust_interface = { version = "0.8.0", path = "../jarust_interface" }
 jarust_rt = { version = "0.8.0", path = "../jarust_rt" }
+tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

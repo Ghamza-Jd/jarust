@@ -266,8 +266,7 @@ make_dto!(
     required {
         /// unique ID to register for the publisher;
         /// optional, will be chosen by the plugin if missing
-        room: JanusId,
-        ptype: PType,
+        room: JanusId
     },
     optional {
         /// unique ID to register for the publisher;
@@ -279,12 +278,6 @@ make_dto!(
         token: String
     }
 );
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum PType {
-    Publisher,
-}
 
 make_dto!(
     VideoRoomPublishParams,
