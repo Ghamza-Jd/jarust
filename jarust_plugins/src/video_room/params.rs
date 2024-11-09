@@ -281,7 +281,6 @@ pub enum VideoRoomAllowedAction {
     Add,
     Remove,
 }
-impl_tryfrom_serde_value!(VideoRoomAllowedAction);
 
 make_dto!(
     VideoRoomAllowedParams,
