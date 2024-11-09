@@ -44,8 +44,11 @@ async fn main() -> anyhow::Result<()> {
     let room_id = handle
         .create_room_with_config(
             VideoRoomCreateParams {
-                audiocodec: Some("opus".to_string()),
-                videocodec: Some("h264".to_string()),
+                audiocodec: Some(VideoRoomAudioCodecList::new(vec![
+                    VideoRoomAudioCodec::OPUS,
+                    VideoRoomAudioCodec::PCMU,
+                ])),
+                videocodec: Some(VideoRoomVideoCodecList::new(vec![VideoRoomVideoCodec::VP8])),
                 notify_joining: Some(true),
                 ..Default::default()
             },

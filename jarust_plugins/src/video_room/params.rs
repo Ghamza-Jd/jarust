@@ -1,7 +1,6 @@
 use crate::JanusId;
 use serde::Serialize;
-
-impl_tryfrom_serde_value!(VideoRoomAllowedAction);
+use std::collections::HashSet;
 
 make_dto!(
     VideoRoomCreateParams,
@@ -10,38 +9,36 @@ make_dto!(
         admin_key: String,
         /// Room ID, chosen by plugin if missing
         room: JanusId,
-        /// whether the room should be saved in the config file, default=false
-        permanent: bool,
         /// pretty name of the room
         description: String,
-        /// password required to edit/destroy the room
-        secret: String,
-        /// password required to join the room
-        pin: String,
         /// whether the room should appear in a list request
         is_private: bool,
         /// array of string tokens users can use to join this room
         allowed: Vec<String>,
+        /// password required to edit/destroy the room
+        secret: String,
+        /// password required to join the room
+        pin: String,
         /// whether subscriptions are required to provide a valid private_id to associate with a publisher, default=false
         require_pvtid: bool,
         /// whether access to the room requires signed tokens; default=false, only works if signed tokens are used in the core as well
         signed_tokens: bool,
-        /// max number of concurrent senders (e.g., 6 for a video conference or 1 for a webinar, default=3)
-        publishers: u64,
         /// max video bitrate for senders (e.g., 128000)
         bitrate: u64,
         /// whether the above cap should act as a limit to dynamic bitrate changes by publishers, default=false
         bitrate_cap: bool,
         /// send a FIR to publishers every fir_freq seconds (0=disable)
         fir_freq: u64,
+        /// max number of concurrent senders (e.g., 6 for a video conference or 1 for a webinar, default=3)
+        publishers: u64,
         /// audio codec to force on publishers, default=opus
         /// can be a comma separated list in order of preference, e.g., `opus,pcmu`
         /// opus|g722|pcmu|pcma|isac32|isac16
-        audiocodec: String,
+        audiocodec: VideoRoomAudioCodecList,
         /// video codec to force on publishers, default=vp8
         /// can be a comma separated list in order of preference, e.g., `vp9,vp8,h264`
         /// vp8|vp9|h264|av1|h265
-        videocodec: String,
+        videocodec: VideoRoomVideoCodecList,
         /// VP9-specific profile to prefer (e.g., "2" for "profile-id=2")
         vp9_profile: String,
         /// H.264-specific profile to prefer (e.g., "42e01f" for "profile-level-id=42e01f")
@@ -70,6 +67,8 @@ make_dto!(
         record_dir: String,
         /// whether recording can only be started/stopped if the secret is provided, or using the global enable_recording request, default=false
         lock_record: bool,
+        /// whether the room should be saved in the config file, default=false
+        permanent: bool,
         /// optional, whether to notify all participants when a new participant joins the room. default=false
         /// The Videoroom plugin by design only notifies new feeds (publishers), and enabling this may result in extra notification traffic.
         /// This flag is particularly useful when enabled with `require_pvtid` for admin to manage listening-only participants.
@@ -96,6 +95,39 @@ pub enum VideoRoomAudioCodec {
     ISAC16,
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default)]
+pub struct VideoRoomAudioCodecList(Vec<VideoRoomAudioCodec>);
+
+impl VideoRoomAudioCodecList {
+    pub fn new(codecs: Vec<VideoRoomAudioCodec>) -> Self {
+        let codecs = codecs
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        Self(codecs)
+    }
+}
+
+impl Serialize for VideoRoomAudioCodecList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let codecs = self
+            .0
+            .iter()
+            .flat_map(|codec| match serde_json::to_string(codec) {
+                Ok(codec) => Some(codec.trim_matches('"').to_string()),
+                Err(_) => None,
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+        let state = serializer.serialize_str(&codecs)?;
+        Ok(state)
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum VideoRoomVideoCodec {
@@ -106,6 +138,39 @@ pub enum VideoRoomVideoCodec {
     H265,
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default)]
+pub struct VideoRoomVideoCodecList(Vec<VideoRoomVideoCodec>);
+
+impl VideoRoomVideoCodecList {
+    pub fn new(codecs: Vec<VideoRoomVideoCodec>) -> Self {
+        let codecs = codecs
+            .into_iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        Self(codecs)
+    }
+}
+
+impl Serialize for VideoRoomVideoCodecList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let codecs = self
+            .0
+            .iter()
+            .flat_map(|codec| match serde_json::to_string(codec) {
+                Ok(codec) => Some(codec.trim_matches('"').to_string()),
+                Err(_) => None,
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+        let state = serializer.serialize_str(&codecs)?;
+        Ok(state)
+    }
+}
+
 make_dto!(
     VideoRoomEditParams,
     required { room: JanusId },
@@ -114,12 +179,12 @@ make_dto!(
         secret: String,
         /// new pretty name of the room
         new_description: String,
+        /// whether the room should appear in a list request
+        new_is_private: bool,
         /// new password required to edit/destroy the room
         new_secret: String,
         /// new PIN required to join the room, PIN will be removed if set to an empty string
         new_pin: String,
-        /// whether the room should appear in a list request
-        new_is_private: bool,
         /// whether the room should require `private_id` from subscribers
         new_require_pvtid: bool,
         /// new bitrate cap to force on all publishers (except those with custom overrides)
@@ -216,6 +281,7 @@ pub enum VideoRoomAllowedAction {
     Add,
     Remove,
 }
+impl_tryfrom_serde_value!(VideoRoomAllowedAction);
 
 make_dto!(
     VideoRoomAllowedParams,
@@ -411,7 +477,8 @@ make_dto!(
     }
 );
 
-make_dto!(VideoRoomRtpForwardParams,
+make_dto!(
+    VideoRoomRtpForwardParams,
     required {
         room: JanusId,
         /// unique numeric ID of the publisher to relay externally
