@@ -214,11 +214,60 @@ make_dto!(
 );
 
 make_dto!(
+    VideoRoomAllowedParams,
+    required {
+        room: JanusId,
+        action: VideoRoomAllowedAction,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        allowed: Vec<String>
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum VideoRoomAllowedAction {
+    Enable,
+    Disable,
+    Add,
+    Remove,
+}
+
+make_dto!(
+    VideoRoomKickParams,
+    required {
+        room: JanusId,
+        participant: JanusId
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
+
+make_dto!(
+    VideoRoomModerateParams,
+    required {
+        room: JanusId,
+        participant: JanusId,
+        m_line: u64
+    },
+    optional {
+        /// room secret, mandatory if configured
+        secret: String
+    }
+);
+
+make_dto!(
     VideoRoomPublisherJoinParams,
     required {
         /// unique ID to register for the publisher;
         /// optional, will be chosen by the plugin if missing
-        room: JanusId
+        room: JanusId,
+        ptype: PType,
     },
     optional {
         /// unique ID to register for the publisher;
@@ -228,6 +277,52 @@ make_dto!(
         display: String,
         /// invitation token, in case the room has an ACL
         token: String
+    }
+);
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PType {
+    Publisher,
+}
+
+make_dto!(
+    VideoRoomPublishParams,
+    optional {
+        /// descriptions (names) for the published streams
+        descriptions: Vec<VideoRoomPublishDescription>,
+        /// audio codec to prefer among the negotiated ones
+        audiocodec: VideoRoomAudioCodec,
+        /// video codec to prefer among the negotiated ones
+        videocodec: VideoRoomVideoCodec,
+        /// bitrate cap to return via REMB
+        /// overrides the global room value if present
+        bitrate: u64,
+        /// whether this publisher should be recorded or not
+        record: bool,
+        /// if recording, the base path/file to use for the recording files
+        filename: String,
+        /// display name to use in the room
+        display: String,
+        secret: String,
+        /// if provided, overrided the room audio_level_average for this user
+        audio_level_average: u64,
+        /// if provided, overrided the room audio_active_packets for this user
+        audio_active_packets: u64,
+        /// To force a renegotiation and/or an ICE restart
+        update: bool,
+        /// To force a renegotiation and/or an ICE restart
+        restart: bool,
+    }
+);
+
+make_dto!(
+    VideoRoomPublishDescription,
+    required {
+        /// unique mid of a stream being published
+        mid: String,
+        /// text description of the stream (e.g., My front webcam)
+        description: String
     }
 );
 
@@ -273,55 +368,6 @@ make_dto!(
     }
 );
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum VideoRoomAllowedAction {
-    Enable,
-    Disable,
-    Add,
-    Remove,
-}
-
-make_dto!(
-    VideoRoomAllowedParams,
-    required {
-        room: JanusId,
-        action: VideoRoomAllowedAction,
-        #[serde(skip_serializing_if = "Vec::is_empty")]
-        allowed: Vec<String>
-    },
-    optional {
-        /// room secret, mandatory if configured
-        secret: String
-    }
-);
-
-make_dto!(
-    VideoRoomKickParams,
-    required {
-        room: JanusId,
-        participant: JanusId
-    },
-    optional {
-        /// room secret, mandatory if configured
-        secret: String
-    }
-);
-
-#[cfg(feature = "__experimental")]
-make_dto!(
-    VideoRoomModerateParams,
-    required {
-        room: JanusId,
-        participant: JanusId,
-        m_line: u64
-    },
-    optional {
-        /// room secret, mandatory if configured
-        secret: String
-    }
-);
-
 make_dto!(
     VideoRoomEnableRecordingParams,
     required {
@@ -341,27 +387,30 @@ make_dto!(
     optional { secret: String }
 );
 
-make_dto!(VideoRoomConfigurePublisherParams, optional {
-    /// bitrate cap to return via REMB;
-    /// overrides the global room value if present (unless `bitrate_cap` is set)
-    bitrate: u64,
-    /// whether we should send this publisher a keyframe request
-    keyframe: bool,
-    /// whether this publisher should be recorded or not
-    record: bool,
-    /// if recording, the base path/file to use for the recording files
-    filename: String,
-    /// new display name to use in the room
-    display: String,
-    /// new `audio_active_packets` to overwrite in the room one
-    audio_active_packets: u64,
-    /// new `audio_level_average` to overwrite the room one
-    audio_level_average: u64,
-    /// list of streams to configure
-    streams: Vec<VideoRoomConfigurePublisherStream>,
-    /// descriptions (names) for the published streams
-    descriptions: Vec<VideoRoomPublishDescription>
-});
+make_dto!(
+    VideoRoomConfigurePublisherParams,
+    optional {
+        /// bitrate cap to return via REMB;
+        /// overrides the global room value if present (unless `bitrate_cap` is set)
+        bitrate: u64,
+        /// whether we should send this publisher a keyframe request
+        keyframe: bool,
+        /// whether this publisher should be recorded or not
+        record: bool,
+        /// if recording, the base path/file to use for the recording files
+        filename: String,
+        /// new display name to use in the room
+        display: String,
+        /// new `audio_active_packets` to overwrite in the room one
+        audio_active_packets: u64,
+        /// new `audio_level_average` to overwrite the room one
+        audio_level_average: u64,
+        /// list of streams to configure
+        streams: Vec<VideoRoomConfigurePublisherStream>,
+        /// descriptions (names) for the published streams
+        descriptions: Vec<VideoRoomPublishDescription>
+    }
+);
 
 make_dto!(
     VideoRoomConfigurePublisherStream,
@@ -389,41 +438,7 @@ make_dto!(
 );
 
 make_dto!(
-    VideoRoomPublishParams,
-    optional {
-        /// audio codec to prefer among the negotiated ones
-        audiocodec: VideoRoomAudioCodec,
-        /// video codec to prefer among the negotiated ones
-        videocodec: VideoRoomVideoCodec,
-        /// bitrate cap to return via REMB
-        /// overrides the global room value if present
-        bitrate: u64,
-        /// whether this publisher should be recorded or not
-        record: bool,
-        /// if recording, the base path/file to use for the recording files
-        filename: String,
-        /// display name to use in the room
-        display: String,
-        /// if provided, overrided the room audio_level_average for this user
-        audio_level_average: u64,
-        /// if provided, overrided the room audio_active_packets for this user
-        audio_active_packets: u64,
-        /// descriptions (names) for the published streams
-        descriptions: Vec<VideoRoomPublishDescription>
-    }
-);
-
-make_dto!(
-    VideoRoomPublishDescription,
-    required {
-        /// unique mid of a stream being published
-        mid: String,
-        /// text description of the stream (e.g., My front webcam)
-        description: String
-    }
-);
-
-make_dto!(VideoRoomConfigureSubscriberParams,
+    VideoRoomConfigureSubscriberParams,
     required {
         /// list of streams to configure
         streams: Vec<VideoRoomConfigureSubscriberStream>
