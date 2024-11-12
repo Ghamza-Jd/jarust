@@ -14,9 +14,9 @@ repository.workspace = true
 doctest = false
 
 [dependencies]
-jarust_core = { version = "0.8.0", path = "../jarust_core", default-features = false }
-jarust_interface = { version = "0.8.0", path = "../jarust_interface", default-features = false }
-jarust_plugins = { version = "0.8.0", path = "../jarust_plugins", default-features = false }
+jarust_core = { version = "0.8.1", path = "../jarust_core", default-features = false }
+jarust_interface = { version = "0.8.1", path = "../jarust_interface", default-features = false }
+jarust_plugins = { version = "0.8.1", path = "../jarust_plugins", default-features = false }
 
 [features]
 default = ["use-native-tls", "tokio-rt"]
