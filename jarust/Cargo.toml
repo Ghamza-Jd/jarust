@@ -32,8 +32,13 @@ __plugin_expiremental = ["jarust_plugins/__experimental"]
 use-native-tls = [
     "jarust_core/use-native-tls",
     "jarust_interface/use-native-tls",
+    "jarust_plugins/use-native-tls",
 ]
-use-rustls = ["jarust_core/use-rustls", "jarust_interface/use-rustls"]
+use-rustls = [
+    "jarust_core/use-rustls",
+    "jarust_interface/use-rustls",
+    "jarust_plugins/use-rustls",
+]
 
 # Runtime
 tokio-rt = [
