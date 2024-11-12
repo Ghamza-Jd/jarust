@@ -151,8 +151,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "joined",
-                        "room": 684657u32,
-                        "id": 751378u32,
+                        "room": 684657u64,
+                        "id": 751378u64,
                         "participants": []
                     })),
                 },
@@ -166,7 +166,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined {
-                id: JanusId::Uint(751378u32),
+                id: JanusId::Uint(751378u64),
                 room: JanusId::Uint(684657),
                 participants: vec![],
             })
@@ -181,8 +181,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "joined",
-                        "room": 684657u32,
-                        "id": 751378u32,
+                        "room": 684657u64,
+                        "id": 751378u64,
                         "participants": []
                     })),
                 },
@@ -220,8 +220,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "left",
-                        "room": 684657u32,
-                        "id": 751378u32
+                        "room": 684657u64,
+                        "id": 751378u64
                     })),
                 },
             }),
@@ -248,8 +248,8 @@ mod tests {
                     plugin: "janus.plugin.audiobridge".to_string(),
                     data: PluginInnerData::Data(json!({
                         "audiobridge": "roomchanged",
-                        "room": 61682u32,
-                        "id": 38626u32,
+                        "room": 61682u64,
+                        "id": 38626u64,
                         "participants": []
                     })),
                 },
