@@ -393,7 +393,6 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
-    
     use crate::video_room::events::VideoRoomEvent;
     use crate::video_room::responses::ConfiguredStream;
     use crate::JanusId;
