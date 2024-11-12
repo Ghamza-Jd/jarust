@@ -22,6 +22,5 @@ rand = "0.8.5"
 tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
 
 [dev-dependencies.jarust]
-version = "0.8.0"
 path = "../jarust"
 features = ["audio_bridge_plugin", "echo_test_plugin"]
