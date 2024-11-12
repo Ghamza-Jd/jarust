@@ -2,6 +2,7 @@ use jarust::core::connect;
 use jarust::core::jaconfig::JaConfig;
 use jarust::core::jaconfig::JanusAPI;
 use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::common::U63;
 use jarust::plugins::streaming::jahandle_ext::Streaming;
 use jarust::plugins::streaming::params::*;
 use jarust::plugins::JanusId;
@@ -44,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
             StreamingCreateParams {
                 mountpoint_type: StreamingMountpointType::RTP,
                 optional: StreamingCreateParamsOptional {
-                    id: Some(JanusId::Uint(1337)),
+                    id: Some(JanusId::Uint(U63::new(1337))),
                     name: Some(String::from("stream name")),
                     description: Some(String::from("stream description")),
                     media: Some(vec![StreamingRtpMedia {
@@ -71,7 +72,9 @@ async fn main() -> anyhow::Result<()> {
     let mountpoints = handle.list(timeout).await?;
     tracing::info!("Mountpoints {:#?}", mountpoints);
 
-    let info = handle.info(JanusId::Uint(1337), None, timeout).await?;
+    let info = handle
+        .info(JanusId::Uint(U63::new(1337)), None, timeout)
+        .await?;
     tracing::info!("Info: {:#?}", info);
 
     handle

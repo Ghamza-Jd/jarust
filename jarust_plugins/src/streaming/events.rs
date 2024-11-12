@@ -79,6 +79,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
+    use crate::common::U63;
     use crate::streaming::events::StreamingEvent;
     use crate::JanusId;
     use jarust_interface::japrotocol::JaHandleEvent;
@@ -110,7 +111,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::StreamingEvent(StreamingEvent::MountpointCreated {
-                id: JanusId::Uint(63807u64),
+                id: JanusId::Uint(U63::new(63807u64)),
                 mountpoint_type: "live".to_string(),
             })
         );
@@ -137,7 +138,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::StreamingEvent(StreamingEvent::MountpointDestroyed {
-                id: JanusId::Uint(63807u64),
+                id: JanusId::Uint(U63::new(63807u64)),
             })
         );
     }
