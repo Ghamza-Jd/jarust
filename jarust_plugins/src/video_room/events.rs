@@ -393,6 +393,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
+    use crate::common::U63;
     use crate::video_room::events::VideoRoomEvent;
     use crate::video_room::responses::ConfiguredStream;
     use crate::JanusId;
@@ -428,8 +429,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoined {
-                id: JanusId::Uint(638074),
-                room: JanusId::Uint(88120664),
+                id: JanusId::Uint(U63::new(638074)),
+                room: JanusId::Uint(U63::new(88120664)),
                 display: Some("Joiner McJoinface".to_string()),
             })
         );
@@ -462,7 +463,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEst {
-                id: JanusId::Uint(8146468u64),
+                id: JanusId::Uint(U63::new(8146468u64)),
                 display: Some("Joiner McJoinface".to_string()),
                 jsep: Jsep {
                     jsep_type: JsepType::Answer,
@@ -494,7 +495,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomDestroyed {
-                room: JanusId::Uint(8146468u64),
+                room: JanusId::Uint(U63::new(8146468u64)),
             })
         )
     }
@@ -521,7 +522,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::NewPublisher {
-                room: JanusId::Uint(8146468u64),
+                room: JanusId::Uint(U63::new(8146468u64)),
                 publishers: vec![]
             })
         );
@@ -553,9 +554,9 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::PublisherJoined {
-                room: JanusId::Uint(8146468u64),
+                room: JanusId::Uint(U63::new(8146468u64)),
                 description: Some("A brand new description!".to_string()),
-                id: JanusId::Uint(1337),
+                id: JanusId::Uint(U63::new(1337)),
                 private_id: 4113762326,
                 publishers: vec![],
                 attendees: vec![]
@@ -612,7 +613,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftRoom {
-                room: JanusId::Uint(8146468u64),
+                room: JanusId::Uint(U63::new(8146468u64)),
                 participant: JanusId::String("ok".to_string())
             })
         )
@@ -663,7 +664,7 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEst {
-                room: JanusId::Uint(8146468u64),
+                room: JanusId::Uint(U63::new(8146468u64)),
                 audio_codec: Some("opus".to_string()),
                 video_codec: Some("h264".to_string()),
                 streams: vec![

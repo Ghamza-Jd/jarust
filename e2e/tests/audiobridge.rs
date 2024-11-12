@@ -8,6 +8,7 @@ use jarust::plugins::audio_bridge::params::AudioBridgeDestroyParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
+use jarust::plugins::common::U63;
 use jarust::plugins::JanusId;
 use std::time::Duration;
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -19,7 +20,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 async fn room_crud_e2e() {
     let default_timeout = Duration::from_secs(4);
     let handle = make_audiobridge_attachment().await.0;
-    let room_id = JanusId::Uint(rand::random());
+    let room_id = JanusId::Uint(U63::new(rand::random()));
 
     'before_creation: {
         let exists = handle

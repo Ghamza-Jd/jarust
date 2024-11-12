@@ -4,6 +4,7 @@ use jarust::core::jaconfig::JanusAPI;
 use jarust::interface::japrotocol::Jsep;
 use jarust::interface::japrotocol::JsepType;
 use jarust::interface::tgenerator::RandomTransactionGenerator;
+use jarust::plugins::common::U63;
 use jarust::plugins::video_room::jahandle_ext::VideoRoom;
 use jarust::plugins::video_room::params::*;
 use jarust::plugins::JanusId;
@@ -126,7 +127,7 @@ async fn main() -> anyhow::Result<()> {
             VideoRoomPublisherJoinParams {
                 room: room_id.clone(),
                 optional: VideoRoomPublisherJoinParamsOptional {
-                    id: Some(JanusId::Uint(1337)),
+                    id: Some(JanusId::Uint(U63::new(1337))),
                     display: Some(String::from("Publisher name")),
                     token: None,
                 },
