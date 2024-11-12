@@ -22,10 +22,10 @@ impl U63 {
     pub const MAX: u64 = (1 << 63) - 1;
 
     pub fn new(value: u64) -> Self {
-        Self::new_wrap(value)
+        Self::new_wrapping(value)
     }
 
-    pub fn new_wrap(value: u64) -> Self {
+    pub fn new_wrapping(value: u64) -> Self {
         Self(value & U63::MAX)
     }
 
@@ -35,5 +35,11 @@ impl U63 {
         } else {
             Self(value)
         }
+    }
+}
+
+impl From<u64> for U63 {
+    fn from(value: u64) -> Self {
+        Self::new(value)
     }
 }

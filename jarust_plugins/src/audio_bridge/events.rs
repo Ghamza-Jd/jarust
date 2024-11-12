@@ -133,7 +133,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 mod tests {
     use super::PluginEvent;
     use crate::audio_bridge::events::AudioBridgeEvent;
-    use crate::common::U63;
+    
     use crate::JanusId;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
@@ -167,8 +167,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined {
-                id: JanusId::Uint(U63::new(751378u64)),
-                room: JanusId::Uint(U63::new(684657)),
+                id: JanusId::Uint(751378u64.into()),
+                room: JanusId::Uint(684657.into()),
                 participants: vec![],
             })
         );
@@ -201,8 +201,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                id: JanusId::Uint(U63::new(751378)),
-                room: JanusId::Uint(U63::new(684657)),
+                id: JanusId::Uint(751378.into()),
+                room: JanusId::Uint(684657.into()),
                 participants: vec![],
                 jsep: Jsep {
                     jsep_type: JsepType::Answer,
@@ -235,8 +235,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft {
-                id: JanusId::Uint(U63::new(751378)),
-                room: JanusId::Uint(U63::new(684657)),
+                id: JanusId::Uint(751378.into()),
+                room: JanusId::Uint(684657.into()),
             })
         );
     }
@@ -264,8 +264,8 @@ mod tests {
         assert_eq!(
             event,
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomChanged {
-                id: JanusId::Uint(U63::new(38626)),
-                room: JanusId::Uint(U63::new(61682)),
+                id: JanusId::Uint(38626.into()),
+                room: JanusId::Uint(61682.into()),
                 participants: vec![],
             })
         );
