@@ -27,7 +27,7 @@ make_dto!(
 );
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-#[serde(untagged, rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum StreamingMountpointType {
     RTP,
     LIVE,
@@ -59,7 +59,7 @@ make_dto!(
 );
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
-#[serde(untagged, rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum StreamingRtpMediaType {
     AUDIO,
     VIDEO,
