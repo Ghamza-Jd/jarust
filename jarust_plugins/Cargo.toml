@@ -26,16 +26,20 @@ tracing.workspace = true
 
 [features]
 default = ["tokio-rt", "echo_test", "audio_bridge", "video_room", "streaming"]
-tokio-rt = [
-    "jarust_rt/tokio-rt",
-    "jarust_interface/tokio-rt",
-    "jarust_core/tokio-rt",
-]
 echo_test = []
 audio_bridge = []
 video_room = []
 streaming = []
 __experimental = []
+
+tokio-rt = [
+    "jarust_rt/tokio-rt",
+    "jarust_interface/tokio-rt",
+    "jarust_core/tokio-rt",
+]
+
+use-native-tls = ["jarust_interface/use-native-tls"]
+use-rustls = ["jarust_interface/use-rustls"]
 
 [dev-dependencies]
 anyhow = "1.0.93"
