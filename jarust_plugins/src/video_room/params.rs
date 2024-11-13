@@ -282,14 +282,11 @@ make_dto!(
 make_dto!(
     VideoRoomPublishParams,
     optional {
-        /// descriptions (names) for the published streams
-        descriptions: Vec<VideoRoomPublishDescriptionParams>,
         /// audio codec to prefer among the negotiated ones
         audiocodec: VideoRoomAudioCodec,
         /// video codec to prefer among the negotiated ones
         videocodec: VideoRoomVideoCodec,
-        /// bitrate cap to return via REMB
-        /// overrides the global room value if present
+        /// bitrate cap to return via REMB, overrides the global room value if present
         bitrate: u64,
         /// whether this publisher should be recorded or not
         record: bool,
@@ -297,11 +294,13 @@ make_dto!(
         filename: String,
         /// display name to use in the room
         display: String,
-        secret: String,
         /// if provided, overrided the room audio_level_average for this user
         audio_level_average: u64,
         /// if provided, overrided the room audio_active_packets for this user
         audio_active_packets: u64,
+        /// descriptions (names) for the published streams
+        descriptions: Vec<VideoRoomPublishDescriptionParams>,
+        secret: String,
         /// To force a renegotiation and/or an ICE restart
         update: bool,
         /// To force a renegotiation and/or an ICE restart
@@ -345,7 +344,15 @@ make_dto!(
         /// unique mid of the publisher stream to subscribe to
         mid: String,
         /// id to map this subscription with entries in streams list
-        crossrefid: u64
+        crossrefid: u64,
+
+        send: bool,
+        substream: u64,
+        temporal: u64,
+        spatial_layer: u64,
+        temporal_layer: u64,
+        min_delay: u64,
+        max_delay: u64,
     }
 );
 
@@ -379,6 +386,33 @@ make_dto!(
     required { room: JanusId },
     optional { secret: String }
 );
+
+make_dto!(
+    VideoRoomStopRtpForward,
+    required {
+        room: JanusId,
+        publisher_id: JanusId,
+        stream_id: u64,
+    }
+);
+
+make_dto!(VideoRoomListParticipantsParams, required { room: JanusId });
+
+make_dto!(VideoRoomExistsParams, required { room: JanusId });
+
+make_dto!(VideoRoomSubscribeParams, required { streams: Vec<VideoRoomSubscriberJoinStream> });
+
+make_dto!(VideoRoomUnsubscribeParams, required { streams: Vec<VideoRoomSubscriberUnsubscribeStream> });
+
+make_dto!(
+    VideoRoomCombinedUpdateParams,
+    required {
+        subscribe: Vec<VideoRoomSubscriberJoinStream>,
+        unsubscribe: Vec<VideoRoomSubscriberUnsubscribeStream>
+    }
+);
+
+make_dto!(VideoRoomSwitchParams, required { streams: Vec<VideoRoomSwitchStream> });
 
 make_dto!(
     VideoRoomConfigurePublisherParams,
@@ -481,6 +515,12 @@ make_dto!(
         mid: String,
         /// unique mid of the stream we want to pipe the new source to
         sub_mid: String
+    },
+    optional {
+        substream: u64,
+        temporal: u64,
+        spatial_layer: u64,
+        temporal_layer: u64,
     }
 );
 
@@ -492,7 +532,6 @@ make_dto!(
         publisher_id: JanusId,
         /// host address to forward the RTP and data packets to
         host: String,
-
         /// ipv4|ipv6, if we need to resolve the host address to an IP; by default, whatever we get
         #[serde(skip_serializing_if = "Vec::is_empty")]
         streams: Vec<VideoRoomRtpForwardStreamParams>

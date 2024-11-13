@@ -99,15 +99,12 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn exists(
         &self,
-        room: JanusId,
+        params: VideoRoomExistsParams,
         timeout: Duration,
     ) -> Result<RoomExistsRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending exists");
-        let message = json!({
-            "request": "exists",
-            "room": room
-        });
-
+        let mut message: Value = params.try_into()?;
+        message["request"] = "exists".into();
         self.handle
             .send_waiton_rsp::<RoomExistsRsp>(message, timeout)
             .await
@@ -186,15 +183,14 @@ impl VideoRoomHandle {
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,
-        room: JanusId,
+        params: VideoRoomListParticipantsParams,
         timeout: Duration,
     ) -> Result<ListParticipantsRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending list participants");
+        let mut message: Value = params.try_into()?;
+        message["request"] = "listparticipants".into();
         self.handle
-            .send_waiton_rsp::<ListParticipantsRsp>(
-                json!({"request": "listparticipants", "room": room }),
-                timeout,
-            )
+            .send_waiton_rsp::<ListParticipantsRsp>(message, timeout)
             .await
     }
 
@@ -235,24 +231,15 @@ impl VideoRoomHandle {
             .await
     }
 
-    // TODO: make this a struct
     pub async fn stop_rtp_forward(
         &self,
-        room: JanusId,
-        publisher_id: JanusId,
-        stream_id: u64,
+        params: VideoRoomStopRtpForward,
         timeout: Duration,
     ) -> Result<StopRtpForwardRsp, jarust_interface::Error> {
+        let mut message = serde_json::to_value(params)?;
+        message["request"] = "stop_rtp_forward".into();
         self.handle
-            .send_waiton_rsp::<StopRtpForwardRsp>(
-                json!({
-                    "request": "stop_rtp_forward",
-                    "room": room,
-                    "publisher_id": publisher_id,
-                    "stream_id": stream_id
-                }),
-                timeout,
-            )
+            .send_waiton_rsp::<StopRtpForwardRsp>(message, timeout)
             .await
     }
 }
@@ -413,44 +400,34 @@ impl VideoRoomHandle {
 
     pub async fn subscribe(
         &self,
-        streams: Vec<VideoRoomSubscriberJoinStream>,
+        params: VideoRoomSubscribeParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message = serde_json::to_value(streams)?;
+        let mut message = serde_json::to_value(params)?;
         message["request"] = "subscribe".into();
-
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
     pub async fn unsubscribe(
         &self,
-        streams: Vec<VideoRoomSubscriberUnsubscribeStream>,
+        params: VideoRoomUnsubscribeParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message = serde_json::to_value(streams)?;
+        let mut message = serde_json::to_value(params)?;
         message["request"] = "unsubscribe".into();
-
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
     pub async fn update(
         &self,
-        subscribe: Vec<VideoRoomSubscriberJoinStream>,
-        unsubscribe: Vec<VideoRoomSubscriberUnsubscribeStream>,
+        params: VideoRoomCombinedUpdateParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let message = json!({
-            "request": "update",
-            "subscribe": subscribe,
-            "unsubscribe": unsubscribe,
-        });
-
+        let mut message = serde_json::to_value(params)?;
+        message["request"] = "update".into();
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
@@ -463,14 +440,12 @@ impl VideoRoomHandle {
 
     pub async fn switch(
         &self,
-        streams: Vec<VideoRoomSwitchStream>,
+        params: VideoRoomSwitchParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
-        let mut message = serde_json::to_value(streams)?;
+        let mut message = serde_json::to_value(params)?;
         message["request"] = "switch".into();
-
         self.handle.send_waiton_ack(message, timeout).await?;
-
         Ok(())
     }
 
