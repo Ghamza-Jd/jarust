@@ -67,7 +67,14 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let exists = handle.exists(room_id.clone(), timeout).await?;
+    let exists = handle
+        .exists(
+            VideoRoomExistsParams {
+                room: room_id.clone(),
+            },
+            timeout,
+        )
+        .await?;
     tracing::info!(
         "Does the room we just created and edited exist? {:#?}",
         exists.exists
@@ -160,7 +167,14 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    let list_participants_rsp = handle.list_participants(room_id.clone(), timeout).await?;
+    let list_participants_rsp = handle
+        .list_participants(
+            VideoRoomListParticipantsParams {
+                room: room_id.clone(),
+            },
+            timeout,
+        )
+        .await?;
     tracing::info!(
         "Participants in room {:#?}: {:#?}",
         list_participants_rsp.room,
@@ -171,7 +185,14 @@ async fn main() -> anyhow::Result<()> {
 
     handle.leave(timeout).await?;
 
-    let list_participants_rsp = handle.list_participants(room_id.clone(), timeout).await?;
+    let list_participants_rsp = handle
+        .list_participants(
+            VideoRoomListParticipantsParams {
+                room: room_id.clone(),
+            },
+            timeout,
+        )
+        .await?;
     tracing::info!(
         "Participants in room {:#?}: {:#?}",
         list_participants_rsp.room,

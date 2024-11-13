@@ -49,7 +49,7 @@
 macro_rules! make_dto {
     (
         $(#[$main_attr:meta])* $main:ident,
-        required { $(#[$rfield_attr:meta])* $rfield:ident: $rtype:ty $(,)? }
+        required { $(#[$rfield_attr:meta])* $rfield:ident: $rtype:ty $(,)? } $(,)?
     ) => {
         $(#[$main_attr])*
         #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
@@ -63,7 +63,7 @@ macro_rules! make_dto {
 
     (
         $(#[$main_attr:meta])* $main:ident,
-        optional { $(#[$ofield_attr:meta])* $ofield:ident: $otype:ty $(,)? }
+        optional { $(#[$ofield_attr:meta])* $ofield:ident: $otype:ty $(,)? } $(,)?
     ) => {
         $(#[$main_attr])*
         #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
@@ -187,7 +187,7 @@ macro_rules! make_dto {
 
     (
         $(#[$main_attr:meta])* $main:ident,
-        required { $( $(#[$rfield_attr:meta])* $rfield:ident: $rtype:ty ),* $(,)? }
+        required { $( $(#[$rfield_attr:meta])* $rfield:ident: $rtype:ty ),* $(,)? } $(,)?
     ) => {
         $(#[$main_attr])*
         #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, serde::Serialize)]
@@ -203,7 +203,7 @@ macro_rules! make_dto {
 
     (
         $(#[$main_attr:meta])* $main:ident,
-        optional { $( $(#[$ofield_attr:meta])* $ofield:ident: $otype:ty ),* $(,)? }
+        optional { $( $(#[$ofield_attr:meta])* $ofield:ident: $otype:ty ),* $(,)? } $(,)?
     ) => {
         $(#[$main_attr])*
         #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, serde::Serialize)]
