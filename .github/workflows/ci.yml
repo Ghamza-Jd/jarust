@@ -11,12 +11,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo clippy
 
   test:
     name: Integration test
@@ -24,13 +20,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --exclude e2e
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace --exclude e2e
 
   e2e:
     name: E2E tests
@@ -40,7 +31,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hoverkraft-tech/compose-action@v2.0.1
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -p e2e
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test -p e2e
