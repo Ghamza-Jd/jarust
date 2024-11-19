@@ -115,26 +115,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     }
 }
 
-#[derive(Clone)]
-pub struct JanusInterfaceImpl {
-    inner: Arc<dyn JanusInterface>,
-}
-
-impl Deref for JanusInterfaceImpl {
-    type Target = Arc<dyn JanusInterface>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl JanusInterfaceImpl {
-    pub fn new(interface: impl JanusInterface) -> Self {
-        Self {
-            inner: Arc::new(interface),
-        }
-    }
-
+impl dyn JanusInterface {
     /// Sends a message and waits for the response.
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     pub async fn send_msg_waiton_rsp<R>(
@@ -170,6 +151,27 @@ impl JanusInterfaceImpl {
             }
         };
         Ok(result)
+    }
+}
+
+#[derive(Clone)]
+pub struct JanusInterfaceImpl {
+    inner: Arc<dyn JanusInterface>,
+}
+
+impl Deref for JanusInterfaceImpl {
+    type Target = Arc<dyn JanusInterface>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl JanusInterfaceImpl {
+    pub fn new(interface: impl JanusInterface) -> Self {
+        Self {
+            inner: Arc::new(interface),
+        }
     }
 }
 
