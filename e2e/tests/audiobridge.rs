@@ -31,7 +31,7 @@ async fn room_crud_e2e() {
             )
             .await
             .expect("Failed to check if room exists; before_creation");
-        assert_eq!(exists, false, "Room should not exist before creation");
+        assert!(!exists, "Room should not exist before creation");
     }
 
     'creation: {
@@ -48,15 +48,14 @@ async fn room_crud_e2e() {
             )
             .await
             .expect("Failed to check if room exists; creation");
-        assert_eq!(exists, true, "Room should exist after creation");
+        assert!(exists, "Room should exist after creation");
 
         let rooms = handle
             .list_rooms(default_timeout)
             .await
             .expect("Failed to list rooms; creation");
-        assert_eq!(
-            rooms.iter().find(|room| room.room == room_id).is_some(),
-            true,
+        assert!(
+            rooms.iter().any(|room| room.room == room_id),
             "Room should be visible when listing rooms"
         );
     }
@@ -81,9 +80,7 @@ async fn room_crud_e2e() {
             .await
             .expect("Failed to list rooms; description_edit");
         let edit_room = rooms
-            .iter()
-            .filter(|room| room.room == room_id)
-            .next()
+            .iter().find(|room| room.room == room_id)
             .expect("Room not found; description_edit");
         assert_eq!(
             edit_room.description,
@@ -111,9 +108,8 @@ async fn room_crud_e2e() {
             .list_rooms(default_timeout)
             .await
             .expect("Failed to list rooms; private_edit");
-        assert_eq!(
-            rooms.iter().find(|room| room.room == room_id).is_some(),
-            false,
+        assert!(
+            !rooms.iter().any(|room| room.room == room_id),
             "Room should not be visible when listing rooms"
         );
         let exists = handle
@@ -125,7 +121,7 @@ async fn room_crud_e2e() {
             )
             .await
             .expect("Failed to check if room exists; private_edit");
-        assert_eq!(exists, true, "Room should exist after setting to private");
+        assert!(exists, "Room should exist after setting to private");
     }
 
     'destroy: {
@@ -148,7 +144,7 @@ async fn room_crud_e2e() {
             )
             .await
             .expect("Failed to check if room exists; destroy");
-        assert_eq!(exists, false, "Room should not exist after destruction");
+        assert!(!exists, "Room should not exist after destruction");
     }
 }
 
