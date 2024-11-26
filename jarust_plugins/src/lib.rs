@@ -20,13 +20,13 @@ mod from;
 #[macro_use]
 mod make_dto;
 
-#[cfg(feature = "echo_test")]
+#[cfg(feature = "echo-test")]
 pub mod echo_test;
 
-#[cfg(feature = "audio_bridge")]
+#[cfg(feature = "audio-bridge")]
 pub mod audio_bridge;
 
-#[cfg(feature = "video_room")]
+#[cfg(feature = "video-room")]
 pub mod video_room;
 
 #[cfg(feature = "streaming")]
