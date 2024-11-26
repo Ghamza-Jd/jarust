@@ -28,14 +28,14 @@ tracing.workspace = true
 default = [
     "tokio-rt",
     "use-native-tls",
-    "echo_test",
-    "audio_bridge",
-    "video_room",
+    "echo-test",
+    "audio-bridge",
+    "video-room",
     "streaming",
 ]
-echo_test = []
-audio_bridge = []
-video_room = []
+echo-test = []
+audio-bridge = []
+video-room = []
 streaming = []
 __experimental = []
 

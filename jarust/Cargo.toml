@@ -22,11 +22,11 @@ jarust_plugins.workspace = true
 default = ["use-native-tls", "tokio-rt"]
 
 # Plugins
-audio_bridge_plugin = ["jarust_plugins/audio_bridge"]
-echo_test_plugin = ["jarust_plugins/echo_test"]
-streaming_plugin = ["jarust_plugins/streaming"]
-video_room_plugin = ["jarust_plugins/video_room"]
-__plugin_expiremental = ["jarust_plugins/__experimental"]
+audio-bridge-plugin = ["jarust_plugins/audio-bridge"]
+echo-test-plugin = ["jarust_plugins/echo-test"]
+streaming-plugin = ["jarust_plugins/streaming"]
+video-room-plugin = ["jarust_plugins/video-room"]
+__plugin-expiremental = ["jarust_plugins/__experimental"]
 
 # Interface
 use-native-tls = [
