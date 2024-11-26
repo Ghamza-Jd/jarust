@@ -21,6 +21,13 @@ edition = "2021"
 repository = "https://github.com/Ghamza-Jd/jarust"
 
 [workspace.dependencies]
+# Workspace crates
+jarust_core = { version = "0.8.1", path = "jarust_core", default-features = false }
+jarust_interface = { version = "0.8.1", path = "jarust_interface", default-features = false }
+jarust_plugins = { version = "0.8.1", path = "jarust_plugins", default-features = false }
+jarust_rt = { version = "0.8.1", path = "jarust_rt", default-features = false }
+
+# 3rd Party
 async-trait = "0.1.83"
 bytes = "1.8.0"
 futures-util = "0.3.31"

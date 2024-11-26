@@ -15,8 +15,8 @@ doctest = false
 
 [dependencies]
 async-trait.workspace = true
-jarust_interface = { version = "0.8.1", path = "../jarust_interface", default-features = false }
-jarust_rt = { version = "0.8.1", path = "../jarust_rt", default-features = false }
+jarust_interface.workspace = true
+jarust_rt.workspace = true
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["sync", "time"] }
@@ -30,7 +30,7 @@ use-rustls = ["jarust_interface/use-rustls"]
 
 [dev-dependencies]
 anyhow = "1.0.93"
-jarust_interface = { path = "../jarust_interface" }
-jarust_rt = { path = "../jarust_rt" }
+jarust_interface = { workspace = true, default-features = true }
+jarust_rt = { workspace = true, default-features = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
