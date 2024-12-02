@@ -297,7 +297,7 @@ async fn participants_e2e() {
         }
     };
 
-    'mute_and_unmute: {
+    'mute: {
         eve_handle
             .mute(AudioBridgeMuteParams {
                 room: room_id.clone(),
@@ -368,6 +368,80 @@ async fn participants_e2e() {
                 .expect("Alice not found")
                 .muted,
             true
+        );
+    }
+
+    'unmute: {
+        eve_handle
+            .unmute(AudioBridgeMuteParams {
+                room: room_id.clone(),
+                id: alice.id.clone(),
+                secret: None,
+            })
+            .await
+            .expect("Failed to unmute participant; mute_and_unmute");
+
+        // Alice should receive the unmute event of herself
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsUpdated {
+            participants,
+            ..
+        }) = alice_events
+            .recv()
+            .await
+            .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+
+        assert_eq!(
+            participants
+                .iter()
+                .find(|p| p.id == alice.id)
+                .expect("Alice not found")
+                .muted,
+            false
+        );
+
+        // Bob should receive the unmute event of Alice
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsUpdated {
+            participants,
+            ..
+        }) = bob_events
+            .recv()
+            .await
+            .expect("Bob failed to receive event")
+        else {
+            panic!("Bob received unexpected event")
+        };
+
+        assert_eq!(
+            participants
+                .iter()
+                .find(|p| p.id == alice.id)
+                .expect("Alice not found")
+                .muted,
+            false
+        );
+
+        // Eve should receive the unmute event of Alice
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsUpdated {
+            participants,
+            ..
+        }) = eve_events
+            .recv()
+            .await
+            .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+
+        assert_eq!(
+            participants
+                .iter()
+                .find(|p| p.id == alice.id)
+                .expect("Alice not found")
+                .muted,
+            false
         );
     }
 }
