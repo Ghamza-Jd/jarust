@@ -11,6 +11,7 @@ use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeJoinParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeKickParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeMuteParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeMuteRoomParams;
@@ -554,6 +555,67 @@ async fn participants_e2e() {
         );
         assert_eq!(participants.contains(&bob), true, "Bob should be in room");
         assert_eq!(participants.contains(&eve), true, "Eve should be in room");
+    }
+
+    'kick: {
+        eve_handle
+            .kick(AudioBridgeKickParams {
+                room: room_id.clone(),
+                id: alice.id.clone(),
+                secret: None,
+            })
+            .await
+            .expect("Failed to kick participant");
+
+        // Alice should receive that she was kicked
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantKicked { kicked, .. }) =
+            alice_events
+                .recv()
+                .await
+                .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+        assert_eq!(kicked, alice.id);
+
+        // Bob should receive that Alice was kicked
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantKicked { kicked, .. }) =
+            bob_events
+                .recv()
+                .await
+                .expect("Bob failed to receive event")
+        else {
+            panic!("Bob received unexpected event")
+        };
+        assert_eq!(kicked, alice.id);
+
+        // Eve should receive that Alice was kicked
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantKicked { kicked, .. }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+        assert_eq!(kicked, alice.id);
+
+        // Alice should not be in the room anymore
+        let participants = eve_handle
+            .list_participants(
+                AudioBridgeListParticipantsParams {
+                    room: room_id.clone(),
+                },
+                default_timeout,
+            )
+            .await
+            .expect("Failed to list participants")
+            .participants;
+        assert_eq!(
+            participants.contains(&alice),
+            false,
+            "Alice should be kicked"
+        );
     }
 }
 
