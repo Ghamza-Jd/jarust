@@ -13,6 +13,7 @@ use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeJoinParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeMuteParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeMuteRoomParams;
 use jarust::plugins::JanusId;
 use std::time::Duration;
 use tokio::sync::mpsc::UnboundedReceiver;
@@ -445,6 +446,92 @@ async fn participants_e2e() {
                 .muted,
             false
         );
+    }
+
+    'mute_room: {
+        eve_handle
+            .mute_room(AudioBridgeMuteRoomParams {
+                room: room_id.clone(),
+                secret: None,
+            })
+            .await
+            .expect("Failed to mute room; mute_and_unmute");
+
+        // Alice should receive the mute event of all participants
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated { muted, .. }) =
+            alice_events
+                .recv()
+                .await
+                .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+        assert_eq!(muted, true);
+
+        // Bob should receive the mute event of all participants
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated { muted, .. }) =
+            bob_events
+                .recv()
+                .await
+                .expect("Bob failed to receive event")
+        else {
+            panic!("Bob received unexpected event")
+        };
+        assert_eq!(muted, true);
+
+        // Eve should receive the mute event of all participants
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated { muted, .. }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+        assert_eq!(muted, true);
+    }
+
+    'unmute_room: {
+        eve_handle
+            .unmute_room(AudioBridgeMuteRoomParams {
+                room: room_id.clone(),
+                secret: None,
+            })
+            .await
+            .expect("Failed to unmute room; mute_and_unmute");
+
+        // Alice should receive the unmute event of all participants
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated { muted, .. }) =
+            alice_events
+                .recv()
+                .await
+                .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+        assert_eq!(muted, false);
+
+        // Bob should receive the unmute event of all participants
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated { muted, .. }) =
+            bob_events
+                .recv()
+                .await
+                .expect("Bob failed to receive event")
+        else {
+            panic!("Bob received unexpected event")
+        };
+        assert_eq!(muted, false);
+
+        // Eve should receive the unmute event of all participants
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated { muted, .. }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+        assert_eq!(muted, false);
     }
 
     'list_participants: {
