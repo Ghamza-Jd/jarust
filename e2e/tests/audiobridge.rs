@@ -11,6 +11,7 @@ use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeJoinParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeMuteParams;
 use jarust::plugins::JanusId;
 use std::time::Duration;
@@ -209,7 +210,7 @@ async fn participants_e2e() {
     };
 
     // Bob joins the room
-    let _bob = {
+    let bob = {
         bob_handle
             .join_room(
                 AudioBridgeJoinParams {
@@ -253,7 +254,7 @@ async fn participants_e2e() {
     };
 
     // Eve joins the room
-    let _eve = {
+    let eve = {
         eve_handle
             .join_room(
                 AudioBridgeJoinParams {
@@ -285,6 +286,7 @@ async fn participants_e2e() {
             true,
             "Alice should be in room"
         );
+        assert_eq!(participants.contains(&bob), true, "Bob should be in room");
 
         AudioBridgeParticipant {
             id,
@@ -443,6 +445,28 @@ async fn participants_e2e() {
                 .muted,
             false
         );
+    }
+
+    'list_participants: {
+        let participants = eve_handle
+            .list_participants(
+                AudioBridgeListParticipantsParams {
+                    room: room_id.clone(),
+                },
+                default_timeout,
+            )
+            .await
+            .expect("Failed to list participants")
+            .participants;
+
+        assert_eq!(participants.len(), 3);
+        assert_eq!(
+            participants.contains(&alice),
+            true,
+            "Alice should be in room"
+        );
+        assert_eq!(participants.contains(&bob), true, "Bob should be in room");
+        assert_eq!(participants.contains(&eve), true, "Eve should be in room");
     }
 }
 
