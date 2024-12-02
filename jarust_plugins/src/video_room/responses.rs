@@ -198,16 +198,6 @@ pub struct AttachedStream {
     /// whether this stream is ready to start sending media (will be false at the beginning)
     pub ready: bool,
 
-    /// optional object containing simulcast info, if simulcast is used by this stream
-    // pub simulcast: Option<?>, TODO: figure out undocumented object
-
-    /// optional object containing SVC info, if SVC is used by this stream
-    // pub svc: Option<?>, TODO: figure out undocumented object
-
-    /// optional object containing info on the playout-delay extension configuration, if in use
-    // #[serde(rename = "playout-delay")]
-    // pub playout_delay: Option<?>, TODO: figure out undocumented object
-
     /// if this is a data channel stream, the number of data channel subscriptions
     pub sources: Option<i64>,
 
