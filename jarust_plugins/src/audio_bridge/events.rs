@@ -30,9 +30,19 @@ enum AudioBridgeEventDto {
     },
 
     #[serde(rename = "event")]
-    Event {
-        room: u64,
+    Event(AudioBridgeEventEventType),
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum AudioBridgeEventEventType {
+    ParticipantsUpdated {
+        room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
+    },
+    RoomMuteUpdated {
+        room: JanusId,
+        muted: bool,
     },
 }
 
@@ -64,8 +74,12 @@ pub enum AudioBridgeEvent {
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
     },
+    RoomMuteUpdated {
+        room: JanusId,
+        muted: bool,
+    },
     ParticipantsUpdated {
-        room: u64,
+        room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
     },
     Error {
@@ -114,9 +128,12 @@ impl TryFrom<JaResponse> for PluginEvent {
                             room,
                             participants,
                         },
-                        AudioBridgeEventDto::Event { room, participants } => {
-                            AudioBridgeEvent::ParticipantsUpdated { room, participants }
-                        }
+                        AudioBridgeEventDto::Event(
+                            AudioBridgeEventEventType::ParticipantsUpdated { room, participants },
+                        ) => AudioBridgeEvent::ParticipantsUpdated { room, participants },
+                        AudioBridgeEventDto::Event(
+                            AudioBridgeEventEventType::RoomMuteUpdated { room, muted },
+                        ) => AudioBridgeEvent::RoomMuteUpdated { room, muted },
                     },
                 };
                 Ok(PluginEvent::AudioBridgeEvent(audiobridge_event))
@@ -132,8 +149,9 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
+    use crate::audio_bridge::common::AudioBridgeParticipant;
     use crate::audio_bridge::events::AudioBridgeEvent;
-    
+
     use crate::JanusId;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
@@ -267,6 +285,76 @@ mod tests {
                 id: JanusId::Uint(38626.into()),
                 room: JanusId::Uint(61682.into()),
                 participants: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_participants_updated() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "room": 6613848040355181645u64,
+                        "participants": [
+                            {
+                                "id": 4975437903264518u64,
+                                "setup": false,
+                                "muted": false
+                            }
+                        ]
+                    })),
+                },
+            }),
+            jsep: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsUpdated {
+                room: JanusId::Uint(6613848040355181645.into()),
+                participants: vec![AudioBridgeParticipant {
+                    id: JanusId::Uint(4975437903264518u64.into()),
+                    setup: false,
+                    muted: false,
+                    display: None,
+                    suspended: None,
+                    talking: None,
+                    spatial_position: None
+                }]
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_room_mute_updated() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "room": 6613848040355181645u64,
+                        "muted": true
+                    })),
+                },
+            }),
+            jsep: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomMuteUpdated {
+                room: JanusId::Uint(6613848040355181645.into()),
+                muted: true
             })
         );
     }
