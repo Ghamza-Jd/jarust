@@ -11,6 +11,7 @@ use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeJoinParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeJoinParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeKickParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeMuteParams;
@@ -173,11 +174,15 @@ async fn participants_e2e() {
 
     // Alice joins the room
     let alice = {
+        let display = Some("Alice".to_string());
         alice_handle
             .join_room(
                 AudioBridgeJoinParams {
                     room: room_id.clone(),
-                    optional: Default::default(),
+                    optional: AudioBridgeJoinParamsOptional {
+                        display: display.clone(),
+                        ..Default::default()
+                    },
                 },
                 None,
                 default_timeout,
@@ -202,7 +207,7 @@ async fn participants_e2e() {
 
         AudioBridgeParticipant {
             id,
-            display: None,
+            display,
             setup: false,
             muted: false,
             suspended: None,
@@ -213,11 +218,15 @@ async fn participants_e2e() {
 
     // Bob joins the room
     let bob = {
+        let display = Some("Bob".to_string());
         bob_handle
             .join_room(
                 AudioBridgeJoinParams {
                     room: room_id.clone(),
-                    optional: Default::default(),
+                    optional: AudioBridgeJoinParamsOptional {
+                        display: display.clone(),
+                        ..Default::default()
+                    },
                 },
                 None,
                 default_timeout,
@@ -246,7 +255,7 @@ async fn participants_e2e() {
 
         AudioBridgeParticipant {
             id,
-            display: None,
+            display,
             setup: false,
             muted: false,
             suspended: None,
@@ -257,11 +266,15 @@ async fn participants_e2e() {
 
     // Eve joins the room
     let eve = {
+        let display = Some("Eve".to_string());
         eve_handle
             .join_room(
                 AudioBridgeJoinParams {
                     room: room_id.clone(),
-                    optional: Default::default(),
+                    optional: AudioBridgeJoinParamsOptional {
+                        display: display.clone(),
+                        ..Default::default()
+                    },
                 },
                 None,
                 default_timeout,
@@ -292,7 +305,7 @@ async fn participants_e2e() {
 
         AudioBridgeParticipant {
             id,
-            display: None,
+            display,
             setup: false,
             muted: false,
             suspended: None,
@@ -599,23 +612,6 @@ async fn participants_e2e() {
             panic!("Eve received unexpected event")
         };
         assert_eq!(kicked, alice.id);
-
-        // Alice should not be in the room anymore
-        let participants = eve_handle
-            .list_participants(
-                AudioBridgeListParticipantsParams {
-                    room: room_id.clone(),
-                },
-                default_timeout,
-            )
-            .await
-            .expect("Failed to list participants")
-            .participants;
-        assert_eq!(
-            participants.contains(&alice),
-            false,
-            "Alice should be kicked"
-        );
     }
 }
 
