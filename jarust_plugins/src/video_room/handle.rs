@@ -23,6 +23,7 @@ impl VideoRoomHandle {
     ///
     /// ### Note:
     /// Random room number will be used if `room` is `None`
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room(
         &self,
@@ -44,6 +45,7 @@ impl VideoRoomHandle {
     ///
     /// ### Note:
     /// Random room number will be used if `room` is `None`
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
@@ -64,6 +66,7 @@ impl VideoRoomHandle {
     /// ### Note:
     /// You won't be able to modify other more static properties,
     /// like the room ID, the sampling rate, the extensions-related stuff and so on.
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
@@ -80,6 +83,7 @@ impl VideoRoomHandle {
     }
 
     // Destroy an existing video room, whether created dynamically or statically
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
@@ -96,6 +100,7 @@ impl VideoRoomHandle {
     }
 
     /// Check whether a room exists
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn exists(
         &self,
@@ -111,6 +116,7 @@ impl VideoRoomHandle {
     }
 
     /// Get a list of the available rooms
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_rooms(
         &self,
@@ -126,6 +132,7 @@ impl VideoRoomHandle {
     }
 
     /// Allows you to edit who's allowed to join a room via ad-hoc tokens
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
@@ -152,6 +159,7 @@ impl VideoRoomHandle {
     }
 
     /// Kicks a participants out of a room
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick(
         &self,
@@ -166,6 +174,7 @@ impl VideoRoomHandle {
     }
 
     /// Enable or disable recording on all participants while the conference is in progress
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
@@ -180,6 +189,7 @@ impl VideoRoomHandle {
     }
 
     /// Get a list of the participants in a specific room
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_participants(
         &self,
@@ -194,6 +204,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn moderate(
         &self,
         params: VideoRoomModerateParams,
@@ -205,6 +216,7 @@ impl VideoRoomHandle {
         self.handle.send_waiton_rsp::<()>(message, timeout).await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn list_forwarders(
         &self,
         params: VideoRoomListForwardersParams,
@@ -218,6 +230,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn rtp_forward(
         &self,
         params: VideoRoomRtpForwardParams,
@@ -231,6 +244,7 @@ impl VideoRoomHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn stop_rtp_forward(
         &self,
         params: VideoRoomStopRtpForward,
@@ -258,6 +272,7 @@ impl VideoRoomHandle {
     /// A successful join will result in a [`VideoRoomEvent::RoomJoined`](super::events::VideoRoomEvent::RoomJoined) event,
     /// which will contain a list of the currently active (as in publishing via WebRTC) publishers,
     /// and optionally a list of passive attendees (but only if the room was configured with notify_joining set to TRUE)
+    #[cfg(feature = "__experimental")]
     pub async fn join_as_publisher(
         &self,
         params: VideoRoomPublisherJoinParams,
@@ -291,6 +306,7 @@ impl VideoRoomHandle {
     /// can be removed/updated accordingly as well. As such, these subscriber sessions are dependent on feedback
     /// obtained by publishers, and can't exist on their own, unless you feed them the right info out of band
     /// (which is impossible in rooms configured with require_pvtid).
+    #[cfg(feature = "__experimental")]
     pub async fn join_as_subscriber(
         &self,
         params: VideoRoomSubscriberJoinParams,
@@ -317,6 +333,7 @@ impl VideoRoomHandle {
     /// It's basically the same properties as those listed for publish , with the addition of a `streams` array that can be used
     /// to tweak individual streams (which is not available when publishing since in that case the stream doesn't exist yet).
     /// Notice that the configure request can also be used in renegotiations, to provide an updated SDP with changes to the published media.
+    #[cfg(feature = "__experimental")]
     pub async fn configure_publisher(
         &self,
         params: VideoRoomConfigurePublisherParams,
@@ -330,6 +347,7 @@ impl VideoRoomHandle {
 
     /// This request allows subscribers to dynamically change some properties associated to their media subscription,
     /// e.g., in terms of what should and should not be sent at a specific time.
+    #[cfg(feature = "__experimental")]
     pub async fn configure_subscriber(
         &self,
         params: VideoRoomConfigureSubscriberParams,
@@ -342,6 +360,7 @@ impl VideoRoomHandle {
     }
 
     /// A combination of [VideoRoomHandle::join_as_publisher()] and [VideoRoomHandle::configure_publisher()]
+    #[cfg(feature = "__experimental")]
     pub async fn join_and_configure(
         &self,
         join_and_configure_params: VideoRoomJoinAndConfigureParams,
@@ -359,6 +378,7 @@ impl VideoRoomHandle {
     /// The plugin will match it to the room configuration (e.g., to make sure the codecs you negotiated are allowed in the room),
     /// and will reply with a JSEP SDP answer to close the circle and complete the setup of the PeerConnection.
     /// As soon as the PeerConnection has been established, the publisher will become active, and a new active feed other participants can subscribe to.
+    #[cfg(feature = "__experimental")]
     pub async fn publish(
         &self,
         params: VideoRoomPublishParams,
@@ -376,6 +396,7 @@ impl VideoRoomHandle {
     /// Stop publishing and tear down the related PeerConnection
     ///
     /// This request requires no arguments as the context is implicit.
+    #[cfg(feature = "__experimental")]
     pub async fn unpublish(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         self.handle
             .send_waiton_ack(json!({"request": "unpublish"}), timeout)
@@ -387,6 +408,7 @@ impl VideoRoomHandle {
     ///
     /// The subscriber is supposed to send a JSEP SDP answer back to the plugin by the means of this request,
     /// which in this case MUST be associated with a JSEP SDP answer but otherwise requires no arguments.
+    #[cfg(feature = "__experimental")]
     pub async fn start(
         &self,
         jsep: Jsep,
@@ -398,6 +420,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn subscribe(
         &self,
         params: VideoRoomSubscribeParams,
@@ -409,6 +432,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn unsubscribe(
         &self,
         params: VideoRoomUnsubscribeParams,
@@ -420,6 +444,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn update(
         &self,
         params: VideoRoomCombinedUpdateParams,
@@ -431,6 +456,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn pause(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         self.handle
             .send_waiton_ack(json!({"request": "pause"}), timeout)
@@ -438,6 +464,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn switch(
         &self,
         params: VideoRoomSwitchParams,
@@ -449,6 +476,7 @@ impl VideoRoomHandle {
         Ok(())
     }
 
+    #[cfg(feature = "__experimental")]
     pub async fn leave(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         self.handle
             .send_waiton_ack(json!({"request": "leave"}), timeout)
