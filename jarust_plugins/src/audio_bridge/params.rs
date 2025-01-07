@@ -86,6 +86,7 @@ make_dto!(
     }
 );
 
+#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeEnableRecordingParams,
     required { room: JanusId },
@@ -101,6 +102,7 @@ make_dto!(
     }
 );
 
+#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeEnableMjrsParams,
     required { room: JanusId },
@@ -116,6 +118,7 @@ make_dto!(
 
 make_dto!(AudioBridgeExistsParams, required { room: JanusId });
 
+#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeAllowedParams,
     required {
@@ -130,6 +133,7 @@ make_dto!(
     }
 );
 
+#[cfg(feature = "__experimental")]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AudioBridgeAllowAction {
@@ -152,6 +156,7 @@ make_dto!(
     }
 );
 
+#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeKickAllParams,
     required { room: JanusId },
@@ -262,6 +267,7 @@ pub enum AudioBridgeCodec {
     Pcmu,
 }
 
+#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeConfigureParams,
     optional {
@@ -314,6 +320,7 @@ make_dto!(
     }
 );
 
+#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeChangeRoomParams,
     required { room: JanusId },

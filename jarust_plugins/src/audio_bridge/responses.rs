@@ -37,6 +37,7 @@ pub struct AudioBridgeRoom {
     pub muted: bool,
 }
 
+#[cfg(feature = "__experimental")]
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AudioBridgeAllowedRsp {
     pub room: JanusId,
