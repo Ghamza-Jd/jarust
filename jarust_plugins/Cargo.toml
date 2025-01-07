@@ -49,9 +49,9 @@ use-native-tls = ["jarust_interface/use-native-tls"]
 use-rustls = ["jarust_interface/use-rustls"]
 
 [dev-dependencies]
-anyhow = "1.0.93"
+anyhow.workspace = true
 jarust_core = { workspace = true, default-features = true }
 jarust_interface = { workspace = true, default-features = true }
 jarust_rt = { workspace = true, default-features = true }
 tokio = { workspace = true, features = ["time", "macros", "rt-multi-thread"] }
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-subscriber.workspace = true
