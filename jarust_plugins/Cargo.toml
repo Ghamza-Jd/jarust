@@ -25,14 +25,6 @@ tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
 [features]
-default = [
-    "tokio-rt",
-    "use-native-tls",
-    "echo-test",
-    "audio-bridge",
-    "video-room",
-    "streaming",
-]
 echo-test = []
 audio-bridge = []
 video-room = []

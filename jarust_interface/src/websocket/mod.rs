@@ -1,3 +1,4 @@
+mod connector;
 mod demuxer;
 mod napmap;
 mod ringbuf_map;
