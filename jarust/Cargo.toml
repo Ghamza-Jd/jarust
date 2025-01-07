@@ -50,8 +50,6 @@ tokio-rt = [
 [dev-dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-jarust_core = { workspace = true, default-features = true }
-jarust_interface = { workspace = true, default-features = true }
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
@@ -60,5 +58,10 @@ tracing.workspace = true
 
 [dev-dependencies.jarust_plugins]
 workspace = true
-default_features = true
-features = ["__experimental"]
+features = [
+    "__experimental",
+    "audio-bridge",
+    "echo-test",
+    "streaming",
+    "video-room",
+]

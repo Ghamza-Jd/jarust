@@ -15,7 +15,8 @@ use tracing_subscriber::EnvFilter;
 async fn main() -> anyhow::Result<()> {
     let filename = Path::new(file!()).file_stem().unwrap().to_str().unwrap();
     let env_filter = EnvFilter::from_default_env()
-        .add_directive("jarust_core=debug".parse()?)
+        .add_directive("jarust_core=trace".parse()?)
+        .add_directive("jarust_interface=trace".parse()?)
         .add_directive(format!("{filename}=info").parse()?);
     tracing_subscriber::fmt().with_env_filter(env_filter).init();
 
