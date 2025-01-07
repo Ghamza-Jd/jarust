@@ -52,9 +52,13 @@ anyhow.workspace = true
 async-trait.workspace = true
 jarust_core = { workspace = true, default-features = true }
 jarust_interface = { workspace = true, default-features = true }
-jarust_plugins = { workspace = true, default-features = true }
 serde_json.workspace = true
 serde.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tracing-subscriber.workspace = true
 tracing.workspace = true
+
+[dev-dependencies.jarust_plugins]
+workspace = true
+default_features = true
+features = ["__experimental"]

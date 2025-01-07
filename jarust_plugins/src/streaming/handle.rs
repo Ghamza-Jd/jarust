@@ -17,6 +17,7 @@ pub struct StreamingHandle {
 // synchronous methods
 //
 impl StreamingHandle {
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_mountpoint(
         &self,
@@ -32,6 +33,7 @@ impl StreamingHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_mountpoint(
         &self,
@@ -47,6 +49,7 @@ impl StreamingHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list(
         &self,
@@ -61,6 +64,7 @@ impl StreamingHandle {
         Ok(response.list)
     }
 
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn info(
         &self,
