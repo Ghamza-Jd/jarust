@@ -1,12 +1,5 @@
 use super::params::*;
-use super::responses::AudioBridgeAllowedRsp;
-use super::responses::AudioBridgeExistsRoomRsp;
-use super::responses::AudioBridgeListParticipantsRsp;
-use super::responses::AudioBridgeListRoomsRsp;
-use super::responses::AudioBridgeRoom;
-use super::responses::AudioBridgeRoomCreatedRsp;
-use super::responses::AudioBridgeRoomDestroyedRsp;
-use super::responses::AudioBridgeRoomEditedRsp;
+use super::responses::*;
 use crate::JanusId;
 use jarust_core::prelude::*;
 use jarust_interface::japrotocol::Jsep;
@@ -92,11 +85,12 @@ impl AudioBridgeHandle {
             .await
     }
 
+    #[cfg(feature = "__experimental")]
     /// To enable or disable recording of mixed audio stream while the conference is in progress
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn enable_recording(
         &self,
-        params: AudioBridgeDestroyParams,
+        params: AudioBridgeEnableRecordingParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending enable recording");
@@ -111,9 +105,10 @@ impl AudioBridgeHandle {
     /// While a recording for each participant can be enabled or disabled separately, there also is a request
     /// to enable or disable them in bulk, thus implementing a feature similar to enable_recording but for MJR
     /// files, rather than for a .wav mix
+    #[cfg(feature = "__experimental")]
     pub async fn enable_mjrs(
         &self,
-        params: AudioBridgeDestroyParams,
+        params: AudioBridgeEnableMjrsParams,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending enable mjrs");
@@ -141,6 +136,7 @@ impl AudioBridgeHandle {
     }
 
     /// Allows you to edit who's allowed to join a room via ad-hoc tokens
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn allowed(
         &self,
@@ -198,6 +194,7 @@ impl AudioBridgeHandle {
     }
 
     /// Kicks all participants out of a room
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick_all(
         &self,
@@ -235,6 +232,7 @@ impl AudioBridgeHandle {
     }
 
     /// Configure the media related settings of the participant
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn configure(
         &self,
@@ -294,6 +292,7 @@ impl AudioBridgeHandle {
     }
 
     /// Change the room you are in, instead of leaving and joining a new room
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn change_room(
         &self,
@@ -308,6 +307,7 @@ impl AudioBridgeHandle {
     }
 
     /// Leave an audio room
+    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn leave(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending leave");
