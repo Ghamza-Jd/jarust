@@ -11,12 +11,7 @@ use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum PluginEvent {
-    VideoRoomEvent(VideoRoomEvent),
-    GenericEvent(GenericEvent),
-}
+use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(tag = "videoroom")]
@@ -122,7 +117,13 @@ enum VideoRoomEventEventType {
     LeftRsp,
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub enum PluginEvent {
+    VideoRoomEvent(VideoRoomEvent),
+    GenericEvent(GenericEvent),
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum VideoRoomEvent {
     /// Sent to all participants in the video room when the room is destroyed
     RoomDestroyed {
@@ -261,6 +262,8 @@ pub enum VideoRoomEvent {
         error_code: u16,
         error: String,
     },
+
+    Other(Value),
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -276,108 +279,115 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Error { error_code, error } => {
                         VideoRoomEvent::Error { error_code, error }
                     }
-                    PluginInnerData::Data(data) => match from_value::<EventDto>(data)? {
-                        EventDto::DestroyRoom { room } => VideoRoomEvent::RoomDestroyed { room },
-                        EventDto::JoinedRoom { id, room, display } => match value.jsep {
-                            Some(jsep) => VideoRoomEvent::RoomJoinedWithEst { id, display, jsep },
+                    PluginInnerData::Data(data) => match from_value::<EventDto>(data.clone()) {
+                        Ok(event) => match event {
+                            EventDto::DestroyRoom { room } => {
+                                VideoRoomEvent::RoomDestroyed { room }
+                            }
+                            EventDto::JoinedRoom { id, room, display } => match value.jsep {
+                                Some(jsep) => {
+                                    VideoRoomEvent::RoomJoinedWithEst { id, display, jsep }
+                                }
 
-                            None => VideoRoomEvent::RoomJoined { id, room, display },
-                        },
-                        EventDto::NewPublisher { room, publishers } => {
-                            VideoRoomEvent::NewPublisher { room, publishers }
-                        }
-                        EventDto::PublisherJoined {
-                            room,
-                            description,
-                            id,
-                            private_id,
-                            publishers,
-                            attendees,
-                        } => VideoRoomEvent::PublisherJoined {
-                            room,
-                            description,
-                            id,
-                            private_id,
-                            publishers,
-                            attendees,
-                        },
-                        EventDto::SubscriberAttached { room, streams } => {
-                            VideoRoomEvent::SubscriberAttached { room, streams }
-                        }
-                        EventDto::SubscriberUpdated { room, streams } => {
-                            VideoRoomEvent::SubscriberUpdated { room, streams }
-                        }
-                        EventDto::Talking {
-                            room,
-                            id,
-                            audio_level,
-                        } => VideoRoomEvent::Talking {
-                            room,
-                            id,
-                            audio_level,
-                        },
-                        EventDto::StoppedTalking {
-                            room,
-                            id,
-                            audio_level,
-                        } => VideoRoomEvent::StoppedTalking {
-                            room,
-                            id,
-                            audio_level,
-                        },
-                        EventDto::Event(Event::PublishersEvent { room, publishers }) => {
-                            VideoRoomEvent::NewPublisher { room, publishers }
-                        }
-                        EventDto::Event(Event::UnpublishedRsp {}) => {
-                            VideoRoomEvent::UnpublishedAsyncRsp
-                        }
-                        EventDto::Event(Event::UnpublishedEvent { room, unpublished }) => {
-                            VideoRoomEvent::Unpublished {
-                                room,
-                                id: unpublished,
+                                None => VideoRoomEvent::RoomJoined { id, room, display },
+                            },
+                            EventDto::NewPublisher { room, publishers } => {
+                                VideoRoomEvent::NewPublisher { room, publishers }
                             }
-                        }
-                        EventDto::Event(Event::ConfiguredRsp {
-                            room,
-                            audio_codec,
-                            video_codec,
-                            streams,
-                        }) => {
-                            if let Some(jsep) = value.jsep {
-                                VideoRoomEvent::ConfiguredWithEst {
+                            EventDto::PublisherJoined {
+                                room,
+                                description,
+                                id,
+                                private_id,
+                                publishers,
+                                attendees,
+                            } => VideoRoomEvent::PublisherJoined {
+                                room,
+                                description,
+                                id,
+                                private_id,
+                                publishers,
+                                attendees,
+                            },
+                            EventDto::SubscriberAttached { room, streams } => {
+                                VideoRoomEvent::SubscriberAttached { room, streams }
+                            }
+                            EventDto::SubscriberUpdated { room, streams } => {
+                                VideoRoomEvent::SubscriberUpdated { room, streams }
+                            }
+                            EventDto::Talking {
+                                room,
+                                id,
+                                audio_level,
+                            } => VideoRoomEvent::Talking {
+                                room,
+                                id,
+                                audio_level,
+                            },
+                            EventDto::StoppedTalking {
+                                room,
+                                id,
+                                audio_level,
+                            } => VideoRoomEvent::StoppedTalking {
+                                room,
+                                id,
+                                audio_level,
+                            },
+                            EventDto::Event(Event::PublishersEvent { room, publishers }) => {
+                                VideoRoomEvent::NewPublisher { room, publishers }
+                            }
+                            EventDto::Event(Event::UnpublishedRsp {}) => {
+                                VideoRoomEvent::UnpublishedAsyncRsp
+                            }
+                            EventDto::Event(Event::UnpublishedEvent { room, unpublished }) => {
+                                VideoRoomEvent::Unpublished {
                                     room,
-                                    audio_codec,
-                                    video_codec,
-                                    streams,
-                                    jsep,
-                                }
-                            } else {
-                                VideoRoomEvent::Configured {
-                                    room,
-                                    audio_codec,
-                                    video_codec,
-                                    streams,
+                                    id: unpublished,
                                 }
                             }
-                        }
-                        EventDto::Event(Event::LeavingEvent { room, leaving }) => {
-                            VideoRoomEvent::LeftRoom {
+                            EventDto::Event(Event::ConfiguredRsp {
                                 room,
-                                participant: leaving,
+                                audio_codec,
+                                video_codec,
+                                streams,
+                            }) => {
+                                if let Some(jsep) = value.jsep {
+                                    VideoRoomEvent::ConfiguredWithEst {
+                                        room,
+                                        audio_codec,
+                                        video_codec,
+                                        streams,
+                                        jsep,
+                                    }
+                                } else {
+                                    VideoRoomEvent::Configured {
+                                        room,
+                                        audio_codec,
+                                        video_codec,
+                                        streams,
+                                    }
+                                }
                             }
-                        }
-                        EventDto::Event(Event::StartedRsp) => VideoRoomEvent::StartedAsyncRsp,
-                        EventDto::Event(Event::PausedRsp) => VideoRoomEvent::PausedAsyncRsp,
-                        EventDto::Event(Event::SwitchedRsp {
-                            room,
-                            changes,
-                            streams,
-                        }) => VideoRoomEvent::SubscriberSwitched {
-                            room,
-                            changes,
-                            streams,
+                            EventDto::Event(Event::LeavingEvent { room, leaving }) => {
+                                VideoRoomEvent::LeftRoom {
+                                    room,
+                                    participant: leaving,
+                                }
+                            }
+                            EventDto::Event(Event::StartedRsp) => VideoRoomEvent::StartedAsyncRsp,
+                            EventDto::Event(Event::PausedRsp) => VideoRoomEvent::PausedAsyncRsp,
+                            EventDto::Event(Event::SwitchedRsp {
+                                room,
+                                changes,
+                                streams,
+                            }) => VideoRoomEvent::SubscriberSwitched {
+                                room,
+                                changes,
+                                streams,
+                            },
+                            EventDto::Event(Event::LeftRsp) => VideoRoomEvent::LeftAsyncRsp,
                         },
-                        EventDto::Event(Event::LeftRsp) => VideoRoomEvent::LeftAsyncRsp,
+                        Err(_) => VideoRoomEvent::Other(data),
                     },
                 };
                 Ok(PluginEvent::VideoRoomEvent(videoroom_event))

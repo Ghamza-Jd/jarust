@@ -314,6 +314,23 @@ async fn participants_e2e() {
         }
     };
 
+    // Already joined participants should receive "joined" events but with different body, maybe `ParticipantJoined`
+    'participant_joined: {
+        alice_events
+            .recv()
+            .await
+            .expect("Alice failed to receive event");
+        alice_events
+            .recv()
+            .await
+            .expect("Alice failed to receive event");
+
+        bob_events
+            .recv()
+            .await
+            .expect("Bob failed to receive event");
+    }
+
     'mute: {
         eve_handle
             .mute(AudioBridgeMuteParams {
