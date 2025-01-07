@@ -6,12 +6,7 @@ use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
-pub enum PluginEvent {
-    StreamingEvent(StreamingEvent),
-    GenericEvent(GenericEvent),
-}
+use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(tag = "streaming")]
@@ -28,7 +23,13 @@ enum StreamingEventDto {
     },
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub enum PluginEvent {
+    StreamingEvent(StreamingEvent),
+    GenericEvent(GenericEvent),
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum StreamingEvent {
     MountpointDestroyed {
         id: JanusId,
@@ -41,6 +42,7 @@ pub enum StreamingEvent {
         error_code: u16,
         error: String,
     },
+    Other(Value),
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -53,18 +55,21 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Error { error_code, error } => {
                         StreamingEvent::Error { error_code, error }
                     }
-                    PluginInnerData::Data(data) => match from_value::<StreamingEventDto>(data)? {
-                        StreamingEventDto::CreateMountpoint {
-                            id,
-                            mountpoint_type,
-                        } => StreamingEvent::MountpointCreated {
-                            id,
-                            mountpoint_type,
-                        },
-                        StreamingEventDto::DestroyMountpoint { id } => {
-                            StreamingEvent::MountpointDestroyed { id }
+                    PluginInnerData::Data(data) => {
+                        match from_value::<StreamingEventDto>(data.clone()) {
+                            Ok(StreamingEventDto::CreateMountpoint {
+                                id,
+                                mountpoint_type,
+                            }) => StreamingEvent::MountpointCreated {
+                                id,
+                                mountpoint_type,
+                            },
+                            Ok(StreamingEventDto::DestroyMountpoint { id }) => {
+                                StreamingEvent::MountpointDestroyed { id }
+                            }
+                            Err(_) => StreamingEvent::Other(data),
                         }
-                    },
+                    }
                 };
                 Ok(PluginEvent::StreamingEvent(streaming_event))
             }
@@ -79,7 +84,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 #[cfg(test)]
 mod tests {
     use super::PluginEvent;
-    
+
     use crate::streaming::events::StreamingEvent;
     use crate::JanusId;
     use jarust_interface::japrotocol::JaHandleEvent;

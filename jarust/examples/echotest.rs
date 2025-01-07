@@ -57,6 +57,9 @@ async fn main() -> anyhow::Result<()> {
             PluginEvent::EchoTestEvent(EchoTestEvent::Error { error_code, error }) => {
                 tracing::warn!("error: {{ error_code: {error_code}, error: {error} }}");
             }
+            PluginEvent::EchoTestEvent(EchoTestEvent::Other(value)) => {
+                tracing::debug!("other: {value:#?}");
+            }
             PluginEvent::GenericEvent(event) => {
                 tracing::debug!("generic event: {event:#?}");
             }

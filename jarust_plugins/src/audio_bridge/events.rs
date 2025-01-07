@@ -8,6 +8,7 @@ use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
+use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(tag = "audiobridge")]
@@ -54,13 +55,13 @@ pub enum AudioBridgeEventEventType {
     },
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum PluginEvent {
     AudioBridgeEvent(AudioBridgeEvent),
     GenericEvent(GenericEvent),
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum AudioBridgeEvent {
     RoomJoinedWithEstabilshment {
         id: JanusId,
@@ -102,6 +103,7 @@ pub enum AudioBridgeEvent {
         error_code: u16,
         error: String,
     },
+    Other(Value),
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -114,49 +116,57 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Error { error_code, error } => {
                         AudioBridgeEvent::Error { error_code, error }
                     }
-                    PluginInnerData::Data(data) => match from_value::<AudioBridgeEventDto>(data)? {
-                        AudioBridgeEventDto::RoomJoined {
-                            id,
-                            room,
-                            participants,
-                        } => match value.jsep {
-                            Some(jsep) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
-                                id,
-                                room,
-                                participants,
-                                jsep,
+                    PluginInnerData::Data(data) => {
+                        match from_value::<AudioBridgeEventDto>(data.clone()) {
+                            Ok(event) => match event {
+                                AudioBridgeEventDto::RoomJoined {
+                                    id,
+                                    room,
+                                    participants,
+                                } => match value.jsep {
+                                    Some(jsep) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
+                                        id,
+                                        room,
+                                        participants,
+                                        jsep,
+                                    },
+                                    None => AudioBridgeEvent::RoomJoined {
+                                        id,
+                                        room,
+                                        participants,
+                                    },
+                                },
+                                AudioBridgeEventDto::RoomLeft { id, room } => {
+                                    AudioBridgeEvent::RoomLeft { id, room }
+                                }
+                                AudioBridgeEventDto::RoomChanged {
+                                    id,
+                                    room,
+                                    participants,
+                                } => AudioBridgeEvent::RoomChanged {
+                                    id,
+                                    room,
+                                    participants,
+                                },
+                                AudioBridgeEventDto::Event(
+                                    AudioBridgeEventEventType::ParticipantsUpdated {
+                                        room,
+                                        participants,
+                                    },
+                                ) => AudioBridgeEvent::ParticipantsUpdated { room, participants },
+                                AudioBridgeEventDto::Event(
+                                    AudioBridgeEventEventType::RoomMuteUpdated { room, muted },
+                                ) => AudioBridgeEvent::RoomMuteUpdated { room, muted },
+                                AudioBridgeEventDto::Event(
+                                    AudioBridgeEventEventType::ParticipantKicked { room, kicked },
+                                ) => AudioBridgeEvent::ParticipantKicked { room, kicked },
+                                AudioBridgeEventDto::Event(
+                                    AudioBridgeEventEventType::ParticipantLeft { room, leaving },
+                                ) => AudioBridgeEvent::ParticipantLeft { room, leaving },
                             },
-                            None => AudioBridgeEvent::RoomJoined {
-                                id,
-                                room,
-                                participants,
-                            },
-                        },
-                        AudioBridgeEventDto::RoomLeft { id, room } => {
-                            AudioBridgeEvent::RoomLeft { id, room }
+                            Err(_) => AudioBridgeEvent::Other(data),
                         }
-                        AudioBridgeEventDto::RoomChanged {
-                            id,
-                            room,
-                            participants,
-                        } => AudioBridgeEvent::RoomChanged {
-                            id,
-                            room,
-                            participants,
-                        },
-                        AudioBridgeEventDto::Event(
-                            AudioBridgeEventEventType::ParticipantsUpdated { room, participants },
-                        ) => AudioBridgeEvent::ParticipantsUpdated { room, participants },
-                        AudioBridgeEventDto::Event(
-                            AudioBridgeEventEventType::RoomMuteUpdated { room, muted },
-                        ) => AudioBridgeEvent::RoomMuteUpdated { room, muted },
-                        AudioBridgeEventDto::Event(
-                            AudioBridgeEventEventType::ParticipantKicked { room, kicked },
-                        ) => AudioBridgeEvent::ParticipantKicked { room, kicked },
-                        AudioBridgeEventDto::Event(
-                            AudioBridgeEventEventType::ParticipantLeft { room, leaving },
-                        ) => AudioBridgeEvent::ParticipantLeft { room, leaving },
-                    },
+                    }
                 };
                 Ok(PluginEvent::AudioBridgeEvent(audiobridge_event))
             }

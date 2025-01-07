@@ -6,6 +6,7 @@ use jarust_interface::japrotocol::PluginInnerData;
 use jarust_interface::japrotocol::ResponseType;
 use serde::Deserialize;
 use serde_json::from_value;
+use serde_json::Value;
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 enum EchoTestEventDto {
@@ -13,13 +14,13 @@ enum EchoTestEventDto {
     Result { echotest: String, result: String },
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum PluginEvent {
     EchoTestEvent(EchoTestEvent),
     GenericEvent(GenericEvent),
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum EchoTestEvent {
     Result {
         echotest: String,
@@ -34,6 +35,7 @@ pub enum EchoTestEvent {
         error_code: u16,
         error: String,
     },
+    Other(Value),
 }
 
 impl TryFrom<JaResponse> for PluginEvent {
@@ -46,16 +48,19 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Error { error_code, error } => {
                         EchoTestEvent::Error { error_code, error }
                     }
-                    PluginInnerData::Data(data) => match from_value::<EchoTestEventDto>(data)? {
-                        EchoTestEventDto::Result { echotest, result } => match value.jsep {
-                            Some(jsep) => EchoTestEvent::ResultWithEst {
-                                echotest,
-                                result,
-                                jsep,
+                    PluginInnerData::Data(data) => {
+                        match from_value::<EchoTestEventDto>(data.clone()) {
+                            Ok(EchoTestEventDto::Result { echotest, result }) => match value.jsep {
+                                Some(jsep) => EchoTestEvent::ResultWithEst {
+                                    echotest,
+                                    result,
+                                    jsep,
+                                },
+                                None => EchoTestEvent::Result { echotest, result },
                             },
-                            None => EchoTestEvent::Result { echotest, result },
-                        },
-                    },
+                            Err(_) => EchoTestEvent::Other(data),
+                        }
+                    }
                 };
                 Ok(PluginEvent::EchoTestEvent(echotest_event))
             }
