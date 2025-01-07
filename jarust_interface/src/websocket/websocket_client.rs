@@ -76,7 +76,7 @@ impl WebSocketClient {
     }
 
     pub async fn send(&mut self, data: &[u8], _: &str) -> Result<(), Error> {
-        let item = Message::Binary(data.to_vec());
+        let item = Message::Binary(data.to_vec().into());
         if let Some(sender) = &mut self.sender {
             sender.send(item).await?;
         } else {
