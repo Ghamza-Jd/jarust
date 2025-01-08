@@ -31,6 +31,15 @@ video-room = []
 streaming = []
 __experimental = []
 
+# For internal use
+__all-features = [
+    "echo-test",
+    "audio-bridge",
+    "video-room",
+    "streaming",
+    "__experimental",
+]
+
 tokio-rt = [
     "jarust_rt/tokio-rt",
     "jarust_interface/tokio-rt",

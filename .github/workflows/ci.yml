@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo clippy
+      - run: cargo clippy-all
 
   test:
     name: Integration test
@@ -21,10 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test-core
-      - run: cargo test-interface
-      - run: cargo test-jarust
-      - run: cargo test-plugins
+      - run: |
+          cargo test-core
+          cargo test-interface
+          cargo test-jarust
+          cargo test-plugins
 
   e2e:
     name: E2E tests
