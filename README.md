@@ -9,17 +9,29 @@ to be customizable, for exmaple, you could use the built-in WebSocket transport 
 
 The library wraps the Janus core API and some of the most popular plugins APIs.
 
+## Plugins
+
 The supported Janus plugins currently are:
 
-- EchoTest
-- AudioBridge
-- Streaming
-- VideoRoom
+- [x] EchoTest
+- [x] AudioBridge
+- [x] Streaming ([Experimental](./CONTRIBUTING.md#experimental))
+- [x] VideoRoom ([Experimental](./CONTRIBUTING.md#experimental))
+
+## Interfaces
 
 The supported interfaces are:
 
-- WebSocket
-- Restful
+- [x] WebSocket
+- [x] Restful
+- [ ] MQTT
+- [ ] RabbitMQ
+- [ ] Nanomsg
+
+## APIs
+
+- [x] Client API
+- [ ] Admin/Monitor API
 
 ## Examples
 

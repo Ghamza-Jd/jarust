@@ -24,3 +24,14 @@ Manual testing is done by spinning up a docker image with janus server and point
 - Serialization testing, it might look tedious to test (de)serialization, but the responses and events coming from janus will have different structure and fields, thanks to `serde` we could model them within the type system. But `serde` has it's complexities when we start using `flatten` with `untagged` and `tag = ""`, so serialization testing became essential to ensure a specific event will be (de)serialized to it's type counter part.
 
 - End-to-End, the E2Es assume janus is running on the system and using the `e2e/server_config` configs, so keep that in mind when running them.
+
+## Plugins
+
+### Create a Plugin
+
+We're aiming to support the built-in plugins like SIP, Text room, and more. So, in order to create a new plugin you can follow the [`echotest`](./jarust_plugins/src/echo_test), it's simple and provides a simple architecture for plugins.
+
+### Experimental
+
+A feature might be merged before being completed and tested, such features should be marked as `__experimental`.
+To remove the `__experimental` flag, the feature should be manually tested and has an e2e test case.
