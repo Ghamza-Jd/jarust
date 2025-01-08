@@ -37,6 +37,7 @@ tokio-tungstenite = "0.26.1"
 getrandom = { version = "0.2.12", features = ["js"] }
 
 [features]
+default = ["use-native-tls", "tokio-rt"]
 use-native-tls = ["tokio-tungstenite/native-tls"]
 use-rustls = ["rustls", "rustls-native-certs", "tokio-tungstenite/__rustls-tls"]
 tokio-rt = ["jarust_rt/tokio-rt"]
