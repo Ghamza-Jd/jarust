@@ -23,6 +23,7 @@ tokio = { workspace = true, features = ["sync", "time"] }
 tracing.workspace = true
 
 [features]
+default = ["use-native-tls", "tokio-rt"]
 tokio-rt = ["jarust_rt/tokio-rt", "jarust_interface/tokio-rt"]
 use-native-tls = ["jarust_interface/use-native-tls"]
 use-rustls = ["jarust_interface/use-rustls"]
