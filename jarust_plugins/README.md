@@ -4,7 +4,7 @@ Wrapper around [jarust_core](https://crates.io/crates/jarust_core) that provides
 
 Current plugins:
 
-- [x] Echo test
-- [x] Audio bridge
-- [x] Video room
-- [ ] Streaming (WiP)
+- [x] EchoTest
+- [x] AudioBridge
+- [x] Streaming (Experimental)
+- [x] VideoRoom (Experimental)
