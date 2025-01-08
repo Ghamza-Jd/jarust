@@ -14,24 +14,31 @@ use serde_json::Value;
 #[serde(tag = "audiobridge")]
 enum AudioBridgeEventDto {
     #[serde(rename = "joined")]
-    RoomJoined {
-        id: JanusId,
-        room: JanusId,
-        participants: Vec<AudioBridgeParticipant>,
-    },
-
+    Joined(AudioBridgeJoinedEventDto),
     #[serde(rename = "left")]
     RoomLeft { id: JanusId, room: JanusId },
-
     #[serde(rename = "roomchanged")]
     RoomChanged {
         id: JanusId,
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
     },
-
     #[serde(rename = "event")]
     Event(AudioBridgeEventEventType),
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
+#[serde(untagged)]
+enum AudioBridgeJoinedEventDto {
+    Room {
+        id: JanusId,
+        room: JanusId,
+        participants: Vec<AudioBridgeParticipant>,
+    },
+    Participant {
+        room: JanusId,
+        participants: Vec<AudioBridgeParticipant>,
+    },
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
@@ -87,6 +94,10 @@ pub enum AudioBridgeEvent {
         room: JanusId,
         muted: bool,
     },
+    ParticipantsJoined {
+        room: JanusId,
+        participants: Vec<AudioBridgeParticipant>,
+    },
     ParticipantsUpdated {
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
@@ -119,11 +130,11 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Data(data) => {
                         match from_value::<AudioBridgeEventDto>(data.clone()) {
                             Ok(event) => match event {
-                                AudioBridgeEventDto::RoomJoined {
+                                AudioBridgeEventDto::Joined(AudioBridgeJoinedEventDto::Room {
                                     id,
                                     room,
                                     participants,
-                                } => match value.jsep {
+                                }) => match value.jsep {
                                     Some(jsep) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
                                         id,
                                         room,
@@ -136,6 +147,9 @@ impl TryFrom<JaResponse> for PluginEvent {
                                         participants,
                                     },
                                 },
+                                AudioBridgeEventDto::Joined(
+                                    AudioBridgeJoinedEventDto::Participant { room, participants },
+                                ) => AudioBridgeEvent::ParticipantsJoined { room, participants },
                                 AudioBridgeEventDto::RoomLeft { id, room } => {
                                     AudioBridgeEvent::RoomLeft { id, room }
                                 }

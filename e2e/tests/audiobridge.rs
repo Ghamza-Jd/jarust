@@ -314,21 +314,41 @@ async fn participants_e2e() {
         }
     };
 
-    // Already joined participants should receive "joined" events but with different body, maybe `ParticipantJoined`
-    'participant_joined: {
-        alice_events
+    'participants_joined: {
+        let bob_joined = alice_events
             .recv()
             .await
             .expect("Alice failed to receive event");
-        alice_events
+        let eve_joined = alice_events
             .recv()
             .await
             .expect("Alice failed to receive event");
+        assert_eq!(
+            bob_joined,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsJoined {
+                room: room_id.clone(),
+                participants: vec![bob.clone()]
+            })
+        );
+        assert_eq!(
+            eve_joined,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsJoined {
+                room: room_id.clone(),
+                participants: vec![eve.clone()]
+            })
+        );
 
-        bob_events
+        let eve_joined = bob_events
             .recv()
             .await
             .expect("Bob failed to receive event");
+        assert_eq!(
+            eve_joined,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsJoined {
+                room: room_id.clone(),
+                participants: vec![eve.clone()]
+            })
+        );
     }
 
     'mute: {
