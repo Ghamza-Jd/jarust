@@ -178,4 +178,31 @@ mod tests {
             })
         );
     }
+
+    #[test]
+    fn it_parse_unsupported_event_as_other() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.echotest".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "echotest": "jarust_rocks",
+                        "jarust": "rocks"
+                    })),
+                },
+            }),
+            jsep: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::EchoTestEvent(EchoTestEvent::Other(json!({
+                "echotest": "jarust_rocks",
+                "jarust": "rocks"
+            })))
+        );
+    }
 }

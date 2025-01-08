@@ -21,7 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --workspace --exclude e2e
+      - run: cargo test-core
+      - run: cargo test-interface
+      - run: cargo test-jarust
+      - run: cargo test-plugins
 
   e2e:
     name: E2E tests
@@ -32,4 +35,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hoverkraft-tech/compose-action@v2.0.1
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test -p e2e
+      - run: cargo test-e2e
