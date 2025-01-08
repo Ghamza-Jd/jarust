@@ -1,0 +1,18 @@
+[alias]
+test-core = ["test", "-p", "jarust_core", "--features", "use-native-tls"]
+test-e2e = ["test", "-p", "e2e"]
+test-interface = [
+    "test",
+    "-p",
+    "jarust_interface",
+    "--features",
+    "use-native-tls",
+]
+test-jarust = ["test", "-p", "jarust", "--features", "use-native-tls"]
+test-plugins = [
+    "test",
+    "-p",
+    "jarust_plugins",
+    "--features",
+    "use-native-tls,echo-test,audio-bridge,video-room,streaming,__experimental",
+]
