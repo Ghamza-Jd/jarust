@@ -59,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
             PluginEvent::EchoTestEvent(EchoTestEvent::Result { result, .. }) => {
                 tracing::info!("result: {result}");
             }
-            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst { jsep, .. }) => {
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithJsep { jsep, .. }) => {
                 tracing::info!("jsep: {jsep:#?}");
             }
             PluginEvent::EchoTestEvent(EchoTestEvent::Error { error_code, error }) => {

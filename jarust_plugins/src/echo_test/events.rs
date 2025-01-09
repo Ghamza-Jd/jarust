@@ -26,7 +26,7 @@ pub enum EchoTestEvent {
         echotest: String,
         result: String,
     },
-    ResultWithEst {
+    ResultWithJsep {
         echotest: String,
         result: String,
         jsep: Jsep,
@@ -51,7 +51,7 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Data(data) => {
                         match from_value::<EchoTestEventDto>(data.clone()) {
                             Ok(EchoTestEventDto::Result { echotest, result }) => match value.jsep {
-                                Some(jsep) => EchoTestEvent::ResultWithEst {
+                                Some(jsep) => EchoTestEvent::ResultWithJsep {
                                     echotest,
                                     result,
                                     jsep,
@@ -136,7 +136,7 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithEst {
+            PluginEvent::EchoTestEvent(EchoTestEvent::ResultWithJsep {
                 echotest: "event".to_string(),
                 result: "ok".to_string(),
                 jsep: Jsep {

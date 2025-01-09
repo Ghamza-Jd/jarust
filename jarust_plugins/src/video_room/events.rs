@@ -143,7 +143,7 @@ pub enum VideoRoomEvent {
     },
 
     /// Sent to all participants if a new participant joins
-    RoomJoinedWithEst {
+    RoomJoinedWithJsep {
         /// unique ID of the new participant
         id: JanusId,
 
@@ -202,7 +202,7 @@ pub enum VideoRoomEvent {
 
     /// Sent back to a publisher session after a successful [publish](super::handle::VideoRoomHandle::publish) or
     /// [configure_publisher](super::handle::VideoRoomHandle::configure_publisher) request
-    ConfiguredWithEst {
+    ConfiguredWithJsep {
         room: JanusId,
         audio_codec: Option<String>,
         video_codec: Option<String>,
@@ -286,7 +286,7 @@ impl TryFrom<JaResponse> for PluginEvent {
                             }
                             EventDto::JoinedRoom { id, room, display } => match value.jsep {
                                 Some(jsep) => {
-                                    VideoRoomEvent::RoomJoinedWithEst { id, display, jsep }
+                                    VideoRoomEvent::RoomJoinedWithJsep { id, display, jsep }
                                 }
 
                                 None => VideoRoomEvent::RoomJoined { id, room, display },
@@ -352,7 +352,7 @@ impl TryFrom<JaResponse> for PluginEvent {
                                 streams,
                             }) => {
                                 if let Some(jsep) = value.jsep {
-                                    VideoRoomEvent::ConfiguredWithEst {
+                                    VideoRoomEvent::ConfiguredWithJsep {
                                         room,
                                         audio_codec,
                                         video_codec,
@@ -471,7 +471,7 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithEst {
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::RoomJoinedWithJsep {
                 id: JanusId::Uint(8146468.into()),
                 display: Some("Joiner McJoinface".to_string()),
                 jsep: Jsep {
@@ -672,7 +672,7 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithEst {
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::ConfiguredWithJsep {
                 room: JanusId::Uint(8146468.into()),
                 audio_codec: Some("opus".to_string()),
                 video_codec: Some("h264".to_string()),

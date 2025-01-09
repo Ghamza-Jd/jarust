@@ -70,7 +70,7 @@ pub enum PluginEvent {
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum AudioBridgeEvent {
-    RoomJoinedWithEstabilshment {
+    RoomJoinedWithJsep {
         id: JanusId,
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
@@ -135,7 +135,7 @@ impl TryFrom<JaResponse> for PluginEvent {
                                     room,
                                     participants,
                                 }) => match value.jsep {
-                                    Some(jsep) => AudioBridgeEvent::RoomJoinedWithEstabilshment {
+                                    Some(jsep) => AudioBridgeEvent::RoomJoinedWithJsep {
                                         id,
                                         room,
                                         participants,
@@ -263,7 +263,7 @@ mod tests {
         let event: PluginEvent = rsp.try_into().unwrap();
         assert_eq!(
             event,
-            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithEstabilshment {
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoinedWithJsep {
                 id: JanusId::Uint(751378.into()),
                 room: JanusId::Uint(684657.into()),
                 participants: vec![],
