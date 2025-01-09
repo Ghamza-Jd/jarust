@@ -41,7 +41,4 @@ To run the examples first you have to lunch the janus server.
 docker compose up -d
 ```
 
-Then you can run any of the these examples:
-
-- [jarust examples](./jarust/examples/), example usage of core jarust.
-- [plugins examples](./jarust_plugins/examples/), example usage of jarust's predefined plugins.
+Examples are avaialbe in [`jarust` create](./jarust/examples/)
