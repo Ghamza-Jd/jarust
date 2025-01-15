@@ -180,11 +180,11 @@ pub struct ServerInfoRsp {
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub struct MetaData {
-    name: String,
-    author: String,
-    description: String,
-    version_string: String,
-    version: u64,
+    pub name: String,
+    pub author: String,
+    pub description: String,
+    pub version_string: String,
+    pub version: u64,
 }
 
 #[cfg(test)]
