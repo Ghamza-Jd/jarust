@@ -128,6 +128,7 @@ pub struct Jsep {
 pub struct Candidate {
     #[serde(rename = "sdpMid")]
     pub sdp_mid: String,
+    // TODO: check if this should be u16
     #[serde(rename = "sdpMLineIndex")]
     pub sdp_mline_index: String,
     pub candidate: String,
