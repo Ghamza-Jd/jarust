@@ -42,7 +42,7 @@ impl JaConnection {
     /// Retrieve Janus server info
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn server_info(
-        &mut self,
+        &self,
         timeout: Duration,
     ) -> Result<ServerInfoRsp, jarust_interface::Error> {
         let res = self.interface.server_info(timeout).await?;
