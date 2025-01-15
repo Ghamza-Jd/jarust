@@ -76,7 +76,7 @@ mod tests {
         let interface = MockInterface::make_interface(conn_params, transaction_generator)
             .await
             .unwrap();
-        let mut connection = custom_connect(interface.clone()).await.unwrap();
+        let connection = custom_connect(interface.clone()).await.unwrap();
 
         let server_info = ServerInfoRsp {
             name: "Mock server name".to_string(),
