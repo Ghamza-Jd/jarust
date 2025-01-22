@@ -163,7 +163,7 @@ pub struct AttachedStream {
     pub mindex: u64,
 
     /// unique mid of published stream
-    pub mid: u64,
+    pub mid: String,
 
     /// type of published stream (audio|video|data)
     #[serde(rename = "type")]
@@ -176,7 +176,7 @@ pub struct AttachedStream {
     pub feed_id: JanusId,
 
     /// unique mid of this publisher's stream
-    pub feed_mid: u64,
+    pub feed_mid: String,
 
     /// display name of this publisher, if any
     pub feed_display: Option<String>,
@@ -202,7 +202,7 @@ pub struct AttachedStream {
     pub sources: Option<i64>,
 
     /// if this is a data channel stream, an array containing the IDs of participants we've subscribed to
-    pub source_ids: Vec<JanusId>,
+    pub source_ids: Option<Vec<JanusId>>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default, Deserialize)]
@@ -327,4 +327,47 @@ pub struct StopRtpForwardRsp {
 
     /// unique numeric ID, same as request
     pub stream_id: u64,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::video_room::responses::AttachedStream;
+    use crate::JanusId;
+
+    #[test]
+    fn parse_attached_stream() {
+        let source = "{
+               \"type\": \"audio\",
+               \"active\": true,
+               \"mindex\": 0,
+               \"mid\": \"0\",
+               \"ready\": false,
+               \"send\": true,
+               \"feed_id\": \"a8cabfaa-da33-4627-9938-57c39ecd94d8\",
+               \"feed_mid\": \"0\",
+               \"codec\": \"opus\"
+            }";
+
+        let dut: AttachedStream = serde_json::from_str(source).unwrap();
+
+        assert_eq!(
+            dut,
+            AttachedStream {
+                media_type: "audio".to_string(),
+                active: true,
+                mindex: 0,
+                mid: "0".to_string(),
+                ready: false,
+                send: true,
+                feed_id: JanusId::String("a8cabfaa-da33-4627-9938-57c39ecd94d8".to_string()),
+                feed_mid: "0".to_string(),
+                codec: "opus".to_string(),
+                feed_display: None,
+                h264_profile: None,
+                vp9_profile: None,
+                sources: None,
+                source_ids: None,
+            }
+        )
+    }
 }

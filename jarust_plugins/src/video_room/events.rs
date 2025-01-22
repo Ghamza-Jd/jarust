@@ -180,6 +180,12 @@ pub enum VideoRoomEvent {
         streams: Vec<AttachedStream>,
     },
 
+    SubscriberAttachedWithJsep {
+        room: JanusId,
+        streams: Vec<AttachedStream>,
+        jsep: Jsep,
+    },
+
     SubscriberUpdated {
         room: JanusId,
         streams: Vec<AttachedStream>,
@@ -310,7 +316,15 @@ impl TryFrom<JaResponse> for PluginEvent {
                                 attendees,
                             },
                             EventDto::SubscriberAttached { room, streams } => {
-                                VideoRoomEvent::SubscriberAttached { room, streams }
+                                if let Some(jsep) = value.jsep {
+                                    VideoRoomEvent::SubscriberAttachedWithJsep {
+                                        room,
+                                        streams,
+                                        jsep,
+                                    }
+                                } else {
+                                    VideoRoomEvent::SubscriberAttached { room, streams }
+                                }
                             }
                             EventDto::SubscriberUpdated { room, streams } => {
                                 VideoRoomEvent::SubscriberUpdated { room, streams }
@@ -404,7 +418,7 @@ impl TryFrom<JaResponse> for PluginEvent {
 mod tests {
     use super::PluginEvent;
     use crate::video_room::events::VideoRoomEvent;
-    use crate::video_room::responses::ConfiguredStream;
+    use crate::video_room::responses::{AttachedStream, ConfiguredStream};
     use crate::JanusId;
     use jarust_interface::japrotocol::JaHandleEvent;
     use jarust_interface::japrotocol::JaResponse;
@@ -730,6 +744,165 @@ mod tests {
                 "room": 6613848040355181645u64,
                 "jarust": "rocks"
             })))
+        );
+    }
+
+    #[test]
+    fn it_parse_subscriber_attached_with_jsep() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.videoroom".to_string(),
+                    data: PluginInnerData::Data(json!({
+                                 "videoroom": "attached",
+                                 "room": "01947b3a-f6c1-13b1-13ae-e5e17dc9828f",
+                                 "streams": [
+                                    {
+                                       "type": "audio",
+                                       "active": true,
+                                       "mindex": 0,
+                                       "mid": "0",
+                                       "ready": false,
+                                       "send": true,
+                                       "feed_id": "a8cabfaa-da33-4627-9938-57c39ecd94d8",
+                                       "feed_mid": "0",
+                                       "codec": "opus"
+                                    },
+                                    {
+                                       "type": "video",
+                                       "active": true,
+                                       "mindex": 1,
+                                       "mid": "1",
+                                       "ready": false,
+                                       "send": true,
+                                       "feed_id": "a8cabfaa-da33-4627-9938-57c39ecd94d8",
+                                       "feed_mid": "1",
+                                       "codec": "h264",
+                                       "h264-profile": "42e01f"
+                                    },
+                                    {
+                                       "type": "audio",
+                                       "active": true,
+                                       "mindex": 2,
+                                       "mid": "2",
+                                       "ready": false,
+                                       "send": true,
+                                       "feed_id": "a8cabfaa-da33-4627-9938-57c39ecd94d8",
+                                       "feed_mid": "0",
+                                       "codec": "opus"
+                                    },
+                                    {
+                                       "type": "video",
+                                       "active": true,
+                                       "mindex": 3,
+                                       "mid": "3",
+                                       "ready": false,
+                                       "send": true,
+                                       "feed_id": "a8cabfaa-da33-4627-9938-57c39ecd94d8",
+                                       "feed_mid": "1",
+                                       "codec": "h264",
+                                       "h264-profile": "42e01f"
+                                    }
+                                 ]
+                    })),
+                },
+            }),
+            jsep: Some(Jsep {
+                jsep_type: JsepType::Answer,
+                trickle: Some(false),
+                sdp: "test_sdp".to_string(),
+            }),
+            sender: None,
+            session_id: None,
+            transaction: None,
+        };
+
+        let event: PluginEvent = rsp.try_into().unwrap();
+
+        assert_eq!(
+            event,
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::SubscriberAttachedWithJsep {
+                room: JanusId::String("01947b3a-f6c1-13b1-13ae-e5e17dc9828f".to_string()),
+                streams: vec![
+                    AttachedStream {
+                        mindex: 0,
+                        mid: "0".to_string(),
+                        media_type: "audio".to_string(),
+                        active: true,
+                        feed_id: JanusId::String(
+                            "a8cabfaa-da33-4627-9938-57c39ecd94d8".to_string()
+                        ),
+                        feed_mid: "0".to_string(),
+                        feed_display: None,
+                        send: true,
+                        codec: "opus".to_string(),
+                        h264_profile: None,
+                        vp9_profile: None,
+                        ready: false,
+                        sources: None,
+                        source_ids: None,
+                    },
+                    AttachedStream {
+                        mindex: 1,
+                        mid: "1".to_string(),
+                        media_type: "video".to_string(),
+                        active: true,
+                        feed_id: JanusId::String(
+                            "a8cabfaa-da33-4627-9938-57c39ecd94d8".to_string()
+                        ),
+                        feed_mid: "1".to_string(),
+                        feed_display: None,
+                        send: true,
+                        codec: "h264".to_string(),
+                        h264_profile: Some("42e01f".to_string()),
+                        vp9_profile: None,
+                        ready: false,
+                        sources: None,
+                        source_ids: None,
+                    },
+                    AttachedStream {
+                        mindex: 2,
+                        mid: "2".to_string(),
+                        media_type: "audio".to_string(),
+                        active: true,
+                        feed_id: JanusId::String(
+                            "a8cabfaa-da33-4627-9938-57c39ecd94d8".to_string()
+                        ),
+                        feed_mid: "0".to_string(),
+                        feed_display: None,
+                        send: true,
+                        codec: "opus".to_string(),
+                        h264_profile: None,
+                        vp9_profile: None,
+                        ready: false,
+                        sources: None,
+                        source_ids: None,
+                    },
+                    AttachedStream {
+                        mindex: 3,
+                        mid: "3".to_string(),
+                        media_type: "video".to_string(),
+                        active: true,
+                        feed_id: JanusId::String(
+                            "a8cabfaa-da33-4627-9938-57c39ecd94d8".to_string()
+                        ),
+                        feed_mid: "1".to_string(),
+                        feed_display: None,
+                        send: true,
+                        codec: "h264".to_string(),
+                        h264_profile: Some("42e01f".to_string()),
+                        vp9_profile: None,
+                        ready: false,
+                        sources: None,
+                        source_ids: None,
+                    },
+                ],
+                jsep: Jsep {
+                    jsep_type: JsepType::Answer,
+                    trickle: Some(false),
+                    sdp: "test_sdp".to_string(),
+                }
+            })
         );
     }
 }
