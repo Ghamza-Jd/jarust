@@ -650,6 +650,35 @@ async fn participants_e2e() {
         };
         assert_eq!(kicked, alice.id);
     }
+
+    'leave: {
+        bob_handle
+            .leave(default_timeout)
+            .await
+            .expect("Bob failed to leave room");
+
+        // Alice should receive that Bob left
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft { leaving, .. }) =
+            alice_events
+                .recv()
+                .await
+                .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+        assert_eq!(leaving, bob.id);
+
+        // Eve should receive that Bob left
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft { leaving, .. }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+        assert_eq!(leaving, bob.id);
+    }
 }
 
 async fn make_audiobridge_attachment() -> (AudioBridgeHandle, UnboundedReceiver<PluginEvent>) {

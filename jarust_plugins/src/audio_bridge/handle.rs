@@ -307,7 +307,6 @@ impl AudioBridgeHandle {
     }
 
     /// Leave an audio room
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn leave(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending leave");
