@@ -608,7 +608,7 @@ async fn participants_e2e() {
     }
 
     'kick: {
-        eve_handle
+        admin
             .kick(AudioBridgeKickParams {
                 room: room_id.clone(),
                 id: alice.id.clone(),
@@ -649,6 +649,11 @@ async fn participants_e2e() {
             panic!("Eve received unexpected event")
         };
         assert_eq!(kicked, alice.id);
+
+        // TODO: check if janus has a bug in this logic and report it, so far I've come to conclusion that
+        // janus calls `gateway->close_pc` that relies on hanging up the peer connection. So it only works
+        // if the participant has a peer connection but if the participant joins without peer connection
+        // he will not be kicked.
     }
 
     'leave: {
@@ -678,6 +683,18 @@ async fn participants_e2e() {
             panic!("Eve received unexpected event")
         };
         assert_eq!(leaving, bob.id);
+
+        let participants = eve_handle
+            .list_participants(
+                AudioBridgeListParticipantsParams {
+                    room: room_id.clone(),
+                },
+                default_timeout,
+            )
+            .await
+            .expect("Failed to list participants");
+        assert_eq!(participants.participants.len(), 2);
+        assert_eq!(participants.participants.contains(&bob), false);
     }
 }
 
