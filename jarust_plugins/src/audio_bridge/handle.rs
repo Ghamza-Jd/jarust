@@ -194,7 +194,6 @@ impl AudioBridgeHandle {
     }
 
     /// Kicks all participants out of a room
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn kick_all(
         &self,

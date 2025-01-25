@@ -60,6 +60,10 @@ pub enum AudioBridgeEventEventType {
         room: JanusId,
         leaving: JanusId,
     },
+    KickedAll {
+        room: JanusId,
+        kicked_all: JanusId,
+    },
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -109,6 +113,10 @@ pub enum AudioBridgeEvent {
     ParticipantLeft {
         room: JanusId,
         leaving: JanusId,
+    },
+    KickedAll {
+        room: JanusId,
+        kicked_all: JanusId,
     },
     Error {
         error_code: u16,
@@ -177,6 +185,9 @@ impl TryFrom<JaResponse> for PluginEvent {
                                 AudioBridgeEventDto::Event(
                                     AudioBridgeEventEventType::ParticipantLeft { room, leaving },
                                 ) => AudioBridgeEvent::ParticipantLeft { room, leaving },
+                                AudioBridgeEventDto::Event(
+                                    AudioBridgeEventEventType::KickedAll { room, kicked_all },
+                                ) => AudioBridgeEvent::KickedAll { room, kicked_all },
                             },
                             Err(_) => AudioBridgeEvent::Other(data),
                         }
@@ -456,6 +467,34 @@ mod tests {
             PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft {
                 room: JanusId::Uint(6613848040355181645.into()),
                 leaving: JanusId::Uint(4975437903264518u64.into())
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_kicked_all_event() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "room": 6613848040355181645u64,
+                        "kicked_all": 4975437903264518u64
+                    })),
+                },
+            }),
+            jsep: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::KickedAll {
+                room: JanusId::Uint(6613848040355181645.into()),
+                kicked_all: JanusId::Uint(4975437903264518u64.into())
             })
         );
     }
