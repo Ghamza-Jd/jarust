@@ -13,6 +13,7 @@ use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
 use jarust::plugins::audio_bridge::params::AudioBridgeExistsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeJoinParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeJoinParamsOptional;
+use jarust::plugins::audio_bridge::params::AudioBridgeKickAllParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeKickParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeListParticipantsParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeMuteParams;
@@ -812,6 +813,42 @@ async fn participants_e2e() {
             .expect("Failed to list participants");
         assert_eq!(participants.participants.len(), 2);
         assert_eq!(participants.participants.contains(&bob), false);
+    }
+
+    'kick_all: {
+        alice_handle
+            .kick_all(AudioBridgeKickAllParams {
+                room: room_id.clone(),
+                secret: None,
+            })
+            .await
+            .expect("Failed to kick all participants");
+
+        // Alice should receive kicked all event
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::KickedAll { room, kicked_all }) =
+            alice_events
+                .recv()
+                .await
+                .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+
+        assert_eq!(room, room_id);
+        assert_eq!(kicked_all, alice.id);
+
+        // Eve should receive kicked all event
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::KickedAll { room, kicked_all }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+
+        assert_eq!(room, room_id);
+        assert_eq!(kicked_all, eve.id);
     }
 }
 
