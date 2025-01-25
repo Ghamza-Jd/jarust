@@ -292,7 +292,6 @@ impl AudioBridgeHandle {
     }
 
     /// Change the room you are in, instead of leaving and joining a new room
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn change_room(
         &self,

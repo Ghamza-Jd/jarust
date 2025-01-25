@@ -6,6 +6,7 @@ use jarust::plugins::audio_bridge::events::AudioBridgeEvent;
 use jarust::plugins::audio_bridge::events::PluginEvent;
 use jarust::plugins::audio_bridge::handle::AudioBridgeHandle;
 use jarust::plugins::audio_bridge::jahandle_ext::AudioBridge;
+use jarust::plugins::audio_bridge::params::AudioBridgeChangeRoomParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeDestroyParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
@@ -661,6 +662,122 @@ async fn participants_e2e() {
             .leave(default_timeout)
             .await
             .expect("Bob failed to leave room");
+
+        match bob_events
+            .recv()
+            .await
+            .expect("Bob failed to receive event")
+        {
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomLeft { id, room }) => {
+                assert_eq!(id, bob.id);
+                assert_eq!(room, room_id.clone());
+            }
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft { leaving, room }) => {
+                assert_eq!(leaving, bob.id);
+                assert_eq!(room, room_id.clone());
+            }
+            _ => panic!("Bob received unexpected event"),
+        };
+
+        // Alice should receive that Bob left
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft { leaving, .. }) =
+            alice_events
+                .recv()
+                .await
+                .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+        assert_eq!(leaving, bob.id);
+
+        // Eve should receive that Bob left
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft { leaving, .. }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+        assert_eq!(leaving, bob.id);
+
+        let participants = eve_handle
+            .list_participants(
+                AudioBridgeListParticipantsParams {
+                    room: room_id.clone(),
+                },
+                default_timeout,
+            )
+            .await
+            .expect("Failed to list participants");
+        assert_eq!(participants.participants.len(), 2);
+        assert_eq!(participants.participants.contains(&bob), false);
+    }
+
+    // Bob rejoins
+    let bob = {
+        let display = Some("Bob".to_string());
+        bob_handle
+            .join_room(
+                AudioBridgeJoinParams {
+                    room: room_id.clone(),
+                    optional: AudioBridgeJoinParamsOptional {
+                        display: display.clone(),
+                        ..Default::default()
+                    },
+                },
+                None,
+                default_timeout,
+            )
+            .await
+            .expect("Bob failed to join room");
+
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::RoomJoined { id, .. }) = bob_events
+            .recv()
+            .await
+            .expect("Bob failed to receive event")
+        else {
+            panic!("Bob received unexpected event")
+        };
+
+        // consume the participant joined events
+        alice_events
+            .recv()
+            .await
+            .expect("Alice failed to receive event");
+        eve_events
+            .recv()
+            .await
+            .expect("Eve failed to receive event");
+
+        AudioBridgeParticipant {
+            id,
+            display,
+            setup: false,
+            muted: false,
+            suspended: None,
+            talking: None,
+            spatial_position: None,
+        }
+    };
+
+    'change_room: {
+        let another_room_id = JanusId::Uint(rand::random::<u64>().into());
+        bob_handle
+            .create_room(Some(another_room_id.clone()), default_timeout)
+            .await
+            .expect("Bob failed to create room");
+
+        bob_handle
+            .change_room(
+                AudioBridgeChangeRoomParams {
+                    room: another_room_id,
+                    optional: Default::default(),
+                },
+                default_timeout,
+            )
+            .await
+            .expect("Bob failed to join room");
 
         // Alice should receive that Bob left
         let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantLeft { leaving, .. }) =

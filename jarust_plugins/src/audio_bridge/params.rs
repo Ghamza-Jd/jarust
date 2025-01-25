@@ -320,7 +320,6 @@ make_dto!(
     }
 );
 
-#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeChangeRoomParams,
     required { room: JanusId },
