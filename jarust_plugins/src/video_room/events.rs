@@ -101,7 +101,7 @@ enum VideoRoomEventEventType {
     LeavingEvent { room: JanusId, leaving: JanusId },
 
     #[serde(rename = "started")]
-    StartedRsp,
+    StartedRsp { room: JanusId },
 
     #[serde(rename = "paused")]
     PausedRsp,
@@ -114,7 +114,7 @@ enum VideoRoomEventEventType {
     },
 
     #[serde(rename = "left")]
-    LeftRsp,
+    LeftRsp { room: JanusId },
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -256,13 +256,17 @@ pub enum VideoRoomEvent {
     UnpublishedAsyncRsp,
 
     /// Sent back to a subscriber after a successful [start](super::handle::VideoRoomHandle::start) request
-    StartedAsyncRsp,
+    StartedAsyncRsp {
+        room: JanusId,
+    },
 
     /// Sent back to a subscriber after a successful [pause](super::handle::VideoRoomHandle::pause) request
     PausedAsyncRsp,
 
     /// Sent back to a subscriber after a successful [leave](super::handle::VideoRoomHandle::leave) request
-    LeftAsyncRsp,
+    LeftAsyncRsp {
+        room: JanusId,
+    },
 
     Error {
         error_code: u16,
@@ -388,7 +392,9 @@ impl TryFrom<JaResponse> for PluginEvent {
                                     participant: leaving,
                                 }
                             }
-                            EventDto::Event(Event::StartedRsp) => VideoRoomEvent::StartedAsyncRsp,
+                            EventDto::Event(Event::StartedRsp { room }) => {
+                                VideoRoomEvent::StartedAsyncRsp { room }
+                            }
                             EventDto::Event(Event::PausedRsp) => VideoRoomEvent::PausedAsyncRsp,
                             EventDto::Event(Event::SwitchedRsp {
                                 room,
@@ -399,7 +405,9 @@ impl TryFrom<JaResponse> for PluginEvent {
                                 changes,
                                 streams,
                             },
-                            EventDto::Event(Event::LeftRsp) => VideoRoomEvent::LeftAsyncRsp,
+                            EventDto::Event(Event::LeftRsp { room }) => {
+                                VideoRoomEvent::LeftAsyncRsp { room }
+                            }
                         },
                         Err(_) => VideoRoomEvent::Other(data),
                     },
@@ -902,6 +910,64 @@ mod tests {
                     trickle: Some(false),
                     sdp: "test_sdp".to_string(),
                 }
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_started() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.videoroom".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "videoroom": "event",
+                        "room": "01947b3a-f6c1-13b1-13ae-e5e17dc9828f",
+                        "started": "ok"
+                    })),
+                },
+            }),
+            transaction: None,
+            session_id: None,
+            sender: None,
+            jsep: None,
+        };
+
+        let event: PluginEvent = rsp.try_into().unwrap();
+
+        assert_eq!(
+            event,
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::StartedAsyncRsp {
+                room: JanusId::String("01947b3a-f6c1-13b1-13ae-e5e17dc9828f".to_string())
+            })
+        )
+    }
+
+    #[test]
+    fn it_parse_left() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.videoroom".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "videoroom": "event",
+                        "room": "01947b3a-f6c1-13b1-13ae-e5e17dc9828f",
+                        "left": "ok"
+                    })),
+                },
+            }),
+            transaction: None,
+            session_id: None,
+            sender: None,
+            jsep: None,
+        };
+
+        let event: PluginEvent = rsp.try_into().unwrap();
+
+        assert_eq!(
+            event,
+            PluginEvent::VideoRoomEvent(VideoRoomEvent::LeftAsyncRsp {
+                room: JanusId::String("01947b3a-f6c1-13b1-13ae-e5e17dc9828f".to_string()),
             })
         );
     }
