@@ -15,7 +15,14 @@ pub enum JanusId {
     Uint(U63),
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+#[cfg(feature = "ffi-compatible")]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
+pub struct U63 {
+    pub inner: u64,
+}
+
+#[cfg(not(feature = "ffi-compatible"))]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct U63(u64);
 
 impl U63 {
@@ -25,10 +32,28 @@ impl U63 {
         Self::new_wrapping(value)
     }
 
+    #[cfg(feature = "ffi-compatible")]
+    pub fn new_wrapping(value: u64) -> Self {
+        Self {
+            inner: value & U63::MAX,
+        }
+    }
+
+    #[cfg(feature = "ffi-compatible")]
+    pub fn new_saturating(value: u64) -> Self {
+        if value > U63::MAX {
+            Self { inner: U63::MAX }
+        } else {
+            Self { inner: value }
+        }
+    }
+
+    #[cfg(not(feature = "ffi-compatible"))]
     pub fn new_wrapping(value: u64) -> Self {
         Self(value & U63::MAX)
     }
 
+    #[cfg(not(feature = "ffi-compatible"))]
     pub fn new_saturating(value: u64) -> Self {
         if value > U63::MAX {
             Self(U63::MAX)
@@ -41,5 +66,35 @@ impl U63 {
 impl From<u64> for U63 {
     fn from(value: u64) -> Self {
         Self::new(value)
+    }
+}
+
+#[cfg(feature = "ffi-compatible")]
+impl Serialize for U63 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.inner.serialize(serializer)
+    }
+}
+
+#[cfg(not(feature = "ffi-compatible"))]
+impl Serialize for U63 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for U63 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = u64::deserialize(deserializer)?;
+        Ok(U63::new(value))
     }
 }

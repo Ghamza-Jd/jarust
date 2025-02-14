@@ -30,6 +30,7 @@ echo-test = []
 audio-bridge = []
 video-room = []
 streaming = []
+ffi-compatible = []
 __experimental = []
 
 # For internal use
