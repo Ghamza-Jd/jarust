@@ -25,6 +25,7 @@
 pub mod jaconfig;
 pub mod jaconnection;
 pub mod jahandle;
+mod jakeepalive;
 pub mod japlugin;
 pub mod jasession;
 pub mod prelude;

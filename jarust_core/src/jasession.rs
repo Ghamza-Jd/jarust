@@ -1,5 +1,6 @@
 use crate::jahandle::JaHandle;
 use crate::jahandle::NewHandleParams;
+use crate::jakeepalive::JaKeepAlive;
 use crate::prelude::*;
 use async_trait::async_trait;
 use jarust_interface::janus_interface::JanusInterfaceImpl;
@@ -8,7 +9,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio::sync::Mutex;
-use tokio::time;
 
 #[derive(Debug)]
 pub struct Shared {
@@ -18,7 +18,7 @@ pub struct Shared {
 
 #[derive(Debug, Default)]
 pub struct Exclusive {
-    tasks: Vec<JaTask>,
+    task: Option<JaTask>,
 }
 
 #[derive(Debug)]
@@ -42,48 +42,21 @@ impl JaSession {
     pub(crate) async fn new(params: NewSessionParams) -> Self {
         let shared = Shared {
             id: params.session_id,
-            interface: params.interface,
+            interface: params.interface.clone(),
         };
         let exclusive = Mutex::new(Exclusive::default());
         let session = Self {
             inner: Arc::new(InnerSession { shared, exclusive }),
         };
 
-        let this = session.clone();
+        let jakeepalive = JaKeepAlive::new(params.interface, params.session_id, params.ka_interval);
 
-        let keepalive_task = jarust_rt::spawn("keepalive", async move {
-            let _ = this.keep_alive(params.ka_interval).await;
-        });
+        let keepalive_task =
+            jarust_rt::spawn("KeepAlive task", async move { jakeepalive.start().await });
 
-        session
-            .inner
-            .exclusive
-            .lock()
-            .await
-            .tasks
-            .push(keepalive_task);
+        session.inner.exclusive.lock().await.task = Some(keepalive_task);
 
         session
-    }
-
-    #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.shared.id))]
-    async fn keep_alive(self, ka_interval: u32) -> Result<(), jarust_interface::Error> {
-        if !self.inner.shared.interface.has_keep_alive() {
-            tracing::debug!("Keep-alive not supported");
-            return Ok(());
-        }
-
-        let duration = Duration::from_secs(ka_interval.into());
-        let mut interval = time::interval(duration);
-        let id = { self.inner.shared.id };
-        loop {
-            interval.tick().await;
-            tracing::debug!("Sending keep-alive");
-            match self.inner.shared.interface.keep_alive(id, duration).await {
-                Ok(_) => tracing::debug!("Keep-alive success"),
-                Err(e) => tracing::error!("Keep-alive failed: {:?}", e),
-            };
-        }
     }
 }
 
@@ -150,8 +123,8 @@ impl Attach for JaSession {
 
 impl Drop for Exclusive {
     fn drop(&mut self) {
-        self.tasks.iter().for_each(|task| {
-            task.cancel();
-        });
+        if let Some(task) = self.task.take() {
+            task.cancel()
+        }
     }
 }
