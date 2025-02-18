@@ -77,44 +77,53 @@ enum VideoRoomEventDto {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(untagged)]
 enum VideoRoomEventEventType {
-    #[serde(rename = "publishers")]
     PublishersEvent {
         room: JanusId,
         publishers: Vec<Publisher>,
     },
 
-    #[serde(rename = "unpublished")]
-    UnpublishedRsp,
+    UnpublishedRsp {
+        unpublished: String,
+    },
 
-    #[serde(rename = "unpublished")]
-    UnpublishedEvent { room: JanusId, unpublished: JanusId },
+    UnpublishedEvent {
+        room: JanusId,
+        unpublished: JanusId,
+    },
 
-    #[serde(rename = "configured")]
     ConfiguredRsp {
+        configured: String,
         room: JanusId,
         audio_codec: Option<String>,
         video_codec: Option<String>,
         streams: Vec<ConfiguredStream>,
     },
 
-    #[serde(rename = "leaving")]
-    LeavingEvent { room: JanusId, leaving: JanusId },
+    LeavingEvent {
+        room: JanusId,
+        leaving: JanusId,
+    },
 
-    #[serde(rename = "started")]
-    StartedRsp { room: JanusId },
+    StartedRsp {
+        started: String,
+        room: JanusId,
+    },
 
-    #[serde(rename = "paused")]
-    PausedRsp,
+    PausedRsp {
+        paused: String,
+    },
 
-    #[serde(rename = "switched")]
     SwitchedRsp {
+        switched: String,
         room: JanusId,
         changes: i64,
         streams: Vec<AttachedStream>,
     },
 
-    #[serde(rename = "left")]
-    LeftRsp { room: JanusId },
+    LeftRsp {
+        left: String,
+        room: JanusId,
+    },
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -354,7 +363,7 @@ impl TryFrom<JaResponse> for PluginEvent {
                             EventDto::Event(Event::PublishersEvent { room, publishers }) => {
                                 VideoRoomEvent::NewPublisher { room, publishers }
                             }
-                            EventDto::Event(Event::UnpublishedRsp {}) => {
+                            EventDto::Event(Event::UnpublishedRsp { .. }) => {
                                 VideoRoomEvent::UnpublishedAsyncRsp
                             }
                             EventDto::Event(Event::UnpublishedEvent { room, unpublished }) => {
@@ -368,6 +377,7 @@ impl TryFrom<JaResponse> for PluginEvent {
                                 audio_codec,
                                 video_codec,
                                 streams,
+                                ..
                             }) => {
                                 if let Some(jsep) = value.jsep {
                                     VideoRoomEvent::ConfiguredWithJsep {
@@ -392,20 +402,23 @@ impl TryFrom<JaResponse> for PluginEvent {
                                     participant: leaving,
                                 }
                             }
-                            EventDto::Event(Event::StartedRsp { room }) => {
+                            EventDto::Event(Event::StartedRsp { room, .. }) => {
                                 VideoRoomEvent::StartedAsyncRsp { room }
                             }
-                            EventDto::Event(Event::PausedRsp) => VideoRoomEvent::PausedAsyncRsp,
+                            EventDto::Event(Event::PausedRsp { .. }) => {
+                                VideoRoomEvent::PausedAsyncRsp
+                            }
                             EventDto::Event(Event::SwitchedRsp {
                                 room,
                                 changes,
                                 streams,
+                                ..
                             }) => VideoRoomEvent::SubscriberSwitched {
                                 room,
                                 changes,
                                 streams,
                             },
-                            EventDto::Event(Event::LeftRsp { room }) => {
+                            EventDto::Event(Event::LeftRsp { room, .. }) => {
                                 VideoRoomEvent::LeftAsyncRsp { room }
                             }
                         },
