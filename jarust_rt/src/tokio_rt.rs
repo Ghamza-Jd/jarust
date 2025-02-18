@@ -26,9 +26,9 @@ impl JaTask {
 }
 
 impl Drop for JaTask {
-    #[tracing::instrument(level = tracing::Level::TRACE, skip_all, fields(task_name = self.task_name))]
+    #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
     fn drop(&mut self) {
-        tracing::trace!("Dropping task");
+        tracing::trace!(task_name = self.task_name, "Dropping task");
         self.cancel();
     }
 }
