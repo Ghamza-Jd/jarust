@@ -24,4 +24,4 @@ tracing.workspace = true
 
 [dev-dependencies.jarust]
 path = "../jarust"
-features = ["audio-bridge-plugin", "echo-test-plugin"]
+features = ["audio-bridge-plugin", "echo-test-plugin", "video-room-plugin"]
