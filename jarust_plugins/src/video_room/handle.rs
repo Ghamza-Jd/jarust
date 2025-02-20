@@ -23,7 +23,6 @@ impl VideoRoomHandle {
     ///
     /// ### Note:
     /// Random room number will be used if `room` is `None`
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room(
         &self,
@@ -45,7 +44,6 @@ impl VideoRoomHandle {
     ///
     /// ### Note:
     /// Random room number will be used if `room` is `None`
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn create_room_with_config(
         &self,
@@ -100,19 +98,20 @@ impl VideoRoomHandle {
     }
 
     /// Check whether a room exists
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn exists(
         &self,
         params: VideoRoomExistsParams,
         timeout: Duration,
-    ) -> Result<RoomExistsRsp, jarust_interface::Error> {
+    ) -> Result<bool, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending exists");
         let mut message: Value = params.try_into()?;
         message["request"] = "exists".into();
-        self.handle
+        let response = self
+            .handle
             .send_waiton_rsp::<RoomExistsRsp>(message, timeout)
-            .await
+            .await?;
+        Ok(response.exists)
     }
 
     /// Get a list of the available rooms

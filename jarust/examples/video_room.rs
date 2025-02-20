@@ -77,7 +77,7 @@ async fn main() -> anyhow::Result<()> {
         .await?;
     tracing::info!(
         "Does the room we just created and edited exist? {:#?}",
-        exists.exists
+        exists
     );
 
     let rooms = handle.list_rooms(timeout).await?;
