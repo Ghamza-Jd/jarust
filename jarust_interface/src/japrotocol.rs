@@ -120,6 +120,7 @@ pub enum JsepType {
 pub struct Jsep {
     #[serde(rename = "type")]
     pub jsep_type: JsepType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub trickle: Option<bool>,
     pub sdp: String,
 }
