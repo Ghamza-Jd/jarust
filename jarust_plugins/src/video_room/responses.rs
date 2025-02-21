@@ -292,7 +292,6 @@ pub struct RoomExistsRsp {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 pub struct AccessRsp {
     pub room: JanusId,
-    // TODO: Is it better to have an empty Vec here or should this be wrapped in Option?
     #[serde(default = "Vec::default")]
     pub allowed: Vec<String>,
 }
