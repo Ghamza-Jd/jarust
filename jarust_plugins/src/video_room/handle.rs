@@ -64,7 +64,6 @@ impl VideoRoomHandle {
     /// ### Note:
     /// You won't be able to modify other more static properties,
     /// like the room ID, the sampling rate, the extensions-related stuff and so on.
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn edit_room(
         &self,
@@ -81,7 +80,6 @@ impl VideoRoomHandle {
     }
 
     // Destroy an existing video room, whether created dynamically or statically
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn destroy_room(
         &self,
@@ -115,7 +113,6 @@ impl VideoRoomHandle {
     }
 
     /// Get a list of the available rooms
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn list_rooms(
         &self,
