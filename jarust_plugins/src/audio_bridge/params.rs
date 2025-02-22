@@ -266,7 +266,6 @@ pub enum AudioBridgeCodec {
     Pcmu,
 }
 
-#[cfg(feature = "__experimental")]
 make_dto!(
     AudioBridgeConfigureParams,
     optional {
