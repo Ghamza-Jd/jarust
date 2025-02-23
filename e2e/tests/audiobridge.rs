@@ -7,6 +7,7 @@ use jarust::plugins::audio_bridge::events::PluginEvent;
 use jarust::plugins::audio_bridge::handle::AudioBridgeHandle;
 use jarust::plugins::audio_bridge::jahandle_ext::AudioBridge;
 use jarust::plugins::audio_bridge::params::AudioBridgeChangeRoomParams;
+use jarust::plugins::audio_bridge::params::AudioBridgeConfigureParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeDestroyParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParams;
 use jarust::plugins::audio_bridge::params::AudioBridgeEditParamsOptional;
@@ -501,6 +502,71 @@ async fn participants_e2e() {
         );
     }
 
+    'configure: {
+        let new_display = "configure request test".to_string();
+        eve_handle
+            .configure(
+                AudioBridgeConfigureParams {
+                    muted: Some(true),
+                    display: Some(new_display.clone()),
+                    ..Default::default()
+                },
+                None,
+                default_timeout,
+            )
+            .await
+            .expect("Eve failed to configure");
+
+        // Alice should receive the mute event of eve
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsUpdated {
+            participants,
+            ..
+        }) = alice_events
+            .recv()
+            .await
+            .expect("Alice failed to receive event")
+        else {
+            panic!("Alice received unexpected event")
+        };
+
+        let eve = participants
+            .iter()
+            .find(|p| p.id == eve.id)
+            .expect("Eve not found");
+
+        assert_eq!(eve.muted, true);
+        assert_eq!(eve.display, Some(new_display.clone()));
+
+        // Bob should receive the mute event of Eve
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ParticipantsUpdated {
+            participants,
+            ..
+        }) = bob_events
+            .recv()
+            .await
+            .expect("Bob failed to receive event")
+        else {
+            panic!("Bob received unexpected event")
+        };
+
+        let eve = participants
+            .iter()
+            .find(|p| p.id == eve.id)
+            .expect("Eve not found");
+
+        assert_eq!(eve.muted, true);
+        assert_eq!(eve.display, Some(new_display.clone()));
+
+        // Eve should not receive muted event, instead it receives `"result": "ok"`
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::Other(_)) = eve_events
+            .recv()
+            .await
+            .expect("Eve failed to receive event")
+        else {
+            panic!("Eve received unexpected event")
+        };
+    }
+
     'mute_room: {
         eve_handle
             .mute_room(AudioBridgeMuteRoomParams {
@@ -606,7 +672,11 @@ async fn participants_e2e() {
             "Alice should be in room"
         );
         assert_eq!(participants.contains(&bob), true, "Bob should be in room");
-        assert_eq!(participants.contains(&eve), true, "Eve should be in room");
+        assert_eq!(
+            participants.iter().any(|p| p.id == eve.id),
+            true,
+            "Eve should be in room"
+        );
     }
 
     'kick: {

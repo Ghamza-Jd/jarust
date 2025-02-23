@@ -231,17 +231,24 @@ impl AudioBridgeHandle {
     }
 
     /// Configure the media related settings of the participant
-    #[cfg(feature = "__experimental")]
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
     pub async fn configure(
         &self,
         params: AudioBridgeConfigureParams,
+        jsep: Option<Jsep>,
         timeout: Duration,
     ) -> Result<(), jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending configure");
         let mut message: Value = params.try_into()?;
         message["request"] = "configure".into();
-        self.handle.send_waiton_ack(message, timeout).await?;
+        match jsep {
+            None => self.handle.send_waiton_ack(message, timeout).await?,
+            Some(jsep) => {
+                self.handle
+                    .send_waiton_ack_with_jsep(message, jsep, timeout)
+                    .await?
+            }
+        };
         Ok(())
     }
 
