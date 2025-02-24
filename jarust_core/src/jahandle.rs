@@ -38,7 +38,7 @@ impl JaHandle {
 
     /// Send a one-shot message
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all, fields(session_id = self.inner.session_id, handle_id = self.inner.id))]
-    pub async fn fire_and_forget(&self, body: Value) -> Result<(), jarust_interface::Error> {
+    pub async fn fire_and_forget(&self, body: Value) -> Result<String, jarust_interface::Error> {
         tracing::debug!("Sending one-shot message");
         self.inner
             .interface
@@ -47,8 +47,7 @@ impl JaHandle {
                 handle_id: self.inner.id,
                 body,
             })
-            .await?;
-        Ok(())
+            .await
     }
 
     /// Send a message and wait for the expected response

@@ -13,7 +13,10 @@ pub struct EchoTestHandle {
 impl EchoTestHandle {
     /// Start/update an echotest session
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn start(&self, params: EchoTestStartParams) -> Result<(), jarust_interface::Error> {
+    pub async fn start(
+        &self,
+        params: EchoTestStartParams,
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "echotest", "Sending start");
         self.handle.fire_and_forget(params.try_into()?).await
     }
