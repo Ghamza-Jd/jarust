@@ -341,7 +341,7 @@ impl JanusInterface for WebSocketInterface {
         &self,
         message: HandleMessage,
         timeout: Duration,
-    ) -> Result<JaResponse, Error> {
+    ) -> Result<String, Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -349,7 +349,8 @@ impl JanusInterface for WebSocketInterface {
             "body": message.body
         });
         let transaction = self.send(request).await?;
-        self.poll_ack(&transaction, timeout).await
+        self.poll_ack(&transaction, timeout).await?;
+        Ok(transaction)
     }
 
     async fn internal_send_msg_waiton_rsp(
@@ -388,7 +389,7 @@ impl JanusInterface for WebSocketInterface {
         &self,
         message: HandleMessageWithJsep,
         timeout: Duration,
-    ) -> Result<JaResponse, Error> {
+    ) -> Result<String, Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -397,7 +398,8 @@ impl JanusInterface for WebSocketInterface {
             "jsep": message.jsep,
         });
         let transaction = self.send(request).await?;
-        self.poll_ack(&transaction, timeout).await
+        self.poll_ack(&transaction, timeout).await?;
+        Ok(transaction)
     }
 
     async fn send_handle_request(

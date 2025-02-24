@@ -169,7 +169,7 @@ impl JanusInterface for MockInterface {
         &self,
         _message: HandleMessage,
         _timeout: Duration,
-    ) -> Result<JaResponse, jarust::interface::Error> {
+    ) -> Result<String, jarust::interface::Error> {
         todo!("Send message wait on ack is not implemented");
     }
 
@@ -192,7 +192,7 @@ impl JanusInterface for MockInterface {
         &self,
         _message: HandleMessageWithJsep,
         _timeout: Duration,
-    ) -> Result<JaResponse, jarust::interface::Error> {
+    ) -> Result<String, jarust::interface::Error> {
         todo!("Send message wait on ack with jsep is not implemented");
     }
 
