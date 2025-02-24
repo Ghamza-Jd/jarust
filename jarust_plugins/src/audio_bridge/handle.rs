@@ -92,12 +92,11 @@ impl AudioBridgeHandle {
         &self,
         params: AudioBridgeEnableRecordingParams,
         timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending enable recording");
         let mut message: Value = params.try_into()?;
         message["request"] = "enable_recording".into();
-        self.handle.send_waiton_ack(message, timeout).await?;
-        Ok(())
+        self.handle.send_waiton_ack(message, timeout).await
     }
 
     /// A room can also be recorded by saving the individual contributions of participants to separate MJR files instead,
@@ -110,12 +109,11 @@ impl AudioBridgeHandle {
         &self,
         params: AudioBridgeEnableMjrsParams,
         timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending enable mjrs");
         let mut message: Value = params.try_into()?;
         message["request"] = "enable_mjrs".into();
-        self.handle.send_waiton_ack(message, timeout).await?;
-        Ok(())
+        self.handle.send_waiton_ack(message, timeout).await
     }
 
     /// Lists all the available rooms.
@@ -186,7 +184,10 @@ impl AudioBridgeHandle {
 
     /// Kicks a participants out of a room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn kick(&self, params: AudioBridgeKickParams) -> Result<(), jarust_interface::Error> {
+    pub async fn kick(
+        &self,
+        params: AudioBridgeKickParams,
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending kick");
         let mut message: Value = params.try_into()?;
         message["request"] = "kick".into();
@@ -198,7 +199,7 @@ impl AudioBridgeHandle {
     pub async fn kick_all(
         &self,
         params: AudioBridgeKickAllParams,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending kick all");
         let mut message: Value = params.try_into()?;
         message["request"] = "kick_all".into();
@@ -215,7 +216,7 @@ impl AudioBridgeHandle {
         params: AudioBridgeJoinParams,
         jsep: Option<Jsep>,
         timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending join room");
         let mut message: Value = params.try_into()?;
         message["request"] = "join".into();
@@ -223,11 +224,10 @@ impl AudioBridgeHandle {
             Some(protocol) => {
                 self.handle
                     .send_waiton_ack_with_jsep(message, protocol, timeout)
-                    .await?
+                    .await
             }
-            None => self.handle.send_waiton_ack(message, timeout).await?,
-        };
-        Ok(())
+            None => self.handle.send_waiton_ack(message, timeout).await,
+        }
     }
 
     /// Configure the media related settings of the participant
@@ -237,24 +237,26 @@ impl AudioBridgeHandle {
         params: AudioBridgeConfigureParams,
         jsep: Option<Jsep>,
         timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending configure");
         let mut message: Value = params.try_into()?;
         message["request"] = "configure".into();
         match jsep {
-            None => self.handle.send_waiton_ack(message, timeout).await?,
+            None => self.handle.send_waiton_ack(message, timeout).await,
             Some(jsep) => {
                 self.handle
                     .send_waiton_ack_with_jsep(message, jsep, timeout)
-                    .await?
+                    .await
             }
-        };
-        Ok(())
+        }
     }
 
     /// Mute a participant
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn mute(&self, params: AudioBridgeMuteParams) -> Result<(), jarust_interface::Error> {
+    pub async fn mute(
+        &self,
+        params: AudioBridgeMuteParams,
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending mute");
         let mut message: Value = params.try_into()?;
         message["request"] = "mute".into();
@@ -266,7 +268,7 @@ impl AudioBridgeHandle {
     pub async fn unmute(
         &self,
         params: AudioBridgeMuteParams,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending unmute");
         let mut message: Value = params.try_into()?;
         message["request"] = "unmute".into();
@@ -278,7 +280,7 @@ impl AudioBridgeHandle {
     pub async fn mute_room(
         &self,
         params: AudioBridgeMuteRoomParams,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending mute room");
         let mut message: Value = params.try_into()?;
         message["request"] = "mute_room".into();
@@ -290,7 +292,7 @@ impl AudioBridgeHandle {
     pub async fn unmute_room(
         &self,
         params: AudioBridgeMuteRoomParams,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending unmute room");
         let mut message: Value = params.try_into()?;
         message["request"] = "unmute_room".into();
@@ -303,23 +305,21 @@ impl AudioBridgeHandle {
         &self,
         params: AudioBridgeChangeRoomParams,
         timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending change room");
         let mut message: Value = params.try_into()?;
         message["request"] = "changeroom".into();
-        self.handle.send_waiton_ack(message, timeout).await?;
-        Ok(())
+        self.handle.send_waiton_ack(message, timeout).await
     }
 
     /// Leave an audio room
     #[tracing::instrument(level = tracing::Level::DEBUG, skip_all)]
-    pub async fn leave(&self, timeout: Duration) -> Result<(), jarust_interface::Error> {
+    pub async fn leave(&self, timeout: Duration) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "audiobridge", "Sending leave");
         let message = json!({
             "request" : "leave"
         });
-        self.handle.send_waiton_ack(message, timeout).await?;
-        Ok(())
+        self.handle.send_waiton_ack(message, timeout).await
     }
 }
 
