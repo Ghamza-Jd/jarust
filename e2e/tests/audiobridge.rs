@@ -504,7 +504,7 @@ async fn participants_e2e() {
 
     'configure: {
         let new_display = "configure request test".to_string();
-        eve_handle
+        let eve_request_transaction = eve_handle
             .configure(
                 AudioBridgeConfigureParams {
                     muted: Some(true),
@@ -558,13 +558,15 @@ async fn participants_e2e() {
         assert_eq!(eve.display, Some(new_display.clone()));
 
         // Eve should not receive muted event, instead it receives `"result": "ok"`
-        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::Result { .. }) = eve_events
-            .recv()
-            .await
-            .expect("Eve failed to receive event")
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::Result { transaction, .. }) =
+            eve_events
+                .recv()
+                .await
+                .expect("Eve failed to receive event")
         else {
             panic!("Eve received unexpected event")
         };
+        assert_eq!(transaction, eve_request_transaction);
     }
 
     'mute_room: {
