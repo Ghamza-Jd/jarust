@@ -558,7 +558,7 @@ async fn participants_e2e() {
         assert_eq!(eve.display, Some(new_display.clone()));
 
         // Eve should not receive muted event, instead it receives `"result": "ok"`
-        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::Other(_)) = eve_events
+        let PluginEvent::AudioBridgeEvent(AudioBridgeEvent::Result { .. }) = eve_events
             .recv()
             .await
             .expect("Eve failed to receive event")
