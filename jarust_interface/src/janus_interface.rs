@@ -70,7 +70,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         &self,
         message: HandleMessage,
         timeout: Duration,
-    ) -> Result<JaResponse, Error>;
+    ) -> Result<String, Error>;
 
     /// Internal method to send a message and wait for the response. Ideally, this shouldn't be internal,
     /// but we can't have a generic return type for this method as it would be considered object-unsafe.
@@ -98,7 +98,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
         &self,
         message: HandleMessageWithJsep,
         timeout: Duration,
-    ) -> Result<JaResponse, Error>;
+    ) -> Result<String, Error>;
 
     /// Sends a top-level handle request.
     ///

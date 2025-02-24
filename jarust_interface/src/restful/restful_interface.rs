@@ -262,7 +262,7 @@ impl JanusInterface for RestfulInterface {
         &self,
         message: HandleMessage,
         timeout: Duration,
-    ) -> Result<JaResponse, Error> {
+    ) -> Result<String, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -271,9 +271,8 @@ impl JanusInterface for RestfulInterface {
             "janus": "message",
             "body": message.body
         });
-        let (request, _) = self.decorate_request(request);
-        let response = self
-            .inner
+        let (request, transaction) = self.decorate_request(request);
+        self.inner
             .shared
             .client
             .post(format!("{url}/{session_id}/{handle_id}"))
@@ -283,7 +282,7 @@ impl JanusInterface for RestfulInterface {
             .await?
             .json::<JaResponse>()
             .await?;
-        Ok(response)
+        Ok(transaction)
     }
 
     async fn internal_send_msg_waiton_rsp(
@@ -344,7 +343,7 @@ impl JanusInterface for RestfulInterface {
         &self,
         message: HandleMessageWithJsep,
         timeout: Duration,
-    ) -> Result<JaResponse, Error> {
+    ) -> Result<String, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -354,9 +353,8 @@ impl JanusInterface for RestfulInterface {
             "body": message.body,
             "jsep": message.jsep
         });
-        let (request, _) = self.decorate_request(request);
-        let response = self
-            .inner
+        let (request, transaction) = self.decorate_request(request);
+        self.inner
             .shared
             .client
             .post(format!("{url}/{session_id}/{handle_id}"))
@@ -366,7 +364,7 @@ impl JanusInterface for RestfulInterface {
             .await?
             .json::<JaResponse>()
             .await?;
-        Ok(response)
+        Ok(transaction)
     }
 
     async fn send_handle_request(

@@ -83,7 +83,7 @@ impl JaHandle {
         &self,
         body: Value,
         timeout: Duration,
-    ) -> Result<JaResponse, jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::debug!("Sending message and waiting for acknowledgement");
         let ack = self
             .inner
@@ -107,7 +107,7 @@ impl JaHandle {
         body: Value,
         jsep: Jsep,
         timeout: Duration,
-    ) -> Result<JaResponse, jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::debug!("Sending message with jsep and waiting for acknowledgement");
         let ack = self
             .inner
