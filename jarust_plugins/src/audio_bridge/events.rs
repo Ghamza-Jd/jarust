@@ -44,6 +44,9 @@ enum AudioBridgeJoinedEventDto {
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
 #[serde(untagged)]
 pub enum AudioBridgeEventEventType {
+    Result {
+        result: String,
+    },
     ParticipantsUpdated {
         room: JanusId,
         participants: Vec<AudioBridgeParticipant>,
@@ -74,6 +77,15 @@ pub enum PluginEvent {
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum AudioBridgeEvent {
+    Result {
+        transaction: String,
+        result: String,
+    },
+    ResultWithJsep {
+        transaction: String,
+        result: String,
+        jsep: Jsep,
+    },
     RoomJoinedWithJsep {
         id: JanusId,
         room: JanusId,
@@ -138,6 +150,22 @@ impl TryFrom<JaResponse> for PluginEvent {
                     PluginInnerData::Data(data) => {
                         match from_value::<AudioBridgeEventDto>(data.clone()) {
                             Ok(event) => match event {
+                                AudioBridgeEventDto::Event(AudioBridgeEventEventType::Result {
+                                    result,
+                                }) => match (value.transaction, value.jsep) {
+                                    (None, _) => return Err(Self::Error::IncompletePacket),
+                                    (Some(transaction), Some(jsep)) => {
+                                        AudioBridgeEvent::ResultWithJsep {
+                                            transaction,
+                                            result,
+                                            jsep,
+                                        }
+                                    }
+                                    (Some(transaction), None) => AudioBridgeEvent::Result {
+                                        transaction,
+                                        result,
+                                    },
+                                },
                                 AudioBridgeEventDto::Joined(AudioBridgeJoinedEventDto::Room {
                                     id,
                                     room,
@@ -497,6 +525,115 @@ mod tests {
                 kicked_all: JanusId::Uint(4975437903264518u64.into())
             })
         );
+    }
+
+    #[test]
+    fn it_parse_result_event_when_contains_transaction() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "result": "ok"
+                    })),
+                },
+            }),
+            jsep: None,
+            transaction: Some("test_transaction".to_string()),
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::Result {
+                transaction: "test_transaction".to_string(),
+                result: "ok".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_result_event_when_contains_transaction_and_jsep() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "result": "ok"
+                    })),
+                },
+            }),
+            jsep: Some(Jsep {
+                jsep_type: JsepType::Answer,
+                trickle: Some(false),
+                sdp: "test_sdp".to_string(),
+            }),
+            transaction: Some("test_transaction".to_string()),
+            session_id: None,
+            sender: None,
+        };
+        let event: PluginEvent = rsp.try_into().unwrap();
+        assert_eq!(
+            event,
+            PluginEvent::AudioBridgeEvent(AudioBridgeEvent::ResultWithJsep {
+                transaction: "test_transaction".to_string(),
+                result: "ok".to_string(),
+                jsep: Jsep {
+                    jsep_type: JsepType::Answer,
+                    trickle: Some(false),
+                    sdp: "test_sdp".to_string(),
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn it_parse_return_err_when_parsing_result_without_transaction_and_without_jsep() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "result": "ok"
+                    })),
+                },
+            }),
+            jsep: None,
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: Result<PluginEvent, jarust_interface::Error> = rsp.try_into();
+        matches!(event, Err(jarust_interface::Error::IncompletePacket));
+    }
+
+    #[test]
+    fn it_parse_return_err_when_parsing_result_with_jsep_and_without_transaction() {
+        let rsp = JaResponse {
+            janus: ResponseType::Event(JaHandleEvent::PluginEvent {
+                plugin_data: PluginData {
+                    plugin: "janus.plugin.audiobridge".to_string(),
+                    data: PluginInnerData::Data(json!({
+                        "audiobridge": "event",
+                        "result": "ok"
+                    })),
+                },
+            }),
+            jsep: Some(Jsep {
+                jsep_type: JsepType::Answer,
+                trickle: Some(false),
+                sdp: "test_sdp".to_string(),
+            }),
+            transaction: None,
+            session_id: None,
+            sender: None,
+        };
+        let event: Result<PluginEvent, jarust_interface::Error> = rsp.try_into();
+        matches!(event, Err(jarust_interface::Error::IncompletePacket));
     }
 
     #[test]
