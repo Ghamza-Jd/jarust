@@ -237,7 +237,7 @@ impl JanusInterface for RestfulInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error> {
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<String, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -246,7 +246,7 @@ impl JanusInterface for RestfulInterface {
             "janus": "message",
             "body": message.body
         });
-        let (request, _) = self.decorate_request(request);
+        let (request, transaction) = self.decorate_request(request);
         self.inner
             .shared
             .client
@@ -254,7 +254,7 @@ impl JanusInterface for RestfulInterface {
             .json(&request)
             .send()
             .await?;
-        Ok(())
+        Ok(transaction)
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
@@ -317,7 +317,7 @@ impl JanusInterface for RestfulInterface {
     async fn fire_and_forget_msg_with_jsep(
         &self,
         message: HandleMessageWithJsep,
-    ) -> Result<(), Error> {
+    ) -> Result<String, Error> {
         let url = &self.inner.shared.url;
         let session_id = message.session_id;
         let handle_id = message.handle_id;
@@ -327,7 +327,7 @@ impl JanusInterface for RestfulInterface {
             "body": message.body,
             "jsep": message.jsep
         });
-        let (request, _) = self.decorate_request(request);
+        let (request, transaction) = self.decorate_request(request);
         self.inner
             .shared
             .client
@@ -335,7 +335,7 @@ impl JanusInterface for RestfulInterface {
             .json(&request)
             .send()
             .await?;
-        Ok(())
+        Ok(transaction)
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]

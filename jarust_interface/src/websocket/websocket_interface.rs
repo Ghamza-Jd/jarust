@@ -325,15 +325,15 @@ impl JanusInterface for WebSocketInterface {
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error> {
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<String, Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
             "handle_id": message.handle_id,
             "body": message.body
         });
-        self.send(request).await?;
-        Ok(())
+        let transaction = self.send(request).await?;
+        Ok(transaction)
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]
@@ -372,7 +372,7 @@ impl JanusInterface for WebSocketInterface {
     async fn fire_and_forget_msg_with_jsep(
         &self,
         message: HandleMessageWithJsep,
-    ) -> Result<(), Error> {
+    ) -> Result<String, Error> {
         let request = json!({
             "janus": "message",
             "session_id": message.session_id,
@@ -380,8 +380,8 @@ impl JanusInterface for WebSocketInterface {
             "body": message.body,
             "jsep": message.jsep
         });
-        self.send(request).await?;
-        Ok(())
+        let transaction = self.send(request).await?;
+        Ok(transaction)
     }
 
     #[tracing::instrument(level = tracing::Level::TRACE, skip_all)]

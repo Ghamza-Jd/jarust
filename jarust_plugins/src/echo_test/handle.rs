@@ -25,11 +25,10 @@ impl EchoTestHandle {
         params: EchoTestStartParams,
         jsep: Jsep,
         timeout: Duration,
-    ) -> Result<(), jarust_interface::Error> {
+    ) -> Result<String, jarust_interface::Error> {
         tracing::info!(plugin = "echotest", "Sending start with jsep");
         self.send_waiton_ack_with_jsep(params.try_into()?, jsep, timeout)
-            .await?;
-        Ok(())
+            .await
     }
 }
 

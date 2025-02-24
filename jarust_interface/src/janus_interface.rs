@@ -63,7 +63,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn destroy(&self, session_id: u64, timeout: Duration) -> Result<(), Error>;
 
     /// Sends a one-shot message
-    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<(), Error>;
+    async fn fire_and_forget_msg(&self, message: HandleMessage) -> Result<String, Error>;
 
     /// Sends a message and waits for acknowledgment.
     async fn send_msg_waiton_ack(
@@ -91,7 +91,7 @@ pub trait JanusInterface: Debug + Send + Sync + 'static {
     async fn fire_and_forget_msg_with_jsep(
         &self,
         message: HandleMessageWithJsep,
-    ) -> Result<(), Error>;
+    ) -> Result<String, Error>;
 
     /// Sends a message and waits for acknowledgment with jsep.
     async fn send_msg_waiton_ack_with_jsep(
