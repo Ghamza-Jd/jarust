@@ -161,7 +161,7 @@ impl JanusInterface for MockInterface {
     async fn fire_and_forget_msg(
         &self,
         _message: HandleMessage,
-    ) -> Result<(), jarust::interface::Error> {
+    ) -> Result<String, jarust::interface::Error> {
         todo!("Fire and forget is not implemented");
     }
 
@@ -184,7 +184,7 @@ impl JanusInterface for MockInterface {
     async fn fire_and_forget_msg_with_jsep(
         &self,
         _message: HandleMessageWithJsep,
-    ) -> Result<(), jarust::interface::Error> {
+    ) -> Result<String, jarust::interface::Error> {
         todo!("Fire and forget with jsep is not implemented");
     }
 
