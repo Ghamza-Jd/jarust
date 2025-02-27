@@ -367,17 +367,36 @@ impl JanusInterface for RestfulInterface {
         Ok(transaction)
     }
 
-    async fn send_handle_request(
-        &self,
-        request: HandleMessage,
-        timeout: Duration,
-    ) -> Result<JaResponse, Error> {
+    async fn send_handle_request(&self, request: HandleMessage) -> Result<(), Error> {
         let url = &self.inner.shared.url;
         let session_id = request.session_id;
         let handle_id = request.handle_id;
 
         let (request, _) = self.decorate_request(request.body);
-        let response = self
+        _ = self
+            .inner
+            .shared
+            .client
+            .post(format!("{url}/{session_id}/{handle_id}"))
+            .json(&request)
+            .send()
+            .await?
+            .json::<JaResponse>()
+            .await?;
+        Ok(())
+    }
+
+    async fn send_handle_request_waiton_ack(
+        &self,
+        request: HandleMessage,
+        timeout: Duration,
+    ) -> Result<String, Error> {
+        let url = &self.inner.shared.url;
+        let session_id = request.session_id;
+        let handle_id = request.handle_id;
+
+        let (request, transaction) = self.decorate_request(request.body);
+        _ = self
             .inner
             .shared
             .client
@@ -388,7 +407,7 @@ impl JanusInterface for RestfulInterface {
             .await?
             .json::<JaResponse>()
             .await?;
-        Ok(response)
+        Ok(transaction)
     }
 
     fn name(&self) -> Box<str> {
