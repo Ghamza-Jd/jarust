@@ -63,7 +63,7 @@ async fn it_websocket_core_tests() {
         .await
         .unwrap();
 
-    handle.detach(Duration::from_secs(5)).await.unwrap();
+    handle.detach().await.unwrap();
     assert_eq!(
         event_recv.recv().await.unwrap().janus,
         ResponseType::Event(JaHandleEvent::GenericEvent(GenericEvent::Detached)),

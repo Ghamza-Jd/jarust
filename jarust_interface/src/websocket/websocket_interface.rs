@@ -402,11 +402,24 @@ impl JanusInterface for WebSocketInterface {
         Ok(transaction)
     }
 
-    async fn send_handle_request(
+    async fn send_handle_request(&self, request: HandleMessage) -> Result<(), Error> {
+        let mut req = request.body;
+        merge_json(
+            &mut req,
+            &json!({
+                "session_id": request.session_id,
+                "handle_id": request.handle_id,
+            }),
+        );
+        _ = self.send(req).await?;
+        Ok(())
+    }
+
+    async fn send_handle_request_waiton_ack(
         &self,
         request: HandleMessage,
         timeout: Duration,
-    ) -> Result<JaResponse, Error> {
+    ) -> Result<String, Error> {
         let mut req = request.body;
         merge_json(
             &mut req,
@@ -416,7 +429,8 @@ impl JanusInterface for WebSocketInterface {
             }),
         );
         let transaction = self.send(req).await?;
-        self.poll_response(&transaction, timeout).await
+        self.poll_ack(&transaction, timeout).await?;
+        Ok(transaction)
     }
 
     fn name(&self) -> Box<str> {
