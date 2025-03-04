@@ -257,13 +257,13 @@ pub struct ConfiguredStream {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomCreatedRsp {
+pub struct VideoRoomCreatedRsp {
     pub room: JanusId,
     pub permanent: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct ListRoomsRsp {
+pub struct VideoRoomListRoomsRsp {
     pub list: Vec<Room>,
 }
 
@@ -274,30 +274,30 @@ pub struct ListParticipantsRsp {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomDestroyedRsp {
+pub struct VideoRoomDestroyedRsp {
     pub room: JanusId,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomEditedRsp {
+pub struct VideoRoomEditedRsp {
     pub room: JanusId,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RoomExistsRsp {
+pub struct VideoRoomExistsRsp {
     pub room: JanusId,
     pub exists: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct AccessRsp {
+pub struct VideoRoomAccessRsp {
     pub room: JanusId,
     #[serde(default = "Vec::default")]
     pub allowed: Vec<String>,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct ListForwardersRsp {
+pub struct VideoRoomListForwardersRsp {
     /// unique ID of the room
     pub room: JanusId,
 
@@ -306,7 +306,7 @@ pub struct ListForwardersRsp {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct RtpForwardRsp {
+pub struct VideoRoomRtpForwardRsp {
     /// unique ID, same as request
     pub room: JanusId,
 
@@ -317,7 +317,7 @@ pub struct RtpForwardRsp {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Deserialize)]
-pub struct StopRtpForwardRsp {
+pub struct VideoRoomStopRtpForwardRsp {
     /// unique ID, same as request
     pub room: JanusId,
 
@@ -336,16 +336,16 @@ mod tests {
     #[test]
     fn parse_attached_stream() {
         let source = "{
-               \"type\": \"audio\",
-               \"active\": true,
-               \"mindex\": 0,
-               \"mid\": \"0\",
-               \"ready\": false,
-               \"send\": true,
-               \"feed_id\": \"a8cabfaa-da33-4627-9938-57c39ecd94d8\",
-               \"feed_mid\": \"0\",
-               \"codec\": \"opus\"
-            }";
+            \"type\": \"audio\",
+            \"active\": true,
+            \"mindex\": 0,
+            \"mid\": \"0\",
+            \"ready\": false,
+            \"send\": true,
+            \"feed_id\": \"a8cabfaa-da33-4627-9938-57c39ecd94d8\",
+            \"feed_mid\": \"0\",
+            \"codec\": \"opus\"
+        }";
 
         let dut: AttachedStream = serde_json::from_str(source).unwrap();
 
