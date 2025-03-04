@@ -96,7 +96,9 @@ pub enum VideoRoomAudioCodec {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default)]
-pub struct VideoRoomAudioCodecList(Vec<VideoRoomAudioCodec>);
+pub struct VideoRoomAudioCodecList {
+    pub codecs: Vec<VideoRoomAudioCodec>,
+}
 
 impl VideoRoomAudioCodecList {
     pub fn new(codecs: Vec<VideoRoomAudioCodec>) -> Self {
@@ -105,7 +107,7 @@ impl VideoRoomAudioCodecList {
             .collect::<HashSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
-        Self(codecs)
+        Self { codecs }
     }
 }
 
@@ -115,7 +117,7 @@ impl Serialize for VideoRoomAudioCodecList {
         S: serde::Serializer,
     {
         let codecs = self
-            .0
+            .codecs
             .iter()
             .flat_map(|codec| match serde_json::to_string(codec) {
                 Ok(codec) => Some(codec.trim_matches('"').to_string()),
@@ -139,7 +141,9 @@ pub enum VideoRoomVideoCodec {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Default)]
-pub struct VideoRoomVideoCodecList(Vec<VideoRoomVideoCodec>);
+pub struct VideoRoomVideoCodecList {
+    pub codecs: Vec<VideoRoomVideoCodec>,
+}
 
 impl VideoRoomVideoCodecList {
     pub fn new(codecs: Vec<VideoRoomVideoCodec>) -> Self {
@@ -148,7 +152,7 @@ impl VideoRoomVideoCodecList {
             .collect::<HashSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
-        Self(codecs)
+        Self { codecs }
     }
 }
 
@@ -158,7 +162,7 @@ impl Serialize for VideoRoomVideoCodecList {
         S: serde::Serializer,
     {
         let codecs = self
-            .0
+            .codecs
             .iter()
             .flat_map(|codec| match serde_json::to_string(codec) {
                 Ok(codec) => Some(codec.trim_matches('"').to_string()),
