@@ -28,7 +28,7 @@ impl VideoRoomHandle {
         &self,
         room: Option<JanusId>,
         timeout: Duration,
-    ) -> Result<RoomCreatedRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomCreatedRsp, jarust_interface::Error> {
         self.create_room_with_config(
             VideoRoomCreateParams {
                 room,
@@ -49,13 +49,13 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomCreateParams,
         timeout: Duration,
-    ) -> Result<RoomCreatedRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomCreatedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending create");
         let mut message: Value = params.try_into()?;
         message["request"] = "create".into();
 
         self.handle
-            .send_waiton_rsp::<RoomCreatedRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomCreatedRsp>(message, timeout)
             .await
     }
 
@@ -69,13 +69,13 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomEditParams,
         timeout: Duration,
-    ) -> Result<RoomEditedRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomEditedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending edit");
         let mut message: Value = params.try_into()?;
         message["request"] = "edit".into();
 
         self.handle
-            .send_waiton_rsp::<RoomEditedRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomEditedRsp>(message, timeout)
             .await
     }
 
@@ -85,13 +85,13 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomDestroyParams,
         timeout: Duration,
-    ) -> Result<RoomDestroyedRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomDestroyedRsp, jarust_interface::Error> {
         tracing::info!(plugin = "videoroom", "Sending destroy");
         let mut message: Value = params.try_into()?;
         message["request"] = "destroy".into();
 
         self.handle
-            .send_waiton_rsp::<RoomDestroyedRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomDestroyedRsp>(message, timeout)
             .await
     }
 
@@ -107,7 +107,7 @@ impl VideoRoomHandle {
         message["request"] = "exists".into();
         let response = self
             .handle
-            .send_waiton_rsp::<RoomExistsRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomExistsRsp>(message, timeout)
             .await?;
         Ok(response.exists)
     }
@@ -121,7 +121,7 @@ impl VideoRoomHandle {
         tracing::info!(plugin = "videoroom", "Sending list");
         let response = self
             .handle
-            .send_waiton_rsp::<ListRoomsRsp>(json!({"request": "list"}), timeout)
+            .send_waiton_rsp::<VideoRoomListRoomsRsp>(json!({"request": "list"}), timeout)
             .await?;
 
         Ok(response.list)
@@ -134,7 +134,7 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomAllowedParams,
         timeout: Duration,
-    ) -> Result<AccessRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomAccessRsp, jarust_interface::Error> {
         if (params.action == VideoRoomAllowedAction::Enable
             || params.action == VideoRoomAllowedAction::Disable)
             && !params.allowed.is_empty()
@@ -150,7 +150,7 @@ impl VideoRoomHandle {
         message["request"] = "allowed".into();
 
         self.handle
-            .send_waiton_rsp::<AccessRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomAccessRsp>(message, timeout)
             .await
     }
 
@@ -217,12 +217,12 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomListForwardersParams,
         timeout: Duration,
-    ) -> Result<ListForwardersRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomListForwardersRsp, jarust_interface::Error> {
         let mut message = serde_json::to_value(params)?;
         message["request"] = "list_forwarders".into();
 
         self.handle
-            .send_waiton_rsp::<ListForwardersRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomListForwardersRsp>(message, timeout)
             .await
     }
 
@@ -231,12 +231,12 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomRtpForwardParams,
         timeout: Duration,
-    ) -> Result<RtpForwardRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomRtpForwardRsp, jarust_interface::Error> {
         let mut message = serde_json::to_value(params)?;
         message["request"] = "rtp_forward".into();
 
         self.handle
-            .send_waiton_rsp::<RtpForwardRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomRtpForwardRsp>(message, timeout)
             .await
     }
 
@@ -245,11 +245,11 @@ impl VideoRoomHandle {
         &self,
         params: VideoRoomStopRtpForward,
         timeout: Duration,
-    ) -> Result<StopRtpForwardRsp, jarust_interface::Error> {
+    ) -> Result<VideoRoomStopRtpForwardRsp, jarust_interface::Error> {
         let mut message = serde_json::to_value(params)?;
         message["request"] = "stop_rtp_forward".into();
         self.handle
-            .send_waiton_rsp::<StopRtpForwardRsp>(message, timeout)
+            .send_waiton_rsp::<VideoRoomStopRtpForwardRsp>(message, timeout)
             .await
     }
 }
